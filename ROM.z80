@@ -1,0 +1,11 @@
+.engine mycomputer
+
+.include "constants.asm"
+.include "IOSerial.asm"
+
+    ld SP,STACK
+    call init
+    jp   start
+
+.include "monty.asm"
+.include "ram.asm"

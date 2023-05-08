@@ -1,0 +1,219 @@
+
+()                      lambda, anonymous function
+""                      strings
+'                       ASCII char
+[]                      array
+,                       write number 
+;                       write byte
+$                       hex prefix
+-                       negative
+
+:add    :ad
+:and    :an
+:case   :ca
+:closure:cl
+:def    :de
+:div    :di
+:drop   :dr
+:dup    :du
+:eq     :e          
+:filter :fi
+:fold   :fo
+:get    :ge
+:go     :go             jump to address (interpret)
+:gt     :gt           
+:if     :if
+:inv    :in
+:key    :k
+:let    :le
+:lt     :lt
+:map    :ma
+:mul    :mu
+:neg    :n
+:over   :ov
+:or     :or           
+:print  :p
+:rot    :r        
+:set    :se
+:swap   :sw
+:undrop :u
+:while  :w
+:shl    :shl
+:shr    :shr
+:sub    :su
+:xor    :x
+
+
+
+
+easier to include constructor inside closure unless 2dup 2drop 2swap 2over is needed
+:map differs from other operators by leaving a closure on the stack
+A closure is just an array with the first item a point to a lambda, 
+- this lambda expect a pointer to its data on the stack
+- perhaps the closure could be precedded by an enter command which means it can act as a executable
+
+find ways to unify closures, lamdas, native code, constants, variables?
+do we need named variables?
+
+lambda:
+ .... ) SCAN code, execute until ), keep track of nesting 
+
+native code:
+exit interpreter to native
+native code ending with
+jp NEXT
+
+value:
+exit interpreter to native
+call doValue
+
+closure:
+exit interpreter to native
+call doClosure
+size?
+ptr to lambda
+data...
+
+maybe there could be some SCAN opcodes for these NULL for native, ? for value and ? for closure
+
+$ prefix for hex
+- prefix for negative unless followed by space, then it is subtract
+"" for strings
+[ 1, 2, 3, ] for arrays         "," copies number on stack to ptr and increments ptr by cell
+[ 1 ; 2 ; 3 ; ] for byte arrays ";" copies byte on stack to ptrand increments ptr by 1
+[ puts here in ptr
+] puts here on stack and puts ptr into here 
+need allow for nested arrays? no, it wont work. you cant start a new unknown length allocation before finishing the first
+
+
+use a pointer to manipulate structures:
+address ->      puts address into ptr variable
+3 :get          get 3rd element 
+100 3 :set      set 3rd element with 100
+3 :getb         get 3rd byte 
+100 3 :setb     set 3rd byte with 100
+:read           pushes the value pointed by ptr and increments
+:readb          pushes the byte onted to by ptr and increments
+<- get value of ptr variable
+
+Nested structures
+
+[ 1 , 2 ] [ 3 , 4 ] [,,]
+[3,4][1,2,,]
+here -> 1 , 2 <- \here :addr :store
+
+heap is a mutable variable how to update it if it is a value?
+[    heap ->
+]    <- :setheap
+<- \heap :store
+<- \heap :addr 0 :set
+It's good to assume that all mutable variables aree arrays
+
+prefer constants to variables
+
+\a 123 :let
+a :print
+456 \a :addr 0 :set
+\a :addr -> 456 ,
+
+if a variable returned its current value and its address (like useState) or its getter and setter?
+or its closure
+a :get
+23 a :set
+
+retrieving a symbol
+using a symbol returns both its value and its address but then the address is dropped
+setting recovers address and nips
+a        // -- 123 addr :drop
+456 a :set
+
+\nip (:swap :drop) :def
+\set (:undrop :nip :store) :def
+undrop reverses the last drop operation
+
+456 a :let
+[ 1, 2, 3 ] b :let
+b 1 :nget   
+b 1 :bget
+4 1 :bset
+:set assumes number
+:nget assumes indexed number
+
+an array var returns its address not its value (def vs let?)
+
+
+this is performed by doVAR
+assume that all vars are executable and have entry code (late bound)
+a lambda just executes
+a native exits interpreter
+- a variable exits and leaves its value and address and drops address
+- a closure leaves its address and executes the ptr in its first cell? assumes args are on stack already
+
+\add1 [ 1 , (:add) , ] :closure
+\add1 1 (:add) [,,] :closure
+
+2 add1
+
+maybe a variable is really a closure? if so it is automatically run with a default arg
+
+no magic symbols, either it is well understood, is a C convention or it is spelled out as a :word
+builtins start with a : and are scanned until a uniqueness is found, after that it jumps to the first non-letter
+
+:drop
+  ^ unique to drop skip the rest
+can we avoid compilation?
+
+accessing is more important than mutating
+array mutation more important than scalar mutation
+needs a convenient array syntax
+
+\x [1,2,3] :def
+x 2 -> :print
+> 3
+
+23 x 2 => 
+x 2 -> :print
+> 23
+
+\x [1,2,3] :def
+\y [1,2,3] :def
+
+x 0 :get y 0 :set                       // get and set restricted to arrays 
+x 0 :bget y 0 :bset                     // need byte versions
+'a 'b ASCII chars
+
+or can we use late binding?
+
+\x [ 1 ; 2 ; 3 ; ] :bytes
+x 3 :get                                // reference returns address and hidden? size in bytes arg for multiplication
+
+should an array say how log it is? can it specify whether it is in bytes or words?
+
+arrays must exist on the heap
+strings and lambdas can exist in the source (but need a terminator """ or ")" )
+compiled lambdas only exist on heap
+closures only exist on heap
+
+heap objects can have headers
+arrays might have size and type (byte or word flag)
+
+x (123) :let
+x
+returns a pointer to lambda
+x :go
+123
+
+x (123) :def
+x
+> 123
+
+def has entry code for doDef
+let has entry code for doLet
+
+
+
+
+
+
+
+

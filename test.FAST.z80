@@ -1,0 +1,139 @@
+    .engine mycomputer
+
+    .include "constants.asm"
+    .include "test.fast.mac.asm"
+    
+    .include "IOSerial.asm"
+    
+    ld SP,STACK
+    call init
+    jp testsStart
+    
+    .include "monty.asm"
+    .include "ram.asm"
+
+    .org $4000
+testsStart:
+
+    call execStr
+    db "9"
+    kall sqrt1
+    db 0
+    expect "9 sqrt",3
+ 
+    test "1", 1
+    test "2", 2
+    test "1", 1
+    test "0", 0
+    test "10", 10
+    test "123", 123
+    test "-1",-1
+    test "``", 0
+    test "`a`", $61
+    test "`\\``", $60
+    test "#10", $10
+    test "#FF", $FF
+
+    test "-1 2 +",1
+    test "-1 1 +",0
+    test "1 2 +", 3
+    test "4 1 2 +", 3
+    test "1 2 +", 3
+    test "123 456 +", 123+456
+    test "64 128 +", 64+128
+    test "-1 -1 -",0
+    test "5 3 -", 2
+    test "3 5 &", 1
+    test "3 5 |", 7
+    test "2 3 *", 6
+    test "1 2 3 + *", 5
+    test "7 3 /", 2
+    test "7 3 / frac", 1
+    test "10 sqrt", 3
+    test "10 sqrt frac", 1
+
+    test "2 3 =", FALSE
+    test "3 3 =", TRUE
+    test "1 2 <", TRUE
+    test "2 1 <", FALSE
+    test "2 3 <", TRUE
+    test "3 3 <", FALSE
+    test "1 2 >", FALSE
+    test "2 1 >", TRUE
+    test "3 3 >", FALSE
+    test "4 3 >", TRUE
+    test "2 2 <=", TRUE
+    test "2 2 >=", TRUE
+
+    test "() -2?", $0000
+    test "(a) -1?", $0001
+    test "(a:) -1?", $0001
+    test "(a:b) -1?", $0102
+    test "(:b) -1?", $0101
+
+    test ":x 20 let 100 x set x", 100    
+    test "[10 20 30] 1?", 20
+    test ":x [10 20 30] let 50 x 1? set x 1?", 50
+    test "bytes [1 2 3] 1?", 2
+    test "bytes :x [1 2 3] let x 1?", 2
+    test "bytes [`A` `B` `C`] 1?", 66
+
+    test "{1} exec", 1
+    test "{{1} exec} exec", 1
+    test "{{{1} exec} exec} exec", 1
+    test "1 5 (a) {2} func call", 2
+    test "1 5 (a) {$a} func call", 5
+    test "1 5 (a:b) {$a} func call ", 5
+
+    test "1 5 (a) {{2} exec} func call", 2
+    test "1 5 (a) {{$a} exec} func call", 5
+    test "1 5 (a) {{$a 1 +} exec} func call", 6
+    test "1 10 20 (ab) {-1 {$a} {$b} ifte} func call", 10
+    test "1 10 20 (ab) {0 {$a} {$b} ifte} func call", 20
+    
+    test ":x (a) {2} def 1 x", 2
+    test ":x (a) {$a} def 0 1 x", 1
+    test ":x (a) {$a} def 1 2 x", 2
+    test ":x (a:b) {$a} def 1 2 x", 2
+    test ":x (ab) {$b} def 1 2 x", 2
+    test ":x (ab) {$b $a} def 10 15 x -", 5
+    test ":x (a:b) {2} def 1 x", 2
+    test ":x (:b) {100 $b set $b} def x", 100
+    test ":x (a:b) {1 $b set $b} def 2 x", 1
+    test ":x (a:b) {$a $b set $b} def 2 x", 2
+
+    test "0 [{10} {20} {30}] switch", 10
+    test "1 10 20 (ab) {0 [{$a} {$b}] switch} func call", 10
+    test "0 10 20 (iab) {$i [{$a} {$b}] switch} func call", 10
+    test "1 10 20 (iab) {$i [{$a} {$b}] switch} func call", 20
+
+    test "false", false
+    test "true", true
+    test "1 5 false {10} if", 5
+    test "1 5 true {10} if", 10
+    test "1 false {10} {20} ifte", 20
+    test "1 true {10} {20} ifte", 10
+
+    test "[ 1 ] closure call", 1
+    test "[ [ 2 ] ] closure call 0?", 2
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+    call printStr
+    .cstr "Done!"
+    HALT
+    
+.align 2
+printer:
+    pop hl
+    call prtdec
+    jp (ix)
+
