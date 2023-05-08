@@ -1,6 +1,6 @@
 ; ************************************\*************************************
 ;
-; monty programming language for the Z80
+; Monty programming language for the Z80
 ;
 ; by John Hardy 2022
 ;
