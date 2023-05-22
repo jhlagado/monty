@@ -30,6 +30,9 @@ vHeapPtr:   ds 2                ;
 
 vTemp1:     ds 2                ; uninitialised sys variables
 
+vars:
+            ds 26 * 2 * 3       ; 52 vars x 3 bytes (RST LO HI)
+
 .align $100
 TIB:        ds TIBSIZE
 

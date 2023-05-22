@@ -12,7 +12,6 @@
 ;
 ; *****************************************************************************
 
-                                
 DSIZE       EQU     $80
 TIBSIZE     EQU     $100	        ; 256 bytes , along line!
 TRUE        EQU     -1		        ; C-style true
@@ -109,7 +108,7 @@ ctrlCodes:
     DB lsb(EMPTY)               ; ^^ 30 RS
     DB lsb(EMPTY)               ; ^_ 31 US
 
-opcodes:                        ; still available @ " % , ; DEL 
+opcodes:                        ; still available _ @ " % , ; DEL 
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
     DB lsb(nop_)                ; "
@@ -118,7 +117,7 @@ opcodes:                        ; still available @ " % , ; DEL
     DB lsb(nop_)                ; %  
     DB lsb(and_)                ; &
     DB lsb(string_)             ; '
-    DB lsb(arg_list_)            ; (    
+    DB lsb(arg_list_)           ; (    
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
@@ -143,64 +142,64 @@ opcodes:                        ; still available @ " % , ; DEL
     DB lsb(gt_)                 ; >  
     DB lsb(index_)              ; ?    
     DB lsb(nop_)                ; @  
-    DB lsb(ident_)              ; A     
-    DB lsb(ident_)              ; B     
-    DB lsb(ident_)              ; C     
-    DB lsb(ident_)              ; D     
-    DB lsb(ident_)              ; E     
-    DB lsb(ident_)              ; F     
-    DB lsb(ident_)              ; G     
-    DB lsb(ident_)              ; h     
-    DB lsb(ident_)              ; I     
-    DB lsb(ident_)              ; J     
-    DB lsb(ident_)              ; K     
-    DB lsb(ident_)              ; L     
-    DB lsb(ident_)              ; M     
-    DB lsb(ident_)              ; N     
-    DB lsb(ident_)              ; O     
-    DB lsb(ident_)              ; p     
-    DB lsb(ident_)              ; Q     
-    DB lsb(ident_)              ; R     
-    DB lsb(ident_)              ; S     
-    DB lsb(ident_)              ; T     
-    DB lsb(ident_)              ; U     
-    DB lsb(ident_)              ; V     
-    DB lsb(ident_)              ; W     
-    DB lsb(ident_)              ; X     
-    DB lsb(ident_)              ; Y     
-    DB lsb(ident_)              ; Z    
+    DB lsb(identU_)             ; A     
+    DB lsb(identU_)             ; B     
+    DB lsb(identU_)             ; C     
+    DB lsb(identU_)             ; D     
+    DB lsb(identU_)             ; E     
+    DB lsb(identU_)             ; F     
+    DB lsb(identU_)             ; G     
+    DB lsb(identU_)             ; h     
+    DB lsb(identU_)             ; I     
+    DB lsb(identU_)             ; J     
+    DB lsb(identU_)             ; K     
+    DB lsb(identU_)             ; L     
+    DB lsb(identU_)             ; M     
+    DB lsb(identU_)             ; N     
+    DB lsb(identU_)             ; O     
+    DB lsb(identU_)             ; p     
+    DB lsb(identU_)             ; Q     
+    DB lsb(identU_)             ; R     
+    DB lsb(identU_)             ; S     
+    DB lsb(identU_)             ; T     
+    DB lsb(identU_)             ; U     
+    DB lsb(identU_)             ; V     
+    DB lsb(identU_)             ; W     
+    DB lsb(identU_)             ; X     
+    DB lsb(identU_)             ; Y     
+    DB lsb(identU_)             ; Z    
     DB lsb(array_)              ; [
-    DB lsb(comment_)            ; \
+    DB lsb(command_)            ; \
     DB lsb(arrayEnd_)           ; ]
     DB lsb(xor_)                ; ^
-    DB lsb(ident_)              ; _
+    DB lsb(nop_)                ; _
     DB lsb(char_)               ; `    	    
-    DB lsb(ident_)              ; a     
-    DB lsb(ident_)              ; b  
-    DB lsb(ident_)              ; c  
-    DB lsb(ident_)              ; d  
-    DB lsb(ident_)              ; e  
-    DB lsb(ident_)              ; f  
-    DB lsb(ident_)              ; g  
-    DB lsb(ident_)              ; h  
-    DB lsb(ident_)              ; i  
-    DB lsb(ident_)              ; j  
-    DB lsb(ident_)              ; k  
-    DB lsb(ident_)              ; l  
-    DB lsb(ident_)              ; m  
-    DB lsb(ident_)              ; n  
-    DB lsb(ident_)              ; o  
-    DB lsb(ident_)              ; p  
-    DB lsb(ident_)              ; q  
-    DB lsb(ident_)              ; r  
-    DB lsb(ident_)              ; s  
-    DB lsb(ident_)              ; t  
-    DB lsb(ident_)              ; u  
-    DB lsb(ident_)              ; v  
-    DB lsb(ident_)              ; w  
-    DB lsb(ident_)              ; x  
-    DB lsb(ident_)              ; y  
-    DB lsb(ident_)              ; z  
+    DB lsb(identL_)             ; a     
+    DB lsb(identL_)             ; b  
+    DB lsb(identL_)             ; c  
+    DB lsb(identL_)             ; d  
+    DB lsb(identL_)             ; e  
+    DB lsb(identL_)             ; f  
+    DB lsb(identL_)             ; g  
+    DB lsb(identL_)             ; h  
+    DB lsb(identL_)             ; i  
+    DB lsb(identL_)             ; j  
+    DB lsb(identL_)             ; k  
+    DB lsb(identL_)             ; l  
+    DB lsb(identL_)             ; m  
+    DB lsb(identL_)             ; n  
+    DB lsb(identL_)             ; o  
+    DB lsb(identL_)             ; p  
+    DB lsb(identL_)             ; q  
+    DB lsb(identL_)             ; r  
+    DB lsb(identL_)             ; s  
+    DB lsb(identL_)             ; t  
+    DB lsb(identL_)             ; u  
+    DB lsb(identL_)             ; v  
+    DB lsb(identL_)             ; w  
+    DB lsb(identL_)             ; x  
+    DB lsb(identL_)             ; y  
+    DB lsb(identL_)             ; z  
     DB lsb(block_)              ; {
     DB lsb(or_)                 ; |  
     DB lsb(blockEnd_)           ; }  
@@ -270,8 +269,10 @@ array_:
     jp array
 arrayEnd_:
     jp arrayEnd
-ident_:
-    jp ident
+identU_:
+    jp identU
+identL_:
+    jp identL
 symbol_:
     jp symbol
 and_:    
@@ -381,17 +382,24 @@ div_:
     push de                     ; push result
     jp (ix)
 
-comment_:
+command_:
+    inc bc
+    ld a,(bc)
+    cp $5C                      ; \\ comment
+    jr z,comment
+    ld hl,1                     ; error 1: unknown command
+    jp error
+
+comment:
     inc bc                      ; point to next char
     ld a,(bc)
     cp " "                      ; terminate on any char less than SP 
-    jr nc,comment_
+    jr nc,comment
     dec bc
     jp (ix) 
 
 nop_:  
     jp (ix)
-
 
 ;*******************************************************************
 ; word operators
@@ -918,59 +926,59 @@ arrayEnd3:
 
 ; str -- num
 hash:
-    pop hl
-    push bc
-    ld bc,hl
-    call hashStr
-    pop bc
-    push hl
+    ; pop hl
+    ; push bc
+    ; ld bc,hl
+    ; call hashStr
+    ; pop bc
+    ; push hl
     jp (ix)
 
 ; symbol func -- 
 def:
-    ld ix,def1
-    jp func
-def1:
-    ld ix,(vNext)
-    pop de                              ; hl = symbol de = addr (sp) = IP
-    ld hl,bc
-    jr let1
+;     ld ix,def1
+;     jp func
+; def1:
+;     ld ix,(vNext)
+;     pop de                              ; hl = symbol de = addr (sp) = IP
+;     ld hl,bc
+    ; jr let1
 
 ; symbol value -- 
 let:
-    ld hl,bc                            ; de = addr (sp) = IP (sp+2) = symbol
-    ex (sp),hl                          
-    ex de,hl                            
-    ld hl,(vHeapPtr)                    ; hl = heap
-    ld (hl),$cd                         ; compile "call dolet"
-    inc hl
-    ld (hl),lsb(dolet)
-    inc hl
-    ld (hl),msb(dolet)
-    inc hl
-    ld (hl),e
-    inc hl
-    ld (hl),d
+;     ld hl,bc                            ; de = addr (sp) = IP (sp+2) = symbol
+;     ex (sp),hl                          
+;     ex de,hl                            
+;     ld hl,(vHeapPtr)                    ; hl = heap
+;     ld (hl),$cd                         ; compile "call dolet"
+;     inc hl
+;     ld (hl),lsb(dolet)
+;     inc hl
+;     ld (hl),msb(dolet)
+;     inc hl
+;     ld (hl),e
+;     inc hl
+;     ld (hl),d
 
-    ld de,(vHashStr)
-    inc hl
-    ld (hl),e
-    inc hl
-    ld (hl),d
+;     ld de,(vHashStr)
+;     inc hl
+;     ld (hl),e
+;     inc hl
+;     ld (hl),d
 
-    dec hl
-    ld de,(vHeapPtr)            ; de = start of definition
-    ld (vHeapPtr),hl            ; update heap ptr to end of definition
-    pop hl                      ; de = addr, hl = IP
-let1:
-    ex (sp),hl                  ; hl = symbol de = addr (sp) = IP
-    ld bc,hl                    ; bc = symbol
-    call defineEntry
-    jr c,let2
-    ; call error
-    ; .cstr "Let Collision"
-let2:
-    pop bc
+;     dec hl
+;     ld de,(vHeapPtr)            ; de = start of definition
+;     ld (vHeapPtr),hl            ; update heap ptr to end of definition
+;     pop hl                      ; de = addr, hl = IP
+; let1:
+;     ex (sp),hl                  ; hl = symbol de = addr (sp) = IP
+;     ld bc,hl                    ; bc = symbol
+;     call defineEntry
+;     jr c,let2
+;     ld hl,2                      ; error 2: Let collision
+;     jp error
+; let2:
+;     pop bc
     jp (ix)
 
 ; addr -- value
@@ -1010,47 +1018,46 @@ addr1:
     jp (ix)
 
 symbol:
-    inc bc
-    ld de,PAD
-    ld h,msb(opcodesBase)                   ; this table identifies the char type
-    jr symbol1
-symbol0:                                 ; copy to PAD area 
-    inc bc                              ; characters that are part of the identifier  
-    inc de
-symbol1:                                 ; 0-9 A-Z a-z _
-    ld a,(bc)
-    ld (de),a
-    cp " "+1
-    jr c,symbol2
-    ld l,a
-    ld a,(hl)
-    cp lsb(ident_)
-    jr z,symbol0
-    cp lsb(num_)
-    jr z,symbol0
-symbol2:
-    dec bc
-    xor a
-    ld (de),a                           ; terminate string with NUL
-    push bc
-    ld bc,PAD
-    call hashStr                        ; hl = hash
-    pop bc
-    push hl
+;     inc bc
+;     ld de,PAD
+;     ld h,msb(opcodesBase)                   ; this table identifies the char type
+;     jr symbol1
+; symbol0:                                 ; copy to PAD area 
+;     inc bc                              ; characters that are part of the identifier  
+;     inc de
+; symbol1:                                 ; 0-9 A-Z a-z _
+;     ld a,(bc)
+;     ld (de),a
+;     cp " "+1
+;     jr c,symbol2
+;     ld l,a
+;     ld a,(hl)
+;     cp lsb(ident_)
+;     jr z,symbol0
+;     cp lsb(num_)
+;     jr z,symbol0
+; symbol2:
+;     dec bc
+;     xor a
+;     ld (de),a                           ; terminate string with NUL
+;     push bc
+;     ld bc,PAD
+;     call hashStr                        ; hl = hash
+;     pop bc
+;     push hl
     jp (ix)
     
-ident:
-    ld de,PAD
-    call readIdent
-    push bc
-    ld bc,PAD
-    call hashStr                        ; hl = hash
-    ld bc,hl
-    call lookupEntry
-    pop bc
-    jr c, ident3                        ; todo: no entry? print an error message 
-    jp (ix)
-ident3:    
+identU:
+    ld a,(bc)                           ; a = identifier char
+    sub 'A'                             ; 'A' = 0
+    jr ident1
+identL:
+    ld a,(bc)
+    sub 'a' + 26
+ident1:
+    add a,a
+    ld l,a
+    ld h,msb(vars)
     jp (hl)
 
 frac:
@@ -1170,108 +1177,108 @@ scan:
 ; -------------------------------------------------------------------------------
 
 
-; hash C-string 
-; BC = str
-; HL = hash
-hashStr:
-    ld (vHashStr),bc                    ; store source string
-    ld hl,0                             
-hashStr1:    
-    ld a,(bc)                           ; load next char
-    inc bc
-    cp 0                                ; NUL?
-    ret z                     
-hashStr2:
-    ld d,0
-    ld e,a 
-    add hl,de
-    ld de,hl                            ; hl *= 193 (11000001)
-    add hl,hl                           ; shift left
-    add hl,de                           ; add
-    add hl,hl                           ; shift left
-    add hl,hl                           ; shift left
-    add hl,hl                           ; shift left
-    add hl,hl                           ; shift left
-    add hl,hl                           ; shift left
-    add hl,hl                           ; shift left
-    add hl,de                           ; add
-    jr hashStr1
+; ; hash C-string 
+; ; BC = str
+; ; HL = hash
+; hashStr:
+;     ld (vHashStr),bc                    ; store source string
+;     ld hl,0                             
+; hashStr1:    
+;     ld a,(bc)                           ; load next char
+;     inc bc
+;     cp 0                                ; NUL?
+;     ret z                     
+; hashStr2:
+;     ld d,0
+;     ld e,a 
+;     add hl,de
+;     ld de,hl                            ; hl *= 193 (11000001)
+;     add hl,hl                           ; shift left
+;     add hl,de                           ; add
+;     add hl,hl                           ; shift left
+;     add hl,hl                           ; shift left
+;     add hl,hl                           ; shift left
+;     add hl,hl                           ; shift left
+;     add hl,hl                           ; shift left
+;     add hl,hl                           ; shift left
+;     add hl,de                           ; add
+;     jr hashStr1
 
-; add entry to hash slots and hash pointers
-; bc = hash (b = hi, c = lo), de = addr
-; sets carry if successful
-defineEntry:               
-    sla c                               ; lo = lo * 2
-    ld l,c                              ; lo1 = lo
-    ld h,msb(hashSlots)                 ; hl = slots[lo*4]
-defineEntry0:
-    ld a,(hl)                           ; a = (lo1)
-    cp UNUSED                           ; is it unused?
-    jr z,defineEntry3                   ; yes, add entry
-    ld a,c                              ; a = lo
-    cp (hl)                             ; compare (lo1) with lo
-    jr nz,defineEntry1                  ; no match loop around
-    inc l 
-    ld a,b                              ; a = hi
-    cp (hl)                             ; compare (lo1+1) with hi
-    jr z,defineEntry2                   ; identical hash, collision, exit
-    dec l                               ; restore l
-defineEntry1:
-    inc l                               ; try next entry
-    inc l 
-    ld a,c                              ; compare lo and lo1
-    cp l                                ; if equal then there's no space left, reject 
-    jr nz,defineEntry0
-defineEntry2:
-    or a                                ; clear carry flag, failure
-    ret
-defineEntry3:                           ; new entry
-    ld (hl),c                           ; (lo1) = hash lo
-    inc hl
-    ld (hl),b                           ; (lo1 + 1) = hash hi
-    ld h,msb(hashWords)                 ; hl = slots[lo*4]
-    ld (hl),d
-    dec hl
-    ld (hl),e                           ; (slot + 2) = address
-    scf                                 ; set carry flag, success
-    ret
+; ; add entry to hash slots and hash pointers
+; ; bc = hash (b = hi, c = lo), de = addr
+; ; sets carry if successful
+; defineEntry:               
+;     sla c                               ; lo = lo * 2
+;     ld l,c                              ; lo1 = lo
+;     ld h,msb(hashSlots)                 ; hl = slots[lo*4]
+; defineEntry0:
+;     ld a,(hl)                           ; a = (lo1)
+;     cp UNUSED                           ; is it unused?
+;     jr z,defineEntry3                   ; yes, add entry
+;     ld a,c                              ; a = lo
+;     cp (hl)                             ; compare (lo1) with lo
+;     jr nz,defineEntry1                  ; no match loop around
+;     inc l 
+;     ld a,b                              ; a = hi
+;     cp (hl)                             ; compare (lo1+1) with hi
+;     jr z,defineEntry2                   ; identical hash, collision, exit
+;     dec l                               ; restore l
+; defineEntry1:
+;     inc l                               ; try next entry
+;     inc l 
+;     ld a,c                              ; compare lo and lo1
+;     cp l                                ; if equal then there's no space left, reject 
+;     jr nz,defineEntry0
+; defineEntry2:
+;     or a                                ; clear carry flag, failure
+;     ret
+; defineEntry3:                           ; new entry
+;     ld (hl),c                           ; (lo1) = hash lo
+;     inc hl
+;     ld (hl),b                           ; (lo1 + 1) = hash hi
+;     ld h,msb(hashWords)                 ; hl = slots[lo*4]
+;     ld (hl),d
+;     dec hl
+;     ld (hl),e                           ; (slot + 2) = address
+;     scf                                 ; set carry flag, success
+;     ret
 
-; looks up hash and returns address
-; bc = hash
-; returns addr in hl, sets carry if successful
-lookupEntry:
-    sla c                               ; lo = lo * 2
-    ld l,c                              ; lo1 = lo
-    ld h,msb(hashSlots)                 ; hl = slots[lo*4]
-lookupEntry0:
-    ld a,(hl)                           ; a = (hl), slot
-    cp UNUSED                           ; is it unused?
-    jr z,defineEntry2                   ; yes, does not exist
-    ld a,c                              ; a = lo
-    cp (hl)                             ; compare (lo1) with lo
-    jr nz,lookupEntry1                  ; no match loop around
-    inc l 
-    ld a,b                              ; a = hi
-    cp (hl)                             ; compare (lo1+1) with hi
-    jr z,lookupEntry3
-    dec l
-lookupEntry1:
-    inc l 
-    inc l 
-    ld a,c 
-    cp l                                ; no space left, reject 
-    jr nz,lookupEntry0
-lookupEntry2:
-    or a                                ; clear carry flag, failure
-    ret
-lookupEntry3:
-    ld h,msb(hashWords)                 ; hl = slots[lo*4]
-    ld d,(hl)
-    dec l                               ; restore l
-    ld e,(hl)                           ; (slot + 2) = address
-    ex de,hl
-    scf
-    ret
+; ; looks up hash and returns address
+; ; bc = hash
+; ; returns addr in hl, sets carry if successful
+; lookupEntry:
+;     sla c                               ; lo = lo * 2
+;     ld l,c                              ; lo1 = lo
+;     ld h,msb(hashSlots)                 ; hl = slots[lo*4]
+; lookupEntry0:
+;     ld a,(hl)                           ; a = (hl), slot
+;     cp UNUSED                           ; is it unused?
+;     jr z,defineEntry2                   ; yes, does not exist
+;     ld a,c                              ; a = lo
+;     cp (hl)                             ; compare (lo1) with lo
+;     jr nz,lookupEntry1                  ; no match loop around
+;     inc l 
+;     ld a,b                              ; a = hi
+;     cp (hl)                             ; compare (lo1+1) with hi
+;     jr z,lookupEntry3
+;     dec l
+; lookupEntry1:
+;     inc l 
+;     inc l 
+;     ld a,c 
+;     cp l                                ; no space left, reject 
+;     jr nz,lookupEntry0
+; lookupEntry2:
+;     or a                                ; clear carry flag, failure
+;     ret
+; lookupEntry3:
+;     ld h,msb(hashWords)                 ; hl = slots[lo*4]
+;     ld d,(hl)
+;     dec l                               ; restore l
+;     ld e,(hl)                           ; (slot + 2) = address
+;     ex de,hl
+;     scf
+;     ret
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1476,326 +1483,41 @@ printStr:
     ex (sp),hl		            ; put it back	
     ret
 
-; executes a null teminated string (null executes exit_)
-; the string should be immedaitely following the call
-execStr:                        ; create a root stack frame
-    ; pop bc                      ; bc = code*
-    ; dec bc                      ; dec to prepare for next routine
-    ; ld de,0
-    ; push de                     ; push fake IP
-    ; push de                     ; push null arglist*
-    ; push de                     ; push null first_arg*
-    ; push de                     ; push fake BP
-    ; jp (ix) 
+; branch:                         ; executes the address on the stack
+;     pop bc                      ; bc = code*
+;     dec bc                      ; dec to prepare for next routine
+;     jp (ix) 
 
-branch:                         ; executes the address on the stack
-    pop bc                      ; bc = code*
-    dec bc                      ; dec to prepare for next routine
-    jp (ix) 
+; ; executes a null teminated string (null executes exit_)
+; ; the string should be immedaitely following the call
+; execStr:                        ; create a root stack frame
+;     ; pop bc                      ; bc = code*
+;     ; dec bc                      ; dec to prepare for next routine
+;     ; ld de,0
+;     ; push de                     ; push fake IP
+;     ; push de                     ; push null arglist*
+;     ; push de                     ; push null first_arg*
+;     ; push de                     ; push fake BP
+;     ; jp (ix) 
 
-define:
-    pop hl
-    ld a,(hl)
-    inc hl
-    ld bc,hl
-    ld e,a
-    ld d,0
-    add hl,de
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    inc hl
-    push hl                             ; bc = str 
-    push de
-    call hashStr                        ; hl = hash
-    pop de
-    ld bc,hl
-    jp defineEntry
-
-init:       
-    ld ix,(vNext)
-    ld iy,STACK
-    ld hl,isysVars
-    ld de,sysVars
-    ld bc,8 * 2
-    ldir
-    
-    ld a,UNUSED
-    ld b,0
-    ld hl, hashSlots
-init1:
-    ld (hl),a
-    inc hl
-    djnz init1 
-
-    call define
-    .pstr "abs",0                       
-    dw abs1
-
-    call define
-    .pstr "addr",0                       
-    dw addr
-
-    call define
-    .pstr "bytes",0                       
-    dw bytes
-
-    call define
-    .pstr "call",0                       
-    dw call
-
-    call define
-    .pstr "closure",0                       
-    dw closure
-
-    call define
-    .pstr "def",0                       
-    dw def
-
-    call define
-    .pstr "exec",0                       
-    dw exec
-
-    call define
-    .pstr "false",0                       
-    dw false1
-
-    call define
-    .pstr "filter",0                       
-    dw filter
-
-    call define
-    .pstr "frac",0                       
-    dw frac
-
-    call define
-    .pstr "func",0                       
-    dw func
-
-    call define
-    .pstr "hash",0                       
-    dw hash
-
-    call define
-    .pstr "input",0                       
-    dw input
-
-    call define
-    .pstr "if",0                       
-    dw if
-
-    call define
-    .pstr "ifte",0                       
-    dw ifte
-
-    call define
-    .pstr "key",0                       
-    dw key
-
-    call define
-    .pstr "let",0                       
-    dw let
-
-    call define
-    .pstr "loop",0                       
-    dw loop
-
-    call define
-    .pstr "map",0                       
-    dw map
-
-    call define
-    .pstr "mod",0                       
-    dw mod
-
-    call define
-    .pstr "neg",0                       
-    dw neg
-
-    call define
-    .pstr "nil",0                       
-    dw null1
-
-    call define
-    .pstr "output",0                       
-    dw output
-
-    call define
-    .pstr "scan",0                       
-    dw scan
-
-    call define
-    .pstr "set",0                       
-    dw set
-
-    call define
-    .pstr "shl",0                       
-    dw shl
-
-    call define
-    .pstr "shr",0                       
-    dw shr
-
-    call define
-    .pstr "sqrt",0                       
-    dw sqrt1
-
-    call define
-    .pstr "switch",0                       
-    dw switch
-
-    call define
-    .pstr "true",0                       
-    dw true1
-
-    call define
-    .pstr "words",0                       
-    dw words
-
-    ret
-
-start:
-    ld sp,STACK		        ; start of monty
-    call init		            ; setups
-    call printStr		        ; prog count to stack, put code line 235 on stack then call print
-    .cstr "monty V0.0\r\n"
-
-interpret:
-    call prompt
-
-    ld bc,0                     ; load bc with offset into TIB, decide char into tib or execute or control    
-    ld (vTIBPtr),bc
-
-interpret2:                     ; calc nesting (a macro might have changed it)
-    ld e,0                      ; initilize nesting value
-    push bc                     ; save offset into TIB, 
-                                ; bc is also the count of chars in TIB
-    ld hl,TIB                   ; hl is start of TIB
-    jr interpret4
-
-interpret3:
-    ld a,(hl)                   ; a = char in TIB
-    inc hl                      ; inc pointer into TIB
-    dec bc                      ; dec count of chars in TIB
-    call nesting                ; update nesting value
-
-interpret4:
-    ld a,c                      ; is count zero?
-    or b
-    jr nz, interpret3           ; if not loop
-    pop bc                      ; restore offset into TIB
-    
-waitchar:    
-    call getchar                ; loop around waiting for character from serial port
-    cp $20			            ; compare to space
-    jr nc,waitchar1		        ; if >= space, if below 20 set cary flag
-    cp $0                       ; is it end of string? NUL end of string
-                                ; ???? NEEDED?
-    jr z,waitchar4
-    cp '\r'                     ; carriage return? ascii 13
-    jr z,waitchar3		        ; if anything else its macro/control 
-
-macro:       
-;  ld (vTIBPtr),bc
-;  ld hl,ctrlCodes
-;  add a,l			            ; look up key of macros
-;  ld l,a
-;  ld e,(hl)
-;  ld a,e
-;  or a
-;  jr z,macro1
-;  ld d,msb(macros)
-;  push de
-;  call call		            ; monty exec_ operation and jump to it
-;  db DC1,0
-; macro1:
-;  ld bc,(vTIBPtr)
-    jr interpret2
-
-waitchar1:
-    ld hl,TIB
-    add hl,bc
-    ld (hl),a                   ; store the character in textbuf
-    inc bc
-    call putchar                ; echo character to screen
-    call nesting
-    jr  waitchar                ; wait for next character
-
-waitchar3:
-    ld hl,TIB
-    add hl,bc
-    ld (hl),"\r"                ; store the crlf in textbuf
-    inc hl
-    ld (hl),"\n"  
-    inc hl    
-    inc bc
-    inc bc
-    call crlf                   ; echo character to screen
-    ld a,e                      ; if zero nesting append and ETX after \r
-    or a
-    jr nz,waitchar
-
-waitchar4:    
-    ld (vTIBPtr),bc
-    ld bc,TIB                   ; Instructions stored on heap at address HERE, 
-                                ; we pressed enter
-    dec bc
-
-next:        
-    inc bc                      ; Increment the IP
-    ld a,(bc)                   ; Get the next character and dispatch
-    cp " "                      ; whitespace?
-    jr z,next                   ; space? ignore
-    jr c,next1
-    cp $80                      ; if bit 7 = 1, treat as a big endian 15 bit address
-    jr nc,next2
-    ld l,a                      ; index into table
-    ld h,msb(opcodesBase)       ; start address of jump table    
-    ld l,(hl)                   ; get low jump address
-    ld h,msb(page4)             ; Load h with the 1st page address
-    jp (hl)                     ; Jump to routine
-next1:
-    cp ESC                      ; escape from interpreter, needed???
-    jr z,escape_                   
-    cp NUL                      ; end of input string?
-    jr z,exit_
-    cp DC1                      ; literal number
-    jr z,literal_
-    cp DC2                      ; enter routine
-    jr z,enter_
-    jp interpret                ; no, other whitespace, macros?
-next2:
-    ld h,a                      ; hl = big endian 15 bit address, ignore high bit
-    inc bc
-    ld a,(bc)
-    ld l,a
-    add hl,hl                   ; hl = word aligned 16 bit address
-    jp (hl)
-
-escape_:
-    inc bc                      ; falls through
-exit_:
-    ld hl,bc
-    jp (hl)
-
-literal_:
-    inc bc
-    ld a,(bc)
-    ld l,a
-    inc bc
-    ld a,(bc)
-    ld h,a
-    push hl
-    jp (ix)
-
-enter_:
-    inc bc
-    ld a,(bc)
-    ld l,a
-    inc bc
-    ld a,(bc)
-    ld h,a
-    jp (hl)
+; define:
+;     pop hl
+;     ld a,(hl)
+;     inc hl
+;     ld bc,hl
+;     ld e,a
+;     ld d,0
+;     add hl,de
+;     ld e,(hl)
+;     inc hl
+;     ld d,(hl)
+;     inc hl
+;     push hl                             ; bc = str 
+;     push de
+;     call hashStr                        ; hl = hash
+;     pop de
+;     ld bc,hl
+;     jp defineEntry
 
 ; arg1 .. argn func -- ?
 call:
@@ -2054,29 +1776,332 @@ doClosure3:
     ld bc,(vTemp1)                      ; restore IP
     jp (ix)
 
-; readIdent
-; reads identifier from input stream into buffer
-; input: bc = IP, de = buffer
+; ; readIdent
+; ; reads identifier from input stream into buffer
+; ; input: bc = IP, de = buffer
 
-readIdent:
-    ld h,msb(opcodesBase)               ; this table identifies the char type
-    jr readIdent1
-readIdent0:                             ; copy to PAD area 
-    inc bc                              ; characters that are part of the identifier  
-    inc de
-readIdent1:                             ; 0-9 A-Z a-z
-    ld a,(bc)
-    ld (de),a
-    cp " "+1
-    jr c,readIdent2
-    ld l,a
-    ld a,(hl)
-    cp lsb(ident_)
-    jr z,readIdent0
-    cp lsb(num_)
-    jr z,readIdent0
-readIdent2:
-    dec bc
-    xor a
-    ld (de),a                           ; terminate string with NUL
+; readIdent:
+;     ld h,msb(opcodesBase)               ; this table identifies the char type
+;     jr readIdent1
+; readIdent0:                             ; copy to PAD area 
+;     inc bc                              ; characters that are part of the identifier  
+;     inc de
+; readIdent1:                             ; 0-9 A-Z a-z
+;     ld a,(bc)
+;     ld (de),a
+;     cp " "+1
+;     jr c,readIdent2
+;     ld l,a
+;     ld a,(hl)
+;     cp lsb(ident_)
+;     jr z,readIdent0
+;     cp lsb(num_)
+;     jr z,readIdent0
+; readIdent2:
+;     dec bc
+;     xor a
+;     ld (de),a                           ; terminate string with NUL
+;     ret
+
+init:       
+    ld ix,(vNext)
+    ld iy,STACK
+    ld hl,isysVars
+    ld de,sysVars
+    ld bc,8 * 2
+    ldir
+    ld hl,vars
+    ld b, 26 + 26
+init0:
+    ld (hl),$CF                             ; compile rst$08 nop nop
+    inc hl
+    xor a                                   
+    ld (hl),a
+    inc hl
+    ld (hl),a
+    inc hl
+    djnz init0
+    
+;     ld a,UNUSED
+;     ld b,0
+;     ld hl, hashSlots
+; init1:
+;     ld (hl),a
+;     inc hl
+;     djnz init1 
+
+    ; call define
+    ; .pstr "abs",0                       
+    ; dw abs1
+
+    ; call define
+    ; .pstr "addr",0                       
+    ; dw addr
+
+    ; call define
+    ; .pstr "bytes",0                       
+    ; dw bytes
+
+    ; call define
+    ; .pstr "call",0                       
+    ; dw call
+
+    ; call define
+    ; .pstr "closure",0                       
+    ; dw closure
+
+    ; call define
+    ; .pstr "def",0                       
+    ; dw def
+
+    ; call define
+    ; .pstr "exec",0                       
+    ; dw exec
+
+    ; call define
+    ; .pstr "false",0                       
+    ; dw false1
+
+    ; call define
+    ; .pstr "filter",0                       
+    ; dw filter
+
+    ; call define
+    ; .pstr "frac",0                       
+    ; dw frac
+
+    ; call define
+    ; .pstr "func",0                       
+    ; dw func
+
+    ; call define
+    ; .pstr "hash",0                       
+    ; dw hash
+
+    ; call define
+    ; .pstr "input",0                       
+    ; dw input
+
+    ; call define
+    ; .pstr "if",0                       
+    ; dw if
+
+    ; call define
+    ; .pstr "ifte",0                       
+    ; dw ifte
+
+    ; call define
+    ; .pstr "key",0                       
+    ; dw key
+
+    ; call define
+    ; .pstr "let",0                       
+    ; dw let
+
+    ; call define
+    ; .pstr "loop",0                       
+    ; dw loop
+
+    ; call define
+    ; .pstr "map",0                       
+    ; dw map
+
+    ; call define
+    ; .pstr "mod",0                       
+    ; dw mod
+
+    ; call define
+    ; .pstr "neg",0                       
+    ; dw neg
+
+    ; call define
+    ; .pstr "nil",0                       
+    ; dw null1
+
+    ; call define
+    ; .pstr "output",0                       
+    ; dw output
+
+    ; call define
+    ; .pstr "scan",0                       
+    ; dw scan
+
+    ; call define
+    ; .pstr "set",0                       
+    ; dw set
+
+    ; call define
+    ; .pstr "shl",0                       
+    ; dw shl
+
+    ; call define
+    ; .pstr "shr",0                       
+    ; dw shr
+
+    ; call define
+    ; .pstr "sqrt",0                       
+    ; dw sqrt1
+
+    ; call define
+    ; .pstr "switch",0                       
+    ; dw switch
+
+    ; call define
+    ; .pstr "true",0                       
+    ; dw true1
+
+    ; call define
+    ; .pstr "words",0                       
+    ; dw words
+
     ret
+
+start:
+    ld sp,STACK		                    ; start of monty
+    call init		                    ; setups
+    call printStr		                ; prog count to stack, put code line 235 on stack then call print
+    .cstr "Monty V0.0\r\n"
+
+interpret:
+    call prompt
+
+    ld bc,0                             ; load bc with offset into TIB, decide char into tib or execute or control    
+    ld (vTIBPtr),bc
+
+interpret2:                             ; calc nesting (a macro might have changed it)
+    ld e,0                              ; initilize nesting value
+    push bc                             ; save offset into TIB, 
+                                        ; bc is also the count of chars in TIB
+    ld hl,TIB                           ; hl is start of TIB
+    jr interpret4
+
+interpret3:
+    ld a,(hl)                   ; a = char in TIB
+    inc hl                      ; inc pointer into TIB
+    dec bc                      ; dec count of chars in TIB
+    call nesting                ; update nesting value
+
+interpret4:
+    ld a,c                      ; is count zero?
+    or b
+    jr nz, interpret3           ; if not loop
+    pop bc                      ; restore offset into TIB
+    
+interpret5:    
+    call getchar                ; loop around waiting for character from serial port
+    cp $20			            ; compare to space
+    jr nc,interpret6		        ; if >= space, if below 20 set cary flag
+    cp $0                       ; is it end of string? NUL end of string
+                                ; ???? NEEDED?
+    jr z,interpret8
+    cp '\r'                     ; carriage return? ascii 13
+    jr z,interpret7		        ; if anything else its macro/control 
+
+                                ; macro       
+;  ld (vTIBPtr),bc
+;  ld hl,ctrlCodes
+;  add a,l			            ; look up key of macros
+;  ld l,a
+;  ld e,(hl)
+;  ld a,e
+;  or a
+;  jr z,macro1
+;  ld d,msb(macros)
+;  push de
+;  call call		            ; monty exec_ operation and jump to it
+;  db DC1,0
+; macro1:
+;  ld bc,(vTIBPtr)
+    jr interpret2
+
+interpret6:
+    ld hl,TIB
+    add hl,bc
+    ld (hl),a                   ; store the character in textbuf
+    inc bc
+    call putchar                ; echo character to screen
+    call nesting
+    jr  interpret5                ; wait for next character
+
+interpret7:
+    ld hl,TIB
+    add hl,bc
+    ld (hl),"\r"                ; store the crlf in textbuf
+    inc hl
+    ld (hl),"\n"  
+    inc hl    
+    inc bc
+    inc bc
+    call crlf                   ; echo character to screen
+    ld a,e                      ; if zero nesting append and ETX after \r
+    or a
+    jr nz,interpret5
+
+interpret8:    
+    ld (vTIBPtr),bc
+    ld bc,TIB                   ; Instructions stored on heap at address HERE, 
+                                ; we pressed enter
+    dec bc
+
+next:        
+    inc bc                      ; Increment the IP
+    ld a,(bc)                   ; Get the next character and dispatch
+    cp " "                      ; whitespace?
+    jr z,next                   ; space? ignore
+    jr c,next1
+    cp $80                      ; if bit 7 = 1, treat as a big endian 15 bit address
+    jr nc,next2
+    ld l,a                      ; index into table
+    ld h,msb(opcodesBase)       ; start address of jump table    
+    ld l,(hl)                   ; get low jump address
+    ld h,msb(page4)             ; Load h with the 1st page address
+    jp (hl)                     ; Jump to routine
+next1:
+    ; cp ESC                      ; escape from interpreter, needed???
+    ; jr z,escape_                   
+    cp NUL                      ; end of input string?
+    jr z,exit_
+    cp DC1                      ; literal number
+    jr z,literal_
+    cp DC2                      ; enter routine
+    jr z,enter_
+    jp interpret                ; no, other whitespace, macros?
+next2:
+    ld h,a                      ; hl = big endian 15 bit address, ignore high bit
+    inc bc
+    ld a,(bc)
+    ld l,a
+    add hl,hl                   ; hl = word aligned 16 bit address
+    jp (hl)
+
+; escape_:
+;     inc bc                      ; falls through
+exit_:
+    ld hl,bc
+    jp (hl)
+
+literal_:
+    inc bc
+    ld a,(bc)
+    ld l,a
+    inc bc
+    ld a,(bc)
+    ld h,a
+    push hl
+    jp (ix)
+
+enter_:
+    inc bc
+    ld a,(bc)
+    ld l,a
+    inc bc
+    ld a,(bc)
+    ld h,a
+    jp (hl)
+
+error:
+    call printStr		        
+    .cstr "Error"
+    call prtdec
+    jp interpret
+    
