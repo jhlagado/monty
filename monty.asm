@@ -356,16 +356,22 @@ eq1:
     jp equals
 
 gt_:
+    inc bc
+    ld a,(bc)
+    cp ">"
+    jp z,shiftRight
     pop de
     pop hl
     jr lt1
 
 lt_:
+    inc bc
+    ld a,(bc)
+    cp "<"
+    jp z,shiftLeft
     pop hl
     pop de
 lt1:
-    inc bc
-    ld a,(bc)
     cp "="
     jp z,lessthaneq
     dec bc
@@ -405,37 +411,37 @@ nop_:
 ; word operators
 ;*******************************************************************
 
-; shl  
+; shiftLeft  
 ; value count -- value2          shift left count places
-shl:
+shiftLeft:
     ld de,bc                    ; save IP    
     pop bc                      ; bc = count
     ld b,c                      ; b = loop counter
     pop hl                      
     inc b                       ; test for counter=0 case
-    jr shl2
-shl1:   
+    jr shiftLeft2
+shiftLeft1:   
     add hl,hl                   ; left shift hl
-shl2:   
-    djnz shl1
+shiftLeft2:   
+    djnz shiftLeft1
     push hl
     ld bc,de                    ; restore IP
     jp (ix)
 
-; shr  
+; shiftRight  
 ; value count -- value2          shift left count places
-shr:
+shiftRight:
     ld de,bc                    ; save IP    
     pop bc                      ; bc = count
     ld b,c                      ; b = loop counter
     pop hl                      
     inc b                       ; test for counter=0 case
-    jr shr2
-shr1:   
+    jr shiftRight2
+shiftRight1:   
     srl h                       ; right shift hl
     rr l
-shr2:   
-    djnz shr1
+shiftRight2:   
+    djnz shiftRight1
     push hl
     ld bc,de                    ; restore IP
     jp (ix)
@@ -1000,21 +1006,21 @@ dolet3:
 
 ; symbol -- ptr
 addr:
-    pop hl                              ; hl = hash
-    push bc
-    ld bc,hl
-    call lookupEntry
-    jr c, addr1
-    ld hl,0
-    ; call printStr		        
-    ; .cstr "Undefined"
-    ; jp interpret
-addr1:    
-    pop bc
-    ld de,3                 ; return entry point + 3 to get address of let data
-    add hl,de
-    ld (vPointer),hl
-    push hl
+;     pop hl                              ; hl = hash
+;     push bc
+;     ld bc,hl
+;     call lookupEntry
+;     jr c, addr1
+;     ld hl,0
+;     ; call printStr		        
+;     ; .cstr "Undefined"
+;     ; jp interpret
+; addr1:    
+;     pop bc
+;     ld de,3                 ; return entry point + 3 to get address of let data
+;     add hl,de
+;     ld (vPointer),hl
+;     push hl
     jp (ix)
 
 symbol:
@@ -1488,17 +1494,17 @@ printStr:
 ;     dec bc                      ; dec to prepare for next routine
 ;     jp (ix) 
 
-; ; executes a null teminated string (null executes exit_)
-; ; the string should be immedaitely following the call
-; execStr:                        ; create a root stack frame
-;     ; pop bc                      ; bc = code*
-;     ; dec bc                      ; dec to prepare for next routine
-;     ; ld de,0
-;     ; push de                     ; push fake IP
-;     ; push de                     ; push null arglist*
-;     ; push de                     ; push null first_arg*
-;     ; push de                     ; push fake BP
-;     ; jp (ix) 
+; executes a null teminated string (null executes exit_)
+; the string should be immedaitely following the call
+execStr:                        ; create a root stack frame
+    pop bc                      ; bc = code*
+    dec bc                      ; dec to prepare for next routine
+    ld de,0
+    push de                     ; push fake IP
+    push de                     ; push null arglist*
+    push de                     ; push null first_arg*
+    push de                     ; push fake BP
+    jp (ix) 
 
 ; define:
 ;     pop hl
@@ -1931,12 +1937,12 @@ init0:
     ; dw set
 
     ; call define
-    ; .pstr "shl",0                       
-    ; dw shl
+    ; .pstr "shiftLeft",0                       
+    ; dw shiftLeft
 
     ; call define
-    ; .pstr "shr",0                       
-    ; dw shr
+    ; .pstr "shiftRight",0                       
+    ; dw shiftRight
 
     ; call define
     ; .pstr "sqrt",0                       
