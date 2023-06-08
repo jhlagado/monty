@@ -102,47 +102,53 @@ LF:      .EQU   0AH
 RSTVEC:
         JP	RESET
 ;RST 1
-    	.ORG	ROMSTART+$08
-    	PUSH	HL
-    	LD	HL,(RST08)
-    	JP	(HL)
+    	.ORG ROMSTART+$08
+    	push hl
+    	ld hl,(RST08)
+    	ex (sp),hl
+    	ret
     
 ;RST 2
         .ORG ROMSTART+$10
-    	PUSH	HL
-    	LD	HL,(RST10)
-    	JP	(HL)
+    	push hl
+    	ld hl,(RST10)
+    	ex (sp),hl
+    	ret
 
 ;RST 3
         .ORG ROMSTART+$18 
-    	PUSH	HL
-    	LD	HL,(RST18)
-    	JP	(HL)
-    
+    	push hl
+    	ld hl,(RST18)
+    	ex (sp),hl
+    	ret
+
 ;RST 4
         .ORG ROMSTART+$20
-    	PUSH	HL
-    	LD	HL,(RST20)
-    	JP	(HL)
+    	push hl
+    	ld hl,(RST20)
+    	ex (sp),hl
+    	ret
 
 ;RST 5
     	.ORG ROMSTART+$28
-    	PUSH	HL
-    	LD	HL,(RST28)
-    	JP	(HL)
+    	push hl
+    	ld hl,(RST28)
+    	ex (sp),hl
+    	ret
 
 ;RST 6
     	.ORG ROMSTART+$30
-        PUSH	HL
-    	LD	HL,(RST30)
-    	JP	(HL)
+    	push hl
+    	ld hl,(RST30)
+    	ex (sp),hl
+    	reti
 
 ;RST 7 Interrupt
     	.ORG	ROMSTART+$38
-    	PUSH	HL
-    	LD	HL,(INTVEC)
-    	JP	(HL)
-        RETI
+    	push hl
+    	ld hl,(INTVEC)
+    	ex (sp),hl
+    	reti
 
         .ORG    ROMSTART+$40
 

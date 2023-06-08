@@ -4,26 +4,28 @@
 ;
 ;  by John Hardy 2023
 ;
-;  Incorporating code from the MINT project by Ken Boak and Craig Jones. 
-;
 ;  GNU GENERAL PUBLIC LICENSE    Version 3, 29 June 2007
 ;
 ;  see the LICENSE file in this repo for more information 
 ;
+;  Incorporating code from the MINT project by Ken Boak and Craig Jones.
+;  Inspiration from Charles H. Moore and Peter Jakacki
+;
 ; *****************************************************************************
 
 DSIZE       EQU     $80
-TIBSIZE     EQU     $100	        ; 256 bytes , along line!
-TRUE        EQU     -1		        ; C-style true
+TIBSIZE     EQU     $100	   ; 256 bytes , along line!
+TRUE        EQU     -1		   ; C-style true
 FALSE       EQU     0
 EMPTY       EQU     0		         
 UNUSED      EQU     $ff
-NUL         EQU     0               ; exit code
-DC1         EQU     17              ; literal number
-DC2         EQU     18              ; enter code
-DC3         EQU     19              ; enter code (anonymous)
-ESC         EQU     27              ; escape code
+NUL         EQU     0          ; exit code
+DC1         EQU     17         ; ?
+DC2         EQU     18         ; ?
+DC3         EQU     19         ; ?
+ESC         EQU     27         ; ?
 
+z80_RST8    EQU     $CF
 ; **************************************************************************
 ; stack frame
 ;
@@ -111,17 +113,17 @@ ctrlCodes:
 opcodes:                        ; still available _ @ " % , ; DEL 
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
-    DB lsb(nop_)                ; "
+    DB lsb(string_)                ; "
     DB lsb(hexnum_)             ; #
     DB lsb(arg_)                ; $  
     DB lsb(nop_)                ; %  
     DB lsb(and_)                ; &
-    DB lsb(string_)             ; '
+    DB lsb(char_)               ; '
     DB lsb(arg_list_)           ; (    
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
-    DB lsb(nop_)                ; ,  
+    DB lsb(nop_)                ; , compile
     DB lsb(sub_)                ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -141,7 +143,7 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
     DB lsb(index_)              ; ?    
-    DB lsb(nop_)                ; @  
+    DB lsb(addr_)               ; @  
     DB lsb(identU_)             ; A     
     DB lsb(identU_)             ; B     
     DB lsb(identU_)             ; C     
@@ -173,7 +175,7 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(arrayEnd_)           ; ]
     DB lsb(xor_)                ; ^
     DB lsb(nop_)                ; _
-    DB lsb(char_)               ; `    	    
+    DB lsb(string_)             ; `     used for testing string   	    
     DB lsb(identL_)             ; a     
     DB lsb(identL_)             ; b  
     DB lsb(identL_)             ; c  
@@ -213,6 +215,9 @@ opcodes:                        ; still available _ @ " % , ; DEL
     .align $100
 page4:
 
+addr_:
+    jp addr
+    
 num_:    
     jp  num
 
@@ -320,11 +325,6 @@ add_:                           ; add the top 2 members of the stack
     push hl        
     jp (ix)    
         
-hdot_:                          ; print hexadecimal
-    pop hl
-    call prthex
-    jp dot3
-
 mul_:    
     jp mul 
     
@@ -350,6 +350,13 @@ not_:				            ; logical invert, any non zero value
     jr eq1    
 
 eq_:    
+    inc bc
+    ld a,(bc)                   ; is it == ?
+    cp "="
+    jr z,eq0                    ; no its equality
+    dec bc
+    jp assign                   ; no its assignment
+eq0:
     pop hl
 eq1:
     pop de
@@ -411,6 +418,14 @@ nop_:
 ; word operators
 ;*******************************************************************
 
+; -- ptr
+addr:
+    ld hl,(vPointer)
+    push hl
+    ld hl,vPointer
+    ld (vPointer),hl
+    jp (ix)
+
 ; shiftLeft  
 ; value count -- value2          shift left count places
 shiftLeft:
@@ -447,10 +462,10 @@ shiftRight2:
     jp (ix)
 
 mul:        ;=19
-    pop  de       ; get first value
+    pop  de                     ; get first value
     pop  hl
-    push bc       ; Preserve the IP
-    ld b,h        ; bc = 2nd value
+    push bc                     ; Preserve the IP
+    ld b,h                      ; bc = 2nd value
     ld c,l
     
     ld hl,0
@@ -465,8 +480,8 @@ mul2:
     inc de
     dec a
     jr nz,mul2
-	pop bc			  ; Restore the IP
-	push hl       ; Put the product on the stack - stack bug fixed 2/12/21
+	pop bc			            ; Restore the IP
+	push hl                     ; Put the product on the stack - stack bug fixed 2/12/21
 	jp (ix)
 
 num:
@@ -504,28 +519,28 @@ num2:
     or a                        ; jump to sub2
     sbc hl,de    
 num3:
-    push hl       ; Put the number on the stack
-    jp (ix)       ; and process the next character
+    push hl                     ; Put the number on the stack
+    jp (ix)                     ; and process the next character
 
 hexnum:        
-	ld hl,0	    		    ; Clear hl to accept the number
+	ld hl,0	    		        ; Clear hl to accept the number
 hexnum1:
     inc bc
-    ld a,(bc)		  ; Get the character which is a numeral
-    bit 6,a       ; is it uppercase alpha?
-    jr z, hexnum2     ; no a decimal
-    sub 7        ; sub 7  to make $a - $F
+    ld a,(bc)		            ; Get the character which is a numeral
+    bit 6,a                     ; is it uppercase alpha?
+    jr z, hexnum2               ; no a decimal
+    sub 7                       ; sub 7  to make $a - $F
 hexnum2:
-    sub $30       ; Form decimal digit
+    sub $30                     ; form decimal digit
     jp c,num2
     cp $0F+1
     jp nc,num2
-    add hl,hl    ; 2X ; Multiply digit(s) in hl by 16
-    add hl,hl    ; 4X
-    add hl,hl    ; 8X
-    add hl,hl    ; 16X     
-    add a,l       ; add into bottom of hl
-    ld  l,a       ; 
+    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
+    add hl,hl                   ; 4X
+    add hl,hl                   ; 8X
+    add hl,hl                   ; 16X     
+    add a,l                     ; add into bottom of hl
+    ld  l,a        
     jr  hexnum1
 
 ; string
@@ -544,7 +559,7 @@ string1:
     inc bc                      ; point to next char
 string2:
     ld a,(bc)
-    cp "'"                      ; ' is the string terminator
+    cp $22                      ; " is the string terminator
     jr nz,string1
     xor a                       ; write NUL to terminate string
     ld (hl),a                   ; hl = end of string
@@ -561,6 +576,67 @@ string2:
     dec hl
     ld (hl),e
     jp (ix)  
+
+char:
+    ld hl,0                     ; if '' is empty or null
+char1:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp "'"                      ; ' is the terminator
+    jr z,char3
+    cp $5c                      ; \ is the escape
+    jr nz,char2
+    inc bc
+    ld a,(bc)
+char2:
+    ld l,a
+    jr char1
+char3:
+    push hl
+    jp (ix)  
+
+identU:
+    ld a,(bc)                   ; a = identifier char
+    sub 'A'                     ; 'A' = 0
+    jr ident1
+identL:
+    ld a,(bc)
+    sub 'a' 
+    add a,26
+ident1:
+    add a,a                     ; l = a * 2                             
+    ld l,a
+    ld h,msb(vars)     
+    ld (vPointer),hl            ; store address in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    push de
+    jp (ix)
+
+; value _oldValue --            ; uses address in vPointer
+assign:
+    pop hl                      ; discard last accessed value
+    pop de                      ; new value
+    ld hl,(vPointer)     
+    ld (hl),e
+    ld a,(vDataWidth)                   
+    dec a                       ; is it byte?
+    jr z,assign1
+    inc hl    
+    ld (hl),d
+assign1:	  
+    jp (ix)  
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 ; arg_list - parses input (ab:c)
 ; names after the : represent uninitialised locals
@@ -606,24 +682,6 @@ arg_list5:
     ld (hl),d
     dec hl
     ld (hl),e
-    jp (ix)  
-
-char:
-    ld hl,0                     ; if `` is empty
-char1:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp "`"                      ; ` is the string terminator
-    jr z,char3
-    cp $5c                      ; \ is the escape
-    jr nz,char2
-    inc bc
-    ld a,(bc)
-char2:
-    ld l,a
-    jr char1
-char3:
-    push hl
     jp (ix)  
 
 block:
@@ -777,20 +835,6 @@ index2:
     push de
     jp (ix)
 
-; newvalue -- 
-set:                         
-    pop hl                              ; discard last accessed value
-    pop de                              ; new value
-    ld hl,(vPointer)     
-    ld (hl),e
-    ld a,(vDataWidth)
-    dec a
-    jr z,set1
-    inc hl    
-    ld (hl),d
-set1:	  
-    jp (ix)  
-
 ; c b --
 ; loops until c = 0
 loop:                           
@@ -940,138 +984,11 @@ hash:
     ; push hl
     jp (ix)
 
-; symbol func -- 
-def:
-;     ld ix,def1
-;     jp func
-; def1:
-;     ld ix,(vNext)
-;     pop de                              ; hl = symbol de = addr (sp) = IP
-;     ld hl,bc
-    ; jr let1
-
-; symbol value -- 
-let:
-;     ld hl,bc                            ; de = addr (sp) = IP (sp+2) = symbol
-;     ex (sp),hl                          
-;     ex de,hl                            
-;     ld hl,(vHeapPtr)                    ; hl = heap
-;     ld (hl),$cd                         ; compile "call dolet"
-;     inc hl
-;     ld (hl),lsb(dolet)
-;     inc hl
-;     ld (hl),msb(dolet)
-;     inc hl
-;     ld (hl),e
-;     inc hl
-;     ld (hl),d
-
-;     ld de,(vHashStr)
-;     inc hl
-;     ld (hl),e
-;     inc hl
-;     ld (hl),d
-
-;     dec hl
-;     ld de,(vHeapPtr)            ; de = start of definition
-;     ld (vHeapPtr),hl            ; update heap ptr to end of definition
-;     pop hl                      ; de = addr, hl = IP
-; let1:
-;     ex (sp),hl                  ; hl = symbol de = addr (sp) = IP
-;     ld bc,hl                    ; bc = symbol
-;     call defineEntry
-;     jr c,let2
-;     ld hl,2                      ; error 2: Let collision
-;     jp error
-; let2:
-;     pop bc
-    jp (ix)
-
-; addr -- value
-dolet:
-    pop hl    
-    ld (vPointer),hl                    ; store address in setter    
-dolet2:
-    ld e,(hl)    
-    inc hl    
-    ld d,(hl)
-    inc hl
-dolet3:
-    push de    
-    ld e,(hl)    
-    inc hl    
-    ld d,(hl)
-    ld (vHashStr),de
-    jp (ix)       
-
-; symbol -- ptr
-addr:
-;     pop hl                              ; hl = hash
-;     push bc
-;     ld bc,hl
-;     call lookupEntry
-;     jr c, addr1
-;     ld hl,0
-;     ; call printStr		        
-;     ; .cstr "Undefined"
-;     ; jp interpret
-; addr1:    
-;     pop bc
-;     ld de,3                 ; return entry point + 3 to get address of let data
-;     add hl,de
-;     ld (vPointer),hl
-;     push hl
-    jp (ix)
-
-symbol:
-;     inc bc
-;     ld de,PAD
-;     ld h,msb(opcodesBase)                   ; this table identifies the char type
-;     jr symbol1
-; symbol0:                                 ; copy to PAD area 
-;     inc bc                              ; characters that are part of the identifier  
-;     inc de
-; symbol1:                                 ; 0-9 A-Z a-z _
-;     ld a,(bc)
-;     ld (de),a
-;     cp " "+1
-;     jr c,symbol2
-;     ld l,a
-;     ld a,(hl)
-;     cp lsb(ident_)
-;     jr z,symbol0
-;     cp lsb(num_)
-;     jr z,symbol0
-; symbol2:
-;     dec bc
-;     xor a
-;     ld (de),a                           ; terminate string with NUL
-;     push bc
-;     ld bc,PAD
-;     call hashStr                        ; hl = hash
-;     pop bc
-;     push hl
-    jp (ix)
-    
-identU:
-    ld a,(bc)                           ; a = identifier char
-    sub 'A'                             ; 'A' = 0
-    jr ident1
-identL:
-    ld a,(bc)
-    sub 'a' + 26
-ident1:
-    add a,a
-    ld l,a
-    ld h,msb(vars)
-    jp (hl)
-
 frac:
     ld hl,(vFrac)
     push hl
     jp (ix)
 
-.align 2
 sqrt1:
     pop hl
     push bc
@@ -1092,16 +1009,6 @@ abs1:
     sub h  
     ld h,a
     push hl
-    jp (ix)
-
-mod:                           
-    pop  de                     ; get first value
-    pop  hl                     ; get 2nd value
-    push bc                     ; preserve the IP    
-    ld bc,hl                
-    call divide
-    pop bc
-    push hl                     ; push remainder    
     jp (ix)
 
 ; hl = value1, de = value2
@@ -1169,11 +1076,6 @@ key:
     push hl
     jp (ix)
 
-neg:    
-    ld hl, 0    		        ; NEGate the value on top of stack (2's complement)
-    pop de       
-    jp sub2                     ; use the SUBtract routine
-    
 filter:
 map:
 scan:
@@ -1209,82 +1111,6 @@ scan:
 ;     add hl,hl                           ; shift left
 ;     add hl,de                           ; add
 ;     jr hashStr1
-
-; ; add entry to hash slots and hash pointers
-; ; bc = hash (b = hi, c = lo), de = addr
-; ; sets carry if successful
-; defineEntry:               
-;     sla c                               ; lo = lo * 2
-;     ld l,c                              ; lo1 = lo
-;     ld h,msb(hashSlots)                 ; hl = slots[lo*4]
-; defineEntry0:
-;     ld a,(hl)                           ; a = (lo1)
-;     cp UNUSED                           ; is it unused?
-;     jr z,defineEntry3                   ; yes, add entry
-;     ld a,c                              ; a = lo
-;     cp (hl)                             ; compare (lo1) with lo
-;     jr nz,defineEntry1                  ; no match loop around
-;     inc l 
-;     ld a,b                              ; a = hi
-;     cp (hl)                             ; compare (lo1+1) with hi
-;     jr z,defineEntry2                   ; identical hash, collision, exit
-;     dec l                               ; restore l
-; defineEntry1:
-;     inc l                               ; try next entry
-;     inc l 
-;     ld a,c                              ; compare lo and lo1
-;     cp l                                ; if equal then there's no space left, reject 
-;     jr nz,defineEntry0
-; defineEntry2:
-;     or a                                ; clear carry flag, failure
-;     ret
-; defineEntry3:                           ; new entry
-;     ld (hl),c                           ; (lo1) = hash lo
-;     inc hl
-;     ld (hl),b                           ; (lo1 + 1) = hash hi
-;     ld h,msb(hashWords)                 ; hl = slots[lo*4]
-;     ld (hl),d
-;     dec hl
-;     ld (hl),e                           ; (slot + 2) = address
-;     scf                                 ; set carry flag, success
-;     ret
-
-; ; looks up hash and returns address
-; ; bc = hash
-; ; returns addr in hl, sets carry if successful
-; lookupEntry:
-;     sla c                               ; lo = lo * 2
-;     ld l,c                              ; lo1 = lo
-;     ld h,msb(hashSlots)                 ; hl = slots[lo*4]
-; lookupEntry0:
-;     ld a,(hl)                           ; a = (hl), slot
-;     cp UNUSED                           ; is it unused?
-;     jr z,defineEntry2                   ; yes, does not exist
-;     ld a,c                              ; a = lo
-;     cp (hl)                             ; compare (lo1) with lo
-;     jr nz,lookupEntry1                  ; no match loop around
-;     inc l 
-;     ld a,b                              ; a = hi
-;     cp (hl)                             ; compare (lo1+1) with hi
-;     jr z,lookupEntry3
-;     dec l
-; lookupEntry1:
-;     inc l 
-;     inc l 
-;     ld a,c 
-;     cp l                                ; no space left, reject 
-;     jr nz,lookupEntry0
-; lookupEntry2:
-;     or a                                ; clear carry flag, failure
-;     ret
-; lookupEntry3:
-;     ld h,msb(hashWords)                 ; hl = slots[lo*4]
-;     ld d,(hl)
-;     dec l                               ; restore l
-;     ld e,(hl)                           ; (slot + 2) = address
-;     ex de,hl
-;     scf
-;     ret
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1489,11 +1315,6 @@ printStr:
     ex (sp),hl		            ; put it back	
     ret
 
-; branch:                         ; executes the address on the stack
-;     pop bc                      ; bc = code*
-;     dec bc                      ; dec to prepare for next routine
-;     jp (ix) 
-
 ; executes a null teminated string (null executes exit_)
 ; the string should be immedaitely following the call
 execStr:                        ; create a root stack frame
@@ -1505,25 +1326,6 @@ execStr:                        ; create a root stack frame
     push de                     ; push null first_arg*
     push de                     ; push fake BP
     jp (ix) 
-
-; define:
-;     pop hl
-;     ld a,(hl)
-;     inc hl
-;     ld bc,hl
-;     ld e,a
-;     ld d,0
-;     add hl,de
-;     ld e,(hl)
-;     inc hl
-;     ld d,(hl)
-;     inc hl
-;     push hl                             ; bc = str 
-;     push de
-;     call hashStr                        ; hl = hash
-;     pop de
-;     ld bc,hl
-;     jp defineEntry
 
 ; arg1 .. argn func -- ?
 call:
@@ -1556,21 +1358,21 @@ exec1:
     ld c,(iy+2)                 ; hl = first_arg* (parent)
     ld b,(iy+3)                 
     ld hl,bc
-    jr doCall4
+    jr doFunc4
 exec2:
     push hl                     ; push arg_list (null)
     ld hl,4                     ; hl = first_arg* (BP+8)
     add hl,sp
-    jr doCall4                  ; 
+    jr doFunc4                  ; 
 
 ; call with args
 ; creates a scope
 ; code* -- ?
-doCall:				            ; execute code at pointer
+doFunc:				            ; execute code at pointer
     pop hl                      ; hl = code*
     ld a,l                      ; if code* == null, skip
     or h
-    jr z,doCall5
+    jr z,doFunc5
     ld e,(hl)                   ; de = block*, hl = arg_list*
     inc hl
     ld d,(hl)
@@ -1578,24 +1380,24 @@ doCall:				            ; execute code at pointer
     ex de,hl
     ld a,l                      ; if arg_list* != null skip
     or h
-    jr nz,doCall1              
+    jr nz,doFunc1              
     push bc                     ; push IP
     push hl                     ; push arg_list (null)
     ld hl,4                     ; hl = first_arg (BP + 8)
     add hl,sp
-    jr doCall4                  
-doCall1:
+    jr doFunc4                  
+doFunc1:
     dec hl                      ; a = num_locals*, de = block* hl = arg_list*
     ld a,(hl)
     inc hl
     or a
-    jr z,doCall3
-doCall2:
+    jr z,doFunc3
+doFunc2:
     dec sp
     dec sp
     dec a
-    jr nz,doCall2
-doCall3:
+    jr nz,doFunc2
+doFunc3:
     push bc                     ; push IP    
     push hl                     ; push arg_list*
     dec hl                      ; hl = num_args*
@@ -1606,24 +1408,24 @@ doCall3:
     ld l,a
     ld h,$0
     add hl,sp                   ; hl = first_arg*
-doCall4:
+doFunc4:
     push hl                     ; push first_arg    
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
     add iy,sp
     ld bc,de                    ; bc = de = block*-1
     dec bc                       
-doCall5:                       
+doFunc5:                       
     jp (ix)    
 
 ; arg_list* block* -- ptr
 func:
     ld hl,(vHeapPtr)                    ; hl = heapptr 
-    ld (hl),$cd                         ; compile "call doCall"
+    ld (hl),$cd                         ; compile "call doFunc"
     inc hl
-    ld (hl),lsb(doCall)
+    ld (hl),lsb(doFunc)
     inc hl
-    ld (hl),msb(doCall)
+    ld (hl),msb(doFunc)
     inc hl
     
     pop de                              ; hl = heapPtr, de = block
@@ -1748,117 +1550,37 @@ closure:
     ld (vHeapPtr),hl                    ; update heap ptr to end of closure
     jp (ix)
     
-; code* -- arr1 arr2 .. arrn func    
-doClosure:
-    pop hl                              ; hl = code*
-    ld e,(hl)                           ; de = array
-    inc hl
-    ld d,(hl)
-    inc hl
-    ld a,e                              ; de == null, skip
-    or d
-    jr z,doClosure3
-    ex de,hl                            ; hl = array
-    ld (vTemp1),bc                      ; save IP
-    dec hl                              ; bc = count
-    ld b,(hl)
-    dec hl
-    ld c,(hl)
-    inc hl                              ; push each item on stack
-    inc hl
-    jr doClosure2
-doClosure1:
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    inc hl
-    push de
-    dec bc
-doClosure2:
-    ld a,c
-    or b
-    jr nz,doClosure1
-doClosure3:
-    ld bc,(vTemp1)                      ; restore IP
-    jp (ix)
-
-; ; readIdent
-; ; reads identifier from input stream into buffer
-; ; input: bc = IP, de = buffer
-
-; readIdent:
-;     ld h,msb(opcodesBase)               ; this table identifies the char type
-;     jr readIdent1
-; readIdent0:                             ; copy to PAD area 
-;     inc bc                              ; characters that are part of the identifier  
-;     inc de
-; readIdent1:                             ; 0-9 A-Z a-z
-;     ld a,(bc)
-;     ld (de),a
-;     cp " "+1
-;     jr c,readIdent2
-;     ld l,a
-;     ld a,(hl)
-;     cp lsb(ident_)
-;     jr z,readIdent0
-;     cp lsb(num_)
-;     jr z,readIdent0
-; readIdent2:
-;     dec bc
-;     xor a
-;     ld (de),a                           ; terminate string with NUL
-;     ret
-
-init:       
+init:
     ld ix,(vNext)
     ld iy,STACK
     ld hl,isysVars
     ld de,sysVars
     ld bc,8 * 2
     ldir
-    ld hl,vars
-    ld b, 26 + 26
+    ld hl,vars                          ; 52 vars LO HI 
+    ld b,26*2                       
+    xor a
 init0:
-    ld (hl),$CF                             ; compile rst$08 nop nop
-    inc hl
-    xor a                                   
-    ld (hl),a
-    inc hl
     ld (hl),a
     inc hl
     djnz init0
-    
-;     ld a,UNUSED
-;     ld b,0
-;     ld hl, hashSlots
-; init1:
-;     ld (hl),a
-;     inc hl
-;     djnz init1 
+    ret
 
     ; call define
     ; .pstr "abs",0                       
-    ; dw abs1
+    ; dw abs1 \a
 
     ; call define
     ; .pstr "addr",0                       
-    ; dw addr
+    ; dw addr @
 
     ; call define
     ; .pstr "bytes",0                       
-    ; dw bytes
+    ; dw bytes \b
 
     ; call define
     ; .pstr "call",0                       
-    ; dw call
-
-    ; call define
-    ; .pstr "closure",0                       
-    ; dw closure
-
-    ; call define
-    ; .pstr "def",0                       
-    ; dw def
+    ; dw call :
 
     ; call define
     ; .pstr "exec",0                       
@@ -1866,15 +1588,15 @@ init0:
 
     ; call define
     ; .pstr "false",0                       
-    ; dw false1
+    ; dw false1 \f
 
     ; call define
     ; .pstr "filter",0                       
-    ; dw filter
+    ; dw filter \f ?
 
     ; call define
     ; .pstr "frac",0                       
-    ; dw frac
+    ; dw frac %
 
     ; call define
     ; .pstr "func",0                       
@@ -1882,85 +1604,76 @@ init0:
 
     ; call define
     ; .pstr "hash",0                       
-    ; dw hash
+    ; dw hash \h
 
     ; call define
     ; .pstr "input",0                       
-    ; dw input
+    ; dw input \in ?
 
     ; call define
     ; .pstr "if",0                       
-    ; dw if
+    ; dw if \if
 
     ; call define
     ; .pstr "ifte",0                       
-    ; dw ifte
+    ; dw ifte \ife
 
     ; call define
     ; .pstr "key",0                       
-    ; dw key
+    ; dw key \k
 
     ; call define
     ; .pstr "let",0                       
-    ; dw let
+    ; dw let =
 
     ; call define
     ; .pstr "loop",0                       
-    ; dw loop
+    ; dw loop \rpt
 
     ; call define
     ; .pstr "map",0                       
-    ; dw map
-
-    ; call define
-    ; .pstr "mod",0                       
-    ; dw mod
-
-    ; call define
-    ; .pstr "neg",0                       
-    ; dw neg
+    ; dw map \m ?
 
     ; call define
     ; .pstr "nil",0                       
-    ; dw null1
+    ; dw null1. \0 ?
 
     ; call define
     ; .pstr "output",0                       
-    ; dw output
+    ; dw output \out ?
 
     ; call define
     ; .pstr "scan",0                       
-    ; dw scan
+    ; dw scan.  \fold ?
 
     ; call define
     ; .pstr "set",0                       
-    ; dw set
+    ; dw set. ?
 
     ; call define
     ; .pstr "shiftLeft",0                       
-    ; dw shiftLeft
+    ; dw shiftLeft <<
 
     ; call define
     ; .pstr "shiftRight",0                       
-    ; dw shiftRight
+    ; dw shiftRight >>
 
     ; call define
     ; .pstr "sqrt",0                       
-    ; dw sqrt1
+    ; dw sqrt1 \sqt
 
     ; call define
     ; .pstr "switch",0                       
-    ; dw switch
+    ; dw switch. \sw
 
     ; call define
     ; .pstr "true",0                       
-    ; dw true1
+    ; dw true1.   \t
 
     ; call define
     ; .pstr "words",0                       
-    ; dw words
+    ; dw words.  \w
 
-    ret
 
 start:
     ld sp,STACK		                    ; start of monty
@@ -2063,14 +1776,8 @@ next:
     ld h,msb(page4)             ; Load h with the 1st page address
     jp (hl)                     ; Jump to routine
 next1:
-    ; cp ESC                      ; escape from interpreter, needed???
-    ; jr z,escape_                   
     cp NUL                      ; end of input string?
     jr z,exit_
-    cp DC1                      ; literal number
-    jr z,literal_
-    cp DC2                      ; enter routine
-    jr z,enter_
     jp interpret                ; no, other whitespace, macros?
 next2:
     ld h,a                      ; hl = big endian 15 bit address, ignore high bit
@@ -2080,29 +1787,8 @@ next2:
     add hl,hl                   ; hl = word aligned 16 bit address
     jp (hl)
 
-; escape_:
-;     inc bc                      ; falls through
 exit_:
     ld hl,bc
-    jp (hl)
-
-literal_:
-    inc bc
-    ld a,(bc)
-    ld l,a
-    inc bc
-    ld a,(bc)
-    ld h,a
-    push hl
-    jp (ix)
-
-enter_:
-    inc bc
-    ld a,(bc)
-    ld l,a
-    inc bc
-    ld a,(bc)
-    ld h,a
     jp (hl)
 
 error:

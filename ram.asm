@@ -1,9 +1,13 @@
-.ORG RAMSTART
+.org RAMSTART
 
             ds DSIZE
 STACK:
 
-tbPtr:      ds 2                ; reserved for tests
+.align $100
+
+vars:
+            ds 26 * 2 * 4       ; 52 vars, 3 bytes, RST LO HI CHAR
+restarts:
 
 RST08:      ds 2                 
 RST10:      ds 2                 
@@ -29,20 +33,14 @@ vNext       ds 2                ;
 vHeapPtr:   ds 2                ; 
 
 vTemp1:     ds 2                ; uninitialised sys variables
+vTemp2:     ds 2                ; 
 
-vars:
-            ds 26 * 2 * 3       ; 52 vars x 3 bytes (RST LO HI)
+tbPtr:      ds 2                ; reserved for tests
 
 .align $100
 TIB:        ds TIBSIZE
 
 .align $100
 pad:        ds $100
-
-.align $100
-hashSlots:  ds $100
-
-.align $100
-hashWords:  ds $100
 
 HEAP:         
