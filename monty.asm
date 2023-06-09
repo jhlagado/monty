@@ -113,7 +113,7 @@ ctrlCodes:
 opcodes:                        ; still available _ @ " % , ; DEL 
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
-    DB lsb(string_)                ; "
+    DB lsb(string_)             ; "
     DB lsb(hexnum_)             ; #
     DB lsb(arg_)                ; $  
     DB lsb(nop_)                ; %  
@@ -137,7 +137,7 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(num_)                ; 7    
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
-    DB lsb(symbol_)             ; :    
+    DB lsb(nop_)                ; :    
     DB lsb(nop_)                ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
@@ -278,8 +278,6 @@ identU_:
     jp identU
 identL_:
     jp identL
-symbol_:
-    jp symbol
 and_:    
     pop de                      ; Bitwise and the top 2 elements of the stack
     pop hl     
@@ -400,6 +398,8 @@ command_:
     ld a,(bc)
     cp $5C                      ; \\ comment
     jr z,comment
+    cp "g"                      ; go
+    jp z,go
     ld hl,1                     ; error 1: unknown command
     jp error
 
@@ -560,6 +560,8 @@ string1:
 string2:
     ld a,(bc)
     cp $22                      ; " is the string terminator
+    jr nz,string1
+    cp "`"                      ; ` is the string terminator used in testing
     jr nz,string1
     xor a                       ; write NUL to terminate string
     ld (hl),a                   ; hl = end of string
@@ -796,9 +798,9 @@ ifte1:
     ld a,h
     or l
     pop hl                      ; hl = then
-    jp z,exec0                  ; if z de = else                   
+    jp z,go0                  ; if z de = else                   
     ex de,hl                    ; condition = false, hl = else  
-    jp exec0
+    jp go0
 
 ; switch
 ; index array -- value
@@ -810,7 +812,7 @@ switch:
     ld e,(hl)
     inc hl
     ld d,(hl)
-    jp exec0
+    jp go0
 
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
@@ -1265,7 +1267,11 @@ prtstr:
 
 nesting:    
     cp $22                      ; quote char
-    jr nz,nesting1
+    jr z,nesting0
+    cp "`"                      ; quote char
+    jr z,nesting0
+    jr nesting1
+nesting0:
     bit 7,e
     jr z,nesting1a
     res 7,e
@@ -1335,14 +1341,14 @@ call:
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
-exec:				       
+go:				       
     pop de                      ; de = block*
-exec0:
+go0:
     ld a,e                      ; if block* == null, exit
     or d
-    jr nz,exec1
+    jr nz,go1
     jp (ix)
-exec1:
+go1:
     push bc                     ; push IP
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
     ld b,iyh                    
@@ -1351,19 +1357,26 @@ exec1:
     sbc hl,bc                   
     ld a,l                      ; if root_scope, skip
     or h                    
-    jr z,exec2
+    jr z,go2
     ld c,(iy+4)                 ; push arg_list* (parent)
     ld b,(iy+5)                 
     push bc                     
     ld c,(iy+2)                 ; hl = first_arg* (parent)
     ld b,(iy+3)                 
     ld hl,bc
-    jr doFunc4
-exec2:
+    jr go3
+go2:
     push hl                     ; push arg_list (null)
     ld hl,4                     ; hl = first_arg* (BP+8)
     add hl,sp
-    jr doFunc4                  ; 
+go3:
+    push hl                     ; push first_arg    
+    push iy                     ; push BP
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    ld bc,de                    ; bc = de = block*-1
+    dec bc                       
+    jp (ix)    
 
 ; call with args
 ; creates a scope
@@ -1372,7 +1385,9 @@ doFunc:				            ; execute code at pointer
     pop hl                      ; hl = code*
     ld a,l                      ; if code* == null, skip
     or h
-    jr z,doFunc5
+    jr nz,doFunc0
+    jp (ix)
+doFunc0:
     ld e,(hl)                   ; de = block*, hl = arg_list*
     inc hl
     ld d,(hl)
@@ -1409,14 +1424,7 @@ doFunc3:
     ld h,$0
     add hl,sp                   ; hl = first_arg*
 doFunc4:
-    push hl                     ; push first_arg    
-    push iy                     ; push BP
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    ld bc,de                    ; bc = de = block*-1
-    dec bc                       
-doFunc5:                       
-    jp (ix)    
+    jp go3
 
 ; arg_list* block* -- ptr
 func:
@@ -1531,25 +1539,6 @@ arg1a:
     push de                     ; push arg
     jp (ix)
 
-; closure:
-; array -- addr
-closure:
-    ld hl,(vHeapPtr)                    ; hl = heap_ptr 
-    ld (hl),$cd                         ; compile "call doclosure"
-    inc hl
-    ld (hl),lsb(doClosure)
-    inc hl
-    ld (hl),msb(doClosure)
-    pop de
-    inc hl
-    ld (hl),e
-    inc hl
-    ld (hl),d
-    ld de,(vHeapPtr)                    ; de = closure start
-    push de
-    ld (vHeapPtr),hl                    ; update heap ptr to end of closure
-    jp (ix)
-    
 init:
     ld ix,(vNext)
     ld iy,STACK
@@ -1565,115 +1554,6 @@ init0:
     inc hl
     djnz init0
     ret
-
-    ; call define
-    ; .pstr "abs",0                       
-    ; dw abs1 \a
-
-    ; call define
-    ; .pstr "addr",0                       
-    ; dw addr @
-
-    ; call define
-    ; .pstr "bytes",0                       
-    ; dw bytes \b
-
-    ; call define
-    ; .pstr "call",0                       
-    ; dw call :
-
-    ; call define
-    ; .pstr "exec",0                       
-    ; dw exec
-
-    ; call define
-    ; .pstr "false",0                       
-    ; dw false1 \f
-
-    ; call define
-    ; .pstr "filter",0                       
-    ; dw filter \f ?
-
-    ; call define
-    ; .pstr "frac",0                       
-    ; dw frac %
-
-    ; call define
-    ; .pstr "func",0                       
-    ; dw func
-
-    ; call define
-    ; .pstr "hash",0                       
-    ; dw hash \h
-
-    ; call define
-    ; .pstr "input",0                       
-    ; dw input \in ?
-
-    ; call define
-    ; .pstr "if",0                       
-    ; dw if \if
-
-    ; call define
-    ; .pstr "ifte",0                       
-    ; dw ifte \ife
-
-    ; call define
-    ; .pstr "key",0                       
-    ; dw key \k
-
-    ; call define
-    ; .pstr "let",0                       
-    ; dw let =
-
-    ; call define
-    ; .pstr "loop",0                       
-    ; dw loop \rpt
-
-    ; call define
-    ; .pstr "map",0                       
-    ; dw map \m ?
-
-    ; call define
-    ; .pstr "nil",0                       
-    ; dw null1. \0 ?
-
-    ; call define
-    ; .pstr "output",0                       
-    ; dw output \out ?
-
-    ; call define
-    ; .pstr "scan",0                       
-    ; dw scan.  \fold ?
-
-    ; call define
-    ; .pstr "set",0                       
-    ; dw set. ?
-
-    ; call define
-    ; .pstr "shiftLeft",0                       
-    ; dw shiftLeft <<
-
-    ; call define
-    ; .pstr "shiftRight",0                       
-    ; dw shiftRight >>
-
-    ; call define
-    ; .pstr "sqrt",0                       
-    ; dw sqrt1 \sqt
-
-    ; call define
-    ; .pstr "switch",0                       
-    ; dw switch. \sw
-
-    ; call define
-    ; .pstr "true",0                       
-    ; dw true1.   \t
-
-    ; call define
-    ; .pstr "words",0                       
-    ; dw words.  \w
-
 
 start:
     ld sp,STACK		                    ; start of monty
@@ -1796,4 +1676,115 @@ error:
     .cstr "Error"
     call prtdec
     jp interpret
+    
+    
+    ; call define
+    ; .pstr "abs",0                       
+    ; dw abs1 \a
+
+    ; call define
+    ; .pstr "addr",0                       
+    ; dw addr @
+
+    ; call define
+    ; .pstr "bytes",0                       
+    ; dw bytes \b
+
+    ; call define
+    ; .pstr "call",0                       
+    ; dw call :
+
+    ; call define
+    ; .pstr "exec",0                       
+    ; dw exec
+
+    ; call define
+    ; .pstr "false",0                       
+    ; dw false1 \f
+
+    ; call define
+    ; .pstr "filter",0                       
+    ; dw filter \f ?
+
+    ; call define
+    ; .pstr "frac",0                       
+    ; dw frac %
+
+    ; call define
+    ; .pstr "func",0                       
+    ; dw func
+
+    ; call define
+    ; .pstr "hash",0                       
+    ; dw hash \h
+
+    ; call define
+    ; .pstr "input",0                       
+    ; dw input \in ?
+
+    ; call define
+    ; .pstr "if",0                       
+    ; dw if \if
+
+    ; call define
+    ; .pstr "ifte",0                       
+    ; dw ifte \ife
+
+    ; call define
+    ; .pstr "key",0                       
+    ; dw key \k
+
+    ; call define
+    ; .pstr "let",0                       
+    ; dw let =
+
+    ; call define
+    ; .pstr "loop",0                       
+    ; dw loop \rpt
+
+    ; call define
+    ; .pstr "map",0                       
+    ; dw map \m ?
+
+    ; call define
+    ; .pstr "nil",0                       
+    ; dw null1. \0 ?
+
+    ; call define
+    ; .pstr "output",0                       
+    ; dw output \out ?
+
+    ; call define
+    ; .pstr "scan",0                       
+    ; dw scan.  \fold ?
+
+    ; call define
+    ; .pstr "set",0                       
+    ; dw set. ?
+
+    ; call define
+    ; .pstr "shiftLeft",0                       
+    ; dw shiftLeft <<
+
+    ; call define
+    ; .pstr "shiftRight",0                       
+    ; dw shiftRight >>
+
+    ; call define
+    ; .pstr "sqrt",0                       
+    ; dw sqrt1 \sqt
+
+    ; call define
+    ; .pstr "switch",0                       
+    ; dw switch. \sw
+
+    ; call define
+    ; .pstr "true",0                       
+    ; dw true1.   \t
+
+    ; call define
+    ; .pstr "words",0                       
+    ; dw words.  \w
+
+    
     

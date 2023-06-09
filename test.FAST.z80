@@ -15,9 +15,13 @@
     .org $4000
 testsStart:
 
-    test "x", 0
-    test "1 x = x", 1
-
+    test "{1} \\g", 1
+    test "{{1} \\g} \\g", 1
+    test "{{{1} \\g} \\g} \\g", 1
+    ; test "1 5 (a) {2} \\f :", 2
+    ; test "1 5 (a) {$a} func call", 5
+    ; test "1 5 (a:b) {$a} func call ", 5
+   
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     test "1", 1
@@ -60,6 +64,13 @@ testsStart:
     test "2 2 >=", TRUE
     test "3 1 <<", 6
     test "10 1 >>", 5
+    test "x", 0
+    test "1 x = x", 1
+    test "() -2?", $0000
+    test "(a) -1?", $0001
+    test "(a:) -1?", $0001
+    test "(a:b) -1?", $0102
+    test "(:b) -1?", $0101
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,11 +84,6 @@ testsStart:
     ; test "10 sqrt", 3
     ; test "10 sqrt frac", 1
 
-    ; test "() -2?", $0000
-    ; test "(a) -1?", $0001
-    ; test "(a:) -1?", $0001
-    ; test "(a:b) -1?", $0102
-    ; test "(:b) -1?", $0101
 
     ; test ":x 20 let 100 x set x", 100    
     ; test "[10 20 30] 1?", 20
@@ -86,12 +92,6 @@ testsStart:
     ; test "bytes :x [1 2 3] let x 1?", 2
     ; test "bytes ['A' 'B' 'C'] 1?", 66
 
-    ; test "{1} exec", 1
-    ; test "{{1} exec} exec", 1
-    ; test "{{{1} exec} exec} exec", 1
-    ; test "1 5 (a) {2} func call", 2
-    ; test "1 5 (a) {$a} func call", 5
-    ; test "1 5 (a:b) {$a} func call ", 5
 
     ; test "1 5 (a) {{2} exec} func call", 2
     ; test "1 5 (a) {{$a} exec} func call", 5
