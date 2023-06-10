@@ -14,16 +14,17 @@
 ; *****************************************************************************
 
 DSIZE       EQU     $80
-TIBSIZE     EQU     $100	   ; 256 bytes , along line!
-TRUE        EQU     -1		   ; C-style true
+TIBSIZE     EQU     $100	    ; 256 bytes , along line!
+TRUE        EQU     -1		    ; C-style true
 FALSE       EQU     0
 EMPTY       EQU     0		         
 UNUSED      EQU     $ff
-NUL         EQU     0          ; exit code
-DC1         EQU     17         ; ?
-DC2         EQU     18         ; ?
-DC3         EQU     19         ; ?
-ESC         EQU     27         ; ?
+NUL         EQU     0           ; exit code
+DC1         EQU     17          ; ?
+DC2         EQU     18          ; ?
+DC3         EQU     19          ; ?
+ESC         EQU     27          ; ?
+DQUOTE      EQU     $22         ; " double quote char
 
 z80_RST8    EQU     $CF
 ; **************************************************************************
@@ -39,7 +40,7 @@ z80_RST8    EQU     $CF
 ; locn                              -- last local             
 ; IP                                -- IP (saved interpreter ptr, return)
 ; arg_list*                         -- arg_list*
-; ScopeBP                           -- first_args           
+; ScopeBP                           -- first_arg           
 ; BP                                -- BP (saved base ptr)           <-- iy
 ; res0                              -- 0th result
 ; res1
@@ -137,7 +138,7 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(num_)                ; 7    
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
-    DB lsb(nop_)                ; :    
+    DB lsb(go_)                 ; :    
     DB lsb(nop_)                ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
@@ -215,117 +216,63 @@ opcodes:                        ; still available _ @ " % , ; DEL
     .align $100
 page4:
 
-addr_:
-    jp addr
-    
-num_:    
-    jp  num
-
-hexnum_:    
-    jp hexnum
-
-arg_:
-    jp arg
-
-string_:
-    jp string
-
-arg_list_:    
-    jp arg_list
-
-dot_:  
-    pop hl
-    inc bc
-    ld a,(bc)
-    cp "h"
-    jr nz,dot1
-    call prthex
-    jr dot4
-dot1:
-    cp "s"
-    jr nz,dot2
-    call prtstr
-    jr dot4
-dot2:
-    cp "c"
-    jr nz,dot3
-    ld a,l
-    call putchar
-    jr dot4
-dot3:
-    dec bc
-    call prtdec
-dot4:
-    ld a,' '       
-    call putchar
-    jp (ix)
-
-; addr index -- addr2
-index_:        
-    jp index 
-
-block_:
-    jp block
-blockend_:
-    jp blockend
-char_:
-    jp char
-array_:
-    jp array
-arrayEnd_:
-    jp arrayEnd
-identU_:
-    jp identU
-identL_:
-    jp identL
-and_:    
-    pop de                      ; Bitwise and the top 2 elements of the stack
-    pop hl     
-    ld a,e        
-    and l           
-    ld l,a        
-    ld a,d        
-    and h           
-and1:
-    ld h,a        
-    push hl         
-    jp (ix)        
-    
-or_: 		 
-    pop de                      ; Bitwise or the top 2 elements of the stack
-    pop hl
-    ld a,e
-    or l
-    ld l,a
-    ld a,d
-    or h
-    jr and1
-
-xor_:		 
-    pop de                      ; Bitwise xor the top 2 elements of the stack
-xor1:
-    pop hl
-    ld a,e
-    xor     l
-    ld l,a
-    ld a,d
-    xor     h
-    jr and1
-
-inv_:				            ; Bitwise INVert the top member of the stack
-    ld de, $FFFF                ; by xoring with $FFFF
-    jr xor1    
-
 add_:                           ; add the top 2 members of the stack
     pop de        
     pop hl        
     add hl,de    
     push hl        
     jp (ix)    
-        
+addr_:
+    jp addr
+and_:
+    jp and
+arg_:
+    jp arg
+arg_list_:    
+    jp arg_list
+array_:
+    jp array
+arrayEnd_:
+    jp arrayEnd
+block_:
+    jp block
+blockend_:
+    jp blockend
+char_:
+    jp char
+dot_:  
+    jp dot
+go_:
+    jp go
+identU_:
+    jp identU
+identL_:
+    jp identL
+; addr index -- addr2
+index_:        
+    jp index 
+inv_:				            ; Bitwise INVert the top member of the stack
+    ld de, $FFFF                ; by xoring with $FFFF
+    jp xor1    
 mul_:    
     jp mul 
+not_:				            ; logical invert, any non zero value 
+    ld hl,0                     ; is considered true
+    jr eq1    
+num_:    
+    jp  num
+hexnum_:    
+    jp hexnum
+or_: 		 
+    jp or
+xor_: 		 
+    jp xor
+
+
     
+
+string_:
+    jp string
 sub_:  		                    ; negative sign or subtract
     inc bc                      ; check if sign of a number
     ld a,(bc)
@@ -343,9 +290,6 @@ sub2:
     push hl        
     jp (ix)        
         
-not_:				            ; logical invert, any non zero value 
-    ld hl,0                     ; is considered true
-    jr eq1    
 
 eq_:    
     inc bc
@@ -394,23 +338,7 @@ div_:
     jp (ix)
 
 command_:
-    inc bc
-    ld a,(bc)
-    cp $5C                      ; \\ comment
-    jr z,comment
-    cp "g"                      ; go
-    jp z,go
-    ld hl,1                     ; error 1: unknown command
-    jp error
-
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
-
+    jp command
 nop_:  
     jp (ix)
 
@@ -425,6 +353,79 @@ addr:
     ld hl,vPointer
     ld (vPointer),hl
     jp (ix)
+and:
+    pop de                      ; Bitwise and the top 2 elements of the stack
+    pop hl     
+    ld a,e        
+    and l           
+    ld l,a        
+    ld a,d        
+    and h           
+and1:
+    ld h,a        
+    push hl         
+    jp (ix)        
+command:
+    inc bc
+    ld a,(bc)
+    cp $5C                      ; \\ comment
+    jr z,comment
+    cp "f"                      ; func
+    jp z,func
+    ld hl,1                     ; error 1: unknown command
+    jp error
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
+dot:  
+    pop hl
+    inc bc
+    ld a,(bc)
+    cp "h"
+    jr nz,dot1
+    call prthex
+    jr dot4
+dot1:
+    cp "s"
+    jr nz,dot2
+    call prtstr
+    jr dot4
+dot2:
+    cp "c"
+    jr nz,dot3
+    ld a,l
+    call putchar
+    jr dot4
+dot3:
+    dec bc
+    call prtdec
+dot4:
+    ld a,' '       
+    call putchar
+    jp (ix)
+or:
+    pop de                      ; Bitwise or the top 2 elements of the stack
+    pop hl
+    ld a,e
+    or l
+    ld l,a
+    ld a,d
+    or h
+    jr and1
+xor:		 
+    pop de                      ; Bitwise xor the top 2 elements of the stack
+xor1:
+    pop hl
+    ld a,e
+    xor     l
+    ld l,a
+    ld a,d
+    xor     h
+    jr and1
 
 ; shiftLeft  
 ; value count -- value2          shift left count places
@@ -559,7 +560,7 @@ string1:
     inc bc                      ; point to next char
 string2:
     ld a,(bc)
-    cp $22                      ; " is the string terminator
+    cp DQUOTE                      ; " is the string terminator
     jr nz,string1
     cp "`"                      ; ` is the string terminator used in testing
     jr nz,string1
@@ -687,8 +688,8 @@ arg_list5:
     jp (ix)  
 
 block:
+    push bc                     ; return pointer to first { of block    
     inc bc
-    push bc                     ; return first opcode of block    
     ld d,1                      ; nesting: count first parenthesis
 block1:                         ; Skip to end of definition    
     ld a,(bc)                   ; Get the next character
@@ -713,6 +714,8 @@ block1:                         ; Skip to end of definition
     cp "'"
     jr z,block3
     cp "`"
+    jr z,block3
+    cp $22
     jr z,block3
     jr block1
 block2:
@@ -798,9 +801,9 @@ ifte1:
     ld a,h
     or l
     pop hl                      ; hl = then
-    jp z,go0                  ; if z de = else                   
+    jp z,go                     ; if z de = else                   
     ex de,hl                    ; condition = false, hl = else  
-    jp go0
+    jp go
 
 ; switch
 ; index array -- value
@@ -812,7 +815,7 @@ switch:
     ld e,(hl)
     inc hl
     ld d,(hl)
-    jp go0
+    jp go
 
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
@@ -976,29 +979,29 @@ arrayEnd3:
     push de                     ; return array[0]
     jp (ix)
 
-; str -- num
-hash:
+;; str -- num
+; hash:
     ; pop hl
     ; push bc
     ; ld bc,hl
     ; call hashStr
     ; pop bc
     ; push hl
-    jp (ix)
+    ; jp (ix)
 
 frac:
     ld hl,(vFrac)
     push hl
     jp (ix)
 
-sqrt1:
-    pop hl
-    push bc
-    call squareRoot
-    ld (vFrac),bc
-    pop bc
-    push de
-    jp (ix)
+; sqrt1:
+;     pop hl
+;     push bc
+;     call squareRoot
+;     ld (vFrac),bc
+;     pop bc
+;     push de
+;     jp (ix)
 
 abs1:
     pop hl
@@ -1136,42 +1139,42 @@ divide3:
     ld de,bc                              ; result from bc to de
     ret
 
-; squareroot
-; Input: HL = value
-; Result: DE = square root BC = remainder
+; ; squareroot
+; ; Input: HL = value
+; ; Result: DE = square root BC = remainder
 
-squareRoot:
-    ld bc,0800h   
-    ld e,c        
-    xor a         
-squareRoot1:        
-    add hl,hl     
-    rl c          
-    adc hl,hl     
-    rl c          
-    jr nc,$+4     
-    set 0,l       
-    ld a,e        
-    add a,a       
-    ld e,a        
-    add a,a       
-    bit 0,l       
-    jr nz,$+5     
-    sub c         
-    jr nc,squareRoot4     
-    ld a,c         
-    sub e              
-    inc e          
-    sub e           
-    ld c,a         
-squareRoot4:
-    djnz squareRoot1
-    bit 0,l       
-    jr z,squareRoot5         
-    inc b         
-squareRoot5:
-    ld d,0
-    ret           
+; squareRoot:
+;     ld bc,0800h   
+;     ld e,c        
+;     xor a         
+; squareRoot1:        
+;     add hl,hl     
+;     rl c          
+;     adc hl,hl     
+;     rl c          
+;     jr nc,$+4     
+;     set 0,l       
+;     ld a,e        
+;     add a,a       
+;     ld e,a        
+;     add a,a       
+;     bit 0,l       
+;     jr nz,$+5     
+;     sub c         
+;     jr nc,squareRoot4     
+;     ld a,c         
+;     sub e              
+;     inc e          
+;     sub e           
+;     ld c,a         
+; squareRoot4:
+;     djnz squareRoot1
+;     bit 0,l       
+;     jr z,squareRoot5         
+;     inc b         
+; squareRoot5:
+;     ld d,0
+;     ret           
 
 ; print decimal
 ; hl = value
@@ -1266,7 +1269,7 @@ prtstr:
 ; **************************************************************************    
 
 nesting:    
-    cp $22                      ; quote char
+    cp DQUOTE                      ; quote char
     jr z,nesting0
     cp "`"                      ; quote char
     jr z,nesting0
@@ -1328,7 +1331,7 @@ execStr:                        ; create a root stack frame
     dec bc                      ; dec to prepare for next routine
     ld de,0
     push de                     ; push fake IP
-    push de                     ; push null arglist*
+    push de                     ; push null arg_list*
     push de                     ; push null first_arg*
     push de                     ; push fake BP
     jp (ix) 
@@ -1343,12 +1346,15 @@ call:
 ; else uses outer scope 
 go:				       
     pop de                      ; de = block*
-go0:
     ld a,e                      ; if block* == null, exit
     or d
     jr nz,go1
     jp (ix)
 go1:
+    ld a,(de)
+    cp "{"
+    jp nz,go10
+    inc de
     push bc                     ; push IP
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
     ld b,iyh                    
@@ -1378,16 +1384,8 @@ go3:
     dec bc                       
     jp (ix)    
 
-; call with args
-; creates a scope
-; code* -- ?
-doFunc:				            ; execute code at pointer
-    pop hl                      ; hl = code*
-    ld a,l                      ; if code* == null, skip
-    or h
-    jr nz,doFunc0
-    jp (ix)
-doFunc0:
+go10:				            ; execute code at pointer
+    ex de,hl                    ; hl = code*
     ld e,(hl)                   ; de = block*, hl = arg_list*
     inc hl
     ld d,(hl)
@@ -1395,24 +1393,21 @@ doFunc0:
     ex de,hl
     ld a,l                      ; if arg_list* != null skip
     or h
-    jr nz,doFunc1              
+    jr nz,go11              
     push bc                     ; push IP
-    push hl                     ; push arg_list (null)
-    ld hl,4                     ; hl = first_arg (BP + 8)
-    add hl,sp
-    jr doFunc4                  
-doFunc1:
+    jr go2                  
+go11:
     dec hl                      ; a = num_locals*, de = block* hl = arg_list*
     ld a,(hl)
     inc hl
     or a
-    jr z,doFunc3
-doFunc2:
+    jr z,go13
+go12:
     dec sp
     dec sp
     dec a
-    jr nz,doFunc2
-doFunc3:
+    jr nz,go12
+go13:
     push bc                     ; push IP    
     push hl                     ; push arg_list*
     dec hl                      ; hl = num_args*
@@ -1423,19 +1418,11 @@ doFunc3:
     ld l,a
     ld h,$0
     add hl,sp                   ; hl = first_arg*
-doFunc4:
-    jp go3
+    jr go3
 
 ; arg_list* block* -- ptr
 func:
     ld hl,(vHeapPtr)                    ; hl = heapptr 
-    ld (hl),$cd                         ; compile "call doFunc"
-    inc hl
-    ld (hl),lsb(doFunc)
-    inc hl
-    ld (hl),msb(doFunc)
-    inc hl
-    
     pop de                              ; hl = heapPtr, de = block
     ex de,hl                            ; hl = heapPtr, de = arg_list*, (sp) = block*
     ex (sp),hl                          
@@ -1444,8 +1431,8 @@ func:
     inc hl
     ld (hl),d
     inc hl
-
     pop de                              ; de = block*
+    inc de
     push bc                             ; (sp) = IP 
     ld b,1                              ; b = nesting
 func1:
@@ -1453,21 +1440,20 @@ func1:
     inc de
     ld (hl),a
     inc hl
-    
     cp ")"
     jr z,func4
     cp "}"                       
     jr z,func4
     cp "]"
     jr z,func4
-
     cp "("
     jr z,func2
     cp "{"
     jr z,func2
     cp "["
     jr z,func2
-
+    cp DQUOTE
+    jr z,func3
     cp "'"
     jr z,func3
     cp "`"
@@ -1666,7 +1652,6 @@ next2:
     ld l,a
     add hl,hl                   ; hl = word aligned 16 bit address
     jp (hl)
-
 exit_:
     ld hl,bc
     jp (hl)
