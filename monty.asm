@@ -346,6 +346,19 @@ nop_:
 ; word operators
 ;*******************************************************************
 
+abs1:
+    pop hl
+    bit 7,h
+    ret z
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+    push hl
+    jp (ix)
+
 ; -- ptr
 addr:
     ld hl,(vPointer)
@@ -365,48 +378,6 @@ and1:
     ld h,a        
     push hl         
     jp (ix)        
-command:
-    inc bc
-    ld a,(bc)
-    cp $5C                      ; \\ comment
-    jr z,comment
-    cp "f"                      ; func
-    jp z,func
-    ld hl,1                     ; error 1: unknown command
-    jp error
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
-dot:  
-    pop hl
-    inc bc
-    ld a,(bc)
-    cp "h"
-    jr nz,dot1
-    call prthex
-    jr dot4
-dot1:
-    cp "s"
-    jr nz,dot2
-    call prtstr
-    jr dot4
-dot2:
-    cp "c"
-    jr nz,dot3
-    ld a,l
-    call putchar
-    jr dot4
-dot3:
-    dec bc
-    call prtdec
-dot4:
-    ld a,' '       
-    call putchar
-    jp (ix)
 or:
     pop de                      ; Bitwise or the top 2 elements of the stack
     pop hl
@@ -427,218 +398,51 @@ xor1:
     xor     h
     jr and1
 
-; shiftLeft  
-; value count -- value2          shift left count places
-shiftLeft:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftLeft2
-shiftLeft1:   
-    add hl,hl                   ; left shift hl
-shiftLeft2:   
-    djnz shiftLeft1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-; shiftRight  
-; value count -- value2          shift left count places
-shiftRight:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftRight2
-shiftRight1:   
-    srl h                       ; right shift hl
-    rr l
-shiftRight2:   
-    djnz shiftRight1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-mul:        ;=19
-    pop  de                     ; get first value
-    pop  hl
-    push bc                     ; Preserve the IP
-    ld b,h                      ; bc = 2nd value
-    ld c,l
-    
-    ld hl,0
-    ld a,16
-mul2:
-    add hl,hl
-    rl e
-    rl d
-    jr nc,$+6
-    add hl,bc
-    jr nc,$+3
-    inc de
-    dec a
-    jr nz,mul2
-	pop bc			            ; Restore the IP
-	push hl                     ; Put the product on the stack - stack bug fixed 2/12/21
-	jp (ix)
-
-num:
-	ld hl,$0000				    ; Clear hl to accept the number
-	ld a,(bc)				    ; Get numeral or -
-    cp '-'
-    jr nz,num0
-    inc bc                      ; move to next char, no flags affected
-num0:
-    ex af,af'                   ; save zero flag = 0 for later
-num1:
-    ld a,(bc)                   ; read digit    
-    sub "0"                     ; less than 0?
-    jr c, num2                  ; not a digit, exit loop 
-    cp 10                       ; greater that 9?
-    jr nc, num2                 ; not a digit, exit loop
-    inc bc                      ; inc IP
-    ld de,hl                    ; multiply hl * 10
-    add hl,hl    
-    add hl,hl    
-    add hl,de    
-    add hl,hl    
-    add a,l                     ; add digit in a to hl
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    jr num1 
-num2:
-    dec bc
-    ex af,af'                   ; restore zero flag
-    jr nz, num3
-    ex de,hl                    ; negate the value of hl
-    ld hl,0
-    or a                        ; jump to sub2
-    sbc hl,de    
-num3:
-    push hl                     ; Put the number on the stack
-    jp (ix)                     ; and process the next character
-
-hexnum:        
-	ld hl,0	    		        ; Clear hl to accept the number
-hexnum1:
-    inc bc
-    ld a,(bc)		            ; Get the character which is a numeral
-    bit 6,a                     ; is it uppercase alpha?
-    jr z, hexnum2               ; no a decimal
-    sub 7                       ; sub 7  to make $a - $F
-hexnum2:
-    sub $30                     ; form decimal digit
-    jp c,num2
-    cp $0F+1
-    jp nc,num2
-    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
-    add hl,hl                   ; 4X
-    add hl,hl                   ; 8X
-    add hl,hl                   ; 16X     
-    add a,l                     ; add into bottom of hl
-    ld  l,a        
-    jr  hexnum1
-
-; string
-; -- ptr                        ; points to start of string chars, 
-                                ; length is stored at start - 2 bytes 
-string:     
-    ld hl,(vHeapPtr)            ; hl = heap ptr
-    inc hl                      ; skip length field to start
-    inc hl
-    push hl                     ; save start of string 
-    inc bc                      ; point to next char
-    jr string2
-string1:
-    ld (hl),a
-    inc hl                      ; increase count
-    inc bc                      ; point to next char
-string2:
-    ld a,(bc)
-    cp DQUOTE                      ; " is the string terminator
-    jr nz,string1
-    cp "`"                      ; ` is the string terminator used in testing
-    jr nz,string1
-    xor a                       ; write NUL to terminate string
-    ld (hl),a                   ; hl = end of string
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap ptr to after end of string
-    dec hl                      ; hl = end of string without terminator
-    pop de                      ; de = start of string
-    push de                     ; return start of string    
-    or a                        ; hl = length bytes, de = start of string
-    sbc hl,de
-    ex de,hl
-    dec hl                      ; write length bytes to length field at start - 2                                      
-    ld (hl),d
+; $a .. $z
+; -- value
+; returns value of arg
+arg:
+    ld e,(iy+4)                 ; hl = arg_list* 
+    ld d,(iy+5)
+    ex de,hl                    
+    ld a,l                      ; arg_list* == null, skip
+    or h
+    jr z,arg0a
+    dec hl                      ; a = num_args, hl = arg_list*
     dec hl
-    ld (hl),e
-    jp (ix)  
-
-char:
-    ld hl,0                     ; if '' is empty or null
-char1:
-    inc bc                      ; point to next char
+    ld a,(hl)                    
+    inc hl
+    inc hl
+    or a
+    jr z,arg0a                  ; num_args == 0, skip 
+    ld e,a                      ; e = a = num_args
+    inc bc                      ; a = next char = arg_name
     ld a,(bc)
-    cp "'"                      ; ' is the terminator
-    jr z,char3
-    cp $5c                      ; \ is the escape
-    jr nz,char2
-    inc bc
-    ld a,(bc)
-char2:
-    ld l,a
-    jr char1
-char3:
-    push hl
-    jp (ix)  
-
-identU:
-    ld a,(bc)                   ; a = identifier char
-    sub 'A'                     ; 'A' = 0
-    jr ident1
-identL:
-    ld a,(bc)
-    sub 'a' 
-    add a,26
-ident1:
-    add a,a                     ; l = a * 2                             
-    ld l,a
-    ld h,msb(vars)     
-    ld (vPointer),hl            ; store address in setter    
+    push bc                     ; save IP                         
+    ld b,e                      ; b = e = num_args
+    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
+    ld d,(iy+3)
+arg0:
+    dec de                      ; a = arg_name, de = next arg*
+    dec de
+    cp (hl)
+    jr z,arg1
+    inc hl                      ; hl = next arg_list*            
+    djnz arg0
+    pop bc                      ; no match, restore IP
+arg0a:
+    ld de,0                     ; return 0
+    jr arg1a
+arg1:
+    pop bc                      ; restore IP
+    ex de,hl                    ; hl = arg*
+    ld (vPointer),hl            ; store arg* in setter    
     ld e,(hl)
     inc hl
-    ld d,(hl)
-    push de
+    ld d,(hl)                   ; de = arg
+arg1a:
+    push de                     ; push arg
     jp (ix)
-
-; value _oldValue --            ; uses address in vPointer
-assign:
-    pop hl                      ; discard last accessed value
-    pop de                      ; new value
-    ld hl,(vPointer)     
-    ld (hl),e
-    ld a,(vDataWidth)                   
-    dec a                       ; is it byte?
-    jr z,assign1
-    inc hl    
-    ld (hl),d
-assign1:	  
-    jp (ix)  
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 
 ; arg_list - parses input (ab:c)
@@ -685,6 +489,98 @@ arg_list5:
     ld (hl),d
     dec hl
     ld (hl),e
+    jp (ix)  
+
+array:
+    ld de,0                     ; create stack frame
+    push de                     ; push null for IP
+    ld e,(iy+4)                 ; push arg_list* from parent stack frame
+    ld d,(iy+5)                 ; 
+    push de                     ; 
+    ld e,(iy+2)                 ; push ScopeBP from parent stack frame
+    ld d,(iy+3)                 ; 
+    push de                     ; 
+    push iy                     ; push BP  
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    jp (ix)
+
+arrayEnd:
+    ld d,iyh                    ; de = BP
+    ld e,iyl
+    ld (vTemp1),bc              ; save IP
+    ld hl,de                    ; hl = de = BP
+    or a 
+    sbc hl,sp                   ; hl = array count (items on stack)
+    srl h                       ; 
+    rr l                        
+    ld bc,hl                    ; bc = count
+    ld hl,(vHeapPtr)            ; hl = array[-2]
+    ld (hl),c                   ; write num items in length word
+    inc hl
+    ld (hl),b
+    inc hl                      ; hl = array[0], bc = count
+                                ; de = BP, hl = array[0], bc = count
+    ld a,(vDataWidth)           ; vDataWidth=1? 
+    cp 1                        
+    jr nz, arrayEnd2
+
+arrayEnd1:                      ; byte
+    ld a,(iy-2)                 ; a = lsb of stack item
+    ld (hl),a                   ; write a to array item
+    inc hl                      ; move to next byte in array
+    dec iy                      ; move tho next word on stack
+    dec iy
+    dec bc                      ; dec items count
+    ld a,c                      ; if not zero loop
+    or b
+    jr nz,arrayEnd1
+    jr arrayEnd3
+
+arrayEnd2:                      ; word
+    ld a,(iy-2)                 ; a = lsb of stack item
+    ld (hl),a                   ; write lsb of array item
+    inc hl                      ; move to msb of array item
+    ld a,(iy-1)                 ; a = msb of stack item
+    ld (hl),a                   ; write msb of array item
+    inc hl                      ; move to next word in array
+    dec iy                      ; move to next word on stack
+    dec iy
+    dec bc                      ; dec items count
+    ld a,c                      ; if not zero loop
+    or b
+    jr nz,arrayEnd2
+    
+arrayEnd3:
+    ex de,hl                    ; de = end of array, hl = BP 
+    ld sp,hl                    ; sp = BP
+    pop hl                      ; de = end of array, hl = old BP
+    ex de,hl                    ; iy = de = old BP, hl = end of array
+    ld iyh,d
+    ld iyl,e
+    pop de                      ; pop arg_list (discard)
+    pop de                      ; pop ScopeBP (discard)
+    pop de                      ; pop IP (discard)
+    ld de,(vHeapPtr)            ; de = array[-2]
+    ld (vHeapPtr),hl            ; move heapPtr to end of array
+    ld bc,(vTemp1)              ; restore IP
+    inc de                      ; de = array[0]
+    inc de
+    push de                     ; return array[0]
+    jp (ix)
+
+; value _oldValue --            ; uses address in vPointer
+assign:
+    pop hl                      ; discard last accessed value
+    pop de                      ; new value
+    ld hl,(vPointer)     
+    ld (hl),e
+    ld a,(vDataWidth)                   
+    dec a                       ; is it byte?
+    jr z,assign1
+    inc hl    
+    ld (hl),d
+assign1:	  
     jp (ix)  
 
 block:
@@ -785,6 +681,290 @@ blockend2:
     pop iy
     jp (ix)    
 
+bytes:
+    ld hl,1
+bytes1:
+    ld (vDataWidth),hl
+    jp (ix)
+
+char:
+    ld hl,0                     ; if '' is empty or null
+char1:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp "'"                      ; ' is the terminator
+    jr z,char3
+    cp $5c                      ; \ is the escape
+    jr nz,char2
+    inc bc
+    ld a,(bc)
+char2:
+    ld l,a
+    jr char1
+char3:
+    push hl
+    jp (ix)  
+
+command:
+    inc bc
+    ld a,(bc)
+    cp $5C                      ; \\ comment
+    jr z,comment
+    cp "f"                      ; func
+    jp z,func
+    ld hl,1                     ; error 1: unknown command
+    jp error
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
+dot:  
+    pop hl
+    inc bc
+    ld a,(bc)
+    cp "h"
+    jr nz,dot1
+    call prthex
+    jr dot4
+dot1:
+    cp "s"
+    jr nz,dot2
+    call prtstr
+    jr dot4
+dot2:
+    cp "c"
+    jr nz,dot3
+    ld a,l
+    call putchar
+    jr dot4
+dot3:
+    dec bc
+    call prtdec
+dot4:
+    ld a,' '       
+    call putchar
+    jp (ix)
+
+; hl = value1, de = value2
+; hl = result
+equals:
+    or a                        ; reset the carry flag
+    sbc hl,de                   ; only equality sets hl=0 here
+    jr z, true1
+    jp false1
+
+; hl = value1 de = value2
+; hl = result
+lessthaneq:    
+    or a                        
+    sbc hl,de    
+    jr lessthan1
+
+; hl = value1 de = value2
+; hl = result
+lessthan:
+    or a                        
+    sbc hl,de    
+    jr z,false1    
+
+lessthan1:
+    jp m,false1
+
+true1:
+    ld hl, TRUE
+    push hl
+    jp (ix) 
+null1:
+false1:
+    ld hl, FALSE
+    push hl
+    jp (ix) 
+
+frac:
+    ld hl,(vFrac)
+    push hl
+    jp (ix)
+
+; arg_list* block* -- ptr
+func:
+    ld hl,(vHeapPtr)                    ; hl = heapptr 
+    pop de                              ; hl = heapPtr, de = block
+    ex de,hl                            ; hl = heapPtr, de = arg_list*, (sp) = block*
+    ex (sp),hl                          
+    ex de,hl
+    ld (hl),e                           ; compile arg_list*
+    inc hl
+    ld (hl),d
+    inc hl
+    pop de                              ; de = block*
+    inc de
+    push bc                             ; (sp) = IP 
+    ld b,1                              ; b = nesting
+func1:
+    ld a,(de)                           
+    inc de
+    ld (hl),a
+    inc hl
+    cp ")"
+    jr z,func4
+    cp "}"                       
+    jr z,func4
+    cp "]"
+    jr z,func4
+    cp "("
+    jr z,func2
+    cp "{"
+    jr z,func2
+    cp "["
+    jr z,func2
+    cp DQUOTE
+    jr z,func3
+    cp "'"
+    jr z,func3
+    cp "`"
+    jr z,func3
+    jr func1
+func2:
+    inc b
+    jr func1                   
+func3:
+    ld a,$80
+    xor b
+    ld b,a
+    jr nz,func1
+    jr func4a
+func4:
+    dec b
+    jr nz, func1                        ; get the next element
+func4a:
+    inc hl
+    pop bc                              ; de = defstart, hl = IP
+    ld de,(vHeapPtr)                    ; de = defstart
+    push de
+    ld (vHeapPtr),hl                    ; update heap ptr to end of definition
+    jp (ix)
+
+; execute a block of code which ends with }
+; creates a root scope if BP == stack
+; else uses outer scope 
+go:				       
+    pop de                      ; de = block*
+    ld a,e                      ; if block* == null, exit
+    or d
+    jr nz,go1
+    jp (ix)
+go1:
+    ld a,(de)
+    cp "{"
+    jp nz,go10
+    inc de
+    push bc                     ; push IP
+    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
+    ld b,iyh                    
+    ld c,iyl
+    or a                        ; hl = stack - BP = root_scope
+    sbc hl,bc                   
+    ld a,l                      ; if root_scope, skip
+    or h                    
+    jr z,go2
+    ld c,(iy+4)                 ; push arg_list* (parent)
+    ld b,(iy+5)                 
+    push bc                     
+    ld c,(iy+2)                 ; hl = first_arg* (parent)
+    ld b,(iy+3)                 
+    ld hl,bc
+    jr go3
+go2:
+    push hl                     ; push arg_list (null)
+    ld hl,4                     ; hl = first_arg* (BP+8)
+    add hl,sp
+go3:
+    push hl                     ; push first_arg    
+    push iy                     ; push BP
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    ld bc,de                    ; bc = de = block*-1
+    dec bc                       
+    jp (ix)    
+
+go10:				            ; execute code at pointer
+    ex de,hl                    ; hl = code*
+    ld e,(hl)                   ; de = block*, hl = arg_list*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ex de,hl
+    ld a,l                      ; if arg_list* != null skip
+    or h
+    jr nz,go11              
+    push bc                     ; push IP
+    jr go2                  
+go11:
+    dec hl                      ; a = num_locals*, de = block* hl = arg_list*
+    ld a,(hl)
+    inc hl
+    or a
+    jr z,go13
+go12:
+    dec sp
+    dec sp
+    dec a
+    jr nz,go12
+go13:
+    push bc                     ; push IP    
+    push hl                     ; push arg_list*
+    dec hl                      ; hl = num_args*
+    dec hl
+    ld a,(hl)                   ; hl = num_args * 2
+    add a,a
+    add a,4                     ; offset for IP and arg_list
+    ld l,a
+    ld h,$0
+    add hl,sp                   ; hl = first_arg*
+    jr go3
+
+hexnum:        
+	ld hl,0	    		        ; Clear hl to accept the number
+hexnum1:
+    inc bc
+    ld a,(bc)		            ; Get the character which is a numeral
+    bit 6,a                     ; is it uppercase alpha?
+    jr z, hexnum2               ; no a decimal
+    sub 7                       ; sub 7  to make $a - $F
+hexnum2:
+    sub $30                     ; form decimal digit
+    jp c,num2
+    cp $0F+1
+    jp nc,num2
+    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
+    add hl,hl                   ; 4X
+    add hl,hl                   ; 8X
+    add hl,hl                   ; 16X     
+    add a,l                     ; add into bottom of hl
+    ld  l,a        
+    jr  hexnum1
+identU:
+    ld a,(bc)                   ; a = identifier char
+    sub 'A'                     ; 'A' = 0
+    jr ident1
+identL:
+    ld a,(bc)
+    sub 'a' 
+    add a,26
+ident1:
+    add a,a                     ; l = a * 2                             
+    ld l,a
+    ld h,msb(vars)     
+    ld (vPointer),hl            ; store address in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    push de
+    jp (ix)
+
 ; if
 ; condition then -- value
 if:
@@ -803,18 +983,6 @@ ifte1:
     pop hl                      ; hl = then
     jp z,go                     ; if z de = else                   
     ex de,hl                    ; condition = false, hl = else  
-    jp go
-
-; switch
-; index array -- value
-switch: 
-    pop de                      ; de = array
-    pop hl                      ; hl = index  
-    add hl,hl                           ; if data width = 2 then double 
-    add hl,de                           ; add addr
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
     jp go
 
 ; index of an array, based on vDataWidth 
@@ -839,6 +1007,195 @@ index1:
 index2:
     push de
     jp (ix)
+
+; Z80 port input
+; port -- value 
+input:			    
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    in l,(c)
+    ld h,0
+    ld c,e                      ; restore IP
+    push hl
+    jp (ix)    
+
+key:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
+    jp (ix)
+
+mul:        
+    pop  de                     ; get first value
+    pop  hl
+    push bc                     ; Preserve the IP
+    ld b,h                      ; bc = 2nd value
+    ld c,l
+    
+    ld hl,0
+    ld a,16
+mul2:
+    add hl,hl
+    rl e
+    rl d
+    jr nc,$+6
+    add hl,bc
+    jr nc,$+3
+    inc de
+    dec a
+    jr nz,mul2
+	pop bc			            ; Restore the IP
+	push hl                     ; Put the product on the stack - stack bug fixed 2/12/21
+	jp (ix)
+
+num:
+	ld hl,$0000				    ; Clear hl to accept the number
+	ld a,(bc)				    ; Get numeral or -
+    cp '-'
+    jr nz,num0
+    inc bc                      ; move to next char, no flags affected
+num0:
+    ex af,af'                   ; save zero flag = 0 for later
+num1:
+    ld a,(bc)                   ; read digit    
+    sub "0"                     ; less than 0?
+    jr c, num2                  ; not a digit, exit loop 
+    cp 10                       ; greater that 9?
+    jr nc, num2                 ; not a digit, exit loop
+    inc bc                      ; inc IP
+    ld de,hl                    ; multiply hl * 10
+    add hl,hl    
+    add hl,hl    
+    add hl,de    
+    add hl,hl    
+    add a,l                     ; add digit in a to hl
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    jr num1 
+num2:
+    dec bc
+    ex af,af'                   ; restore zero flag
+    jr nz, num3
+    ex de,hl                    ; negate the value of hl
+    ld hl,0
+    or a                        ; jump to sub2
+    sbc hl,de    
+num3:
+    push hl                     ; Put the number on the stack
+    jp (ix)                     ; and process the next character
+
+; Z80 port output
+; value port --
+output:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    pop hl
+    out (c),l
+    ld c,e                      ; restore IP
+    jp (ix)    
+
+
+; shiftLeft  
+; value count -- value2          shift left count places
+shiftLeft:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftLeft2
+shiftLeft1:   
+    add hl,hl                   ; left shift hl
+shiftLeft2:   
+    djnz shiftLeft1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; shiftRight  
+; value count -- value2          shift left count places
+shiftRight:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftRight2
+shiftRight1:   
+    srl h                       ; right shift hl
+    rr l
+shiftRight2:   
+    djnz shiftRight1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; string
+; -- ptr                        ; points to start of string chars, 
+                                ; length is stored at start - 2 bytes 
+string:     
+    ld hl,(vHeapPtr)            ; hl = heap ptr
+    inc hl                      ; skip length field to start
+    inc hl
+    push hl                     ; save start of string 
+    inc bc                      ; point to next char
+    jr string2
+string1:
+    ld (hl),a
+    inc hl                      ; increase count
+    inc bc                      ; point to next char
+string2:
+    ld a,(bc)
+    cp DQUOTE                      ; " is the string terminator
+    jr nz,string1
+    cp "`"                      ; ` is the string terminator used in testing
+    jr nz,string1
+    xor a                       ; write NUL to terminate string
+    ld (hl),a                   ; hl = end of string
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap ptr to after end of string
+    dec hl                      ; hl = end of string without terminator
+    pop de                      ; de = start of string
+    push de                     ; return start of string    
+    or a                        ; hl = length bytes, de = start of string
+    sbc hl,de
+    ex de,hl
+    dec hl                      ; write length bytes to length field at start - 2                                      
+    ld (hl),d
+    dec hl
+    ld (hl),e
+    jp (ix)  
+
+; switch
+; index array -- value
+switch: 
+    pop de                      ; de = array
+    pop hl                      ; hl = index  
+    add hl,hl                           ; if data width = 2 then double 
+    add hl,de                           ; add addr
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    jp go
+
+words:
+    ld hl,2
+    jp bytes1
+    
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 ; c b --
 ; loops until c = 0
@@ -892,93 +1249,6 @@ loop:
 ;     ld ix,(vNext)                  ; needed?
 ;     jp (ix)
 
-words:
-    ld hl,2
-    jr bytes1
-bytes:
-    ld hl,1
-bytes1:
-    ld (vDataWidth),hl
-    jp (ix)
-    
-array:
-    ld de,0                     ; create stack frame
-    push de                     ; push null for IP
-    ld e,(iy+4)                 ; push arg_list* from parent stack frame
-    ld d,(iy+5)                 ; 
-    push de                     ; 
-    ld e,(iy+2)                 ; push ScopeBP from parent stack frame
-    ld d,(iy+3)                 ; 
-    push de                     ; 
-    push iy                     ; push BP  
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    jp (ix)
-
-arrayEnd:
-    ld d,iyh                    ; de = BP
-    ld e,iyl
-    ld (vTemp1),bc              ; save IP
-    ld hl,de                    ; hl = de = BP
-    or a 
-    sbc hl,sp                   ; hl = array count (items on stack)
-    srl h                       ; 
-    rr l                        
-    ld bc,hl                    ; bc = count
-    ld hl,(vHeapPtr)            ; hl = array[-2]
-    ld (hl),c                   ; write num items in length word
-    inc hl
-    ld (hl),b
-    inc hl                      ; hl = array[0], bc = count
-                                ; de = BP, hl = array[0], bc = count
-    ld a,(vDataWidth)           ; vDataWidth=1? 
-    cp 1                        
-    jr nz, arrayEnd2
-
-arrayEnd1:                      ; byte
-    ld a,(iy-2)                 ; a = lsb of stack item
-    ld (hl),a                   ; write a to array item
-    inc hl                      ; move to next byte in array
-    dec iy                      ; move tho next word on stack
-    dec iy
-    dec bc                      ; dec items count
-    ld a,c                      ; if not zero loop
-    or b
-    jr nz,arrayEnd1
-    jr arrayEnd3
-
-arrayEnd2:                      ; word
-    ld a,(iy-2)                 ; a = lsb of stack item
-    ld (hl),a                   ; write lsb of array item
-    inc hl                      ; move to msb of array item
-    ld a,(iy-1)                 ; a = msb of stack item
-    ld (hl),a                   ; write msb of array item
-    inc hl                      ; move to next word in array
-    dec iy                      ; move to next word on stack
-    dec iy
-    dec bc                      ; dec items count
-    ld a,c                      ; if not zero loop
-    or b
-    jr nz,arrayEnd2
-    
-arrayEnd3:
-    ex de,hl                    ; de = end of array, hl = BP 
-    ld sp,hl                    ; sp = BP
-    pop hl                      ; de = end of array, hl = old BP
-    ex de,hl                    ; iy = de = old BP, hl = end of array
-    ld iyh,d
-    ld iyl,e
-    pop de                      ; pop arg_list (discard)
-    pop de                      ; pop ScopeBP (discard)
-    pop de                      ; pop IP (discard)
-    ld de,(vHeapPtr)            ; de = array[-2]
-    ld (vHeapPtr),hl            ; move heapPtr to end of array
-    ld bc,(vTemp1)              ; restore IP
-    inc de                      ; de = array[0]
-    inc de
-    push de                     ; return array[0]
-    jp (ix)
-
 ;; str -- num
 ; hash:
     ; pop hl
@@ -989,11 +1259,6 @@ arrayEnd3:
     ; push hl
     ; jp (ix)
 
-frac:
-    ld hl,(vFrac)
-    push hl
-    jp (ix)
-
 ; sqrt1:
 ;     pop hl
 ;     push bc
@@ -1002,84 +1267,6 @@ frac:
 ;     pop bc
 ;     push de
 ;     jp (ix)
-
-abs1:
-    pop hl
-    bit 7,h
-    ret z
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-    push hl
-    jp (ix)
-
-; hl = value1, de = value2
-; hl = result
-equals:
-    or a                        ; reset the carry flag
-    sbc hl,de                   ; only equality sets hl=0 here
-    jr z, true1
-    jp false1
-
-; hl = value1 de = value2
-; hl = result
-lessthaneq:    
-    or a                        
-    sbc hl,de    
-    jr lessthan1
-
-; hl = value1 de = value2
-; hl = result
-lessthan:
-    or a                        
-    sbc hl,de    
-    jr z,false1    
-
-lessthan1:
-    jp m,false1
-
-true1:
-    ld hl, TRUE
-    push hl
-    jp (ix) 
-null1:
-false1:
-    ld hl, FALSE
-    push hl
-    jp (ix) 
-
-; Z80 port input
-; port -- value 
-input:			    
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    in l,(c)
-    ld h,0
-    ld c,e                      ; restore IP
-    push hl
-    jp (ix)    
-
-; Z80 port output
-; value port --
-output:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    pop hl
-    out (c),l
-    ld c,e                      ; restore IP
-    jp (ix)    
-
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
 
 filter:
 map:
@@ -1341,189 +1528,6 @@ call:
     pop hl
     jp (hl)
 
-; execute a block of code which ends with }
-; creates a root scope if BP == stack
-; else uses outer scope 
-go:				       
-    pop de                      ; de = block*
-    ld a,e                      ; if block* == null, exit
-    or d
-    jr nz,go1
-    jp (ix)
-go1:
-    ld a,(de)
-    cp "{"
-    jp nz,go10
-    inc de
-    push bc                     ; push IP
-    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
-    ld b,iyh                    
-    ld c,iyl
-    or a                        ; hl = stack - BP = root_scope
-    sbc hl,bc                   
-    ld a,l                      ; if root_scope, skip
-    or h                    
-    jr z,go2
-    ld c,(iy+4)                 ; push arg_list* (parent)
-    ld b,(iy+5)                 
-    push bc                     
-    ld c,(iy+2)                 ; hl = first_arg* (parent)
-    ld b,(iy+3)                 
-    ld hl,bc
-    jr go3
-go2:
-    push hl                     ; push arg_list (null)
-    ld hl,4                     ; hl = first_arg* (BP+8)
-    add hl,sp
-go3:
-    push hl                     ; push first_arg    
-    push iy                     ; push BP
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    ld bc,de                    ; bc = de = block*-1
-    dec bc                       
-    jp (ix)    
-
-go10:				            ; execute code at pointer
-    ex de,hl                    ; hl = code*
-    ld e,(hl)                   ; de = block*, hl = arg_list*
-    inc hl
-    ld d,(hl)
-    inc hl
-    ex de,hl
-    ld a,l                      ; if arg_list* != null skip
-    or h
-    jr nz,go11              
-    push bc                     ; push IP
-    jr go2                  
-go11:
-    dec hl                      ; a = num_locals*, de = block* hl = arg_list*
-    ld a,(hl)
-    inc hl
-    or a
-    jr z,go13
-go12:
-    dec sp
-    dec sp
-    dec a
-    jr nz,go12
-go13:
-    push bc                     ; push IP    
-    push hl                     ; push arg_list*
-    dec hl                      ; hl = num_args*
-    dec hl
-    ld a,(hl)                   ; hl = num_args * 2
-    add a,a
-    add a,4                     ; offset for IP and arg_list
-    ld l,a
-    ld h,$0
-    add hl,sp                   ; hl = first_arg*
-    jr go3
-
-; arg_list* block* -- ptr
-func:
-    ld hl,(vHeapPtr)                    ; hl = heapptr 
-    pop de                              ; hl = heapPtr, de = block
-    ex de,hl                            ; hl = heapPtr, de = arg_list*, (sp) = block*
-    ex (sp),hl                          
-    ex de,hl
-    ld (hl),e                           ; compile arg_list*
-    inc hl
-    ld (hl),d
-    inc hl
-    pop de                              ; de = block*
-    inc de
-    push bc                             ; (sp) = IP 
-    ld b,1                              ; b = nesting
-func1:
-    ld a,(de)                           
-    inc de
-    ld (hl),a
-    inc hl
-    cp ")"
-    jr z,func4
-    cp "}"                       
-    jr z,func4
-    cp "]"
-    jr z,func4
-    cp "("
-    jr z,func2
-    cp "{"
-    jr z,func2
-    cp "["
-    jr z,func2
-    cp DQUOTE
-    jr z,func3
-    cp "'"
-    jr z,func3
-    cp "`"
-    jr z,func3
-    jr func1
-func2:
-    inc b
-    jr func1                   
-func3:
-    ld a,$80
-    xor b
-    ld b,a
-    jr nz,func1
-    jr func4a
-func4:
-    dec b
-    jr nz, func1                        ; get the next element
-func4a:
-    inc hl
-    pop bc                              ; de = defstart, hl = IP
-    ld de,(vHeapPtr)                    ; de = defstart
-    push de
-    ld (vHeapPtr),hl                    ; update heap ptr to end of definition
-    jp (ix)
-
-; $a .. $z
-; -- value
-; returns value of arg
-arg:
-    ld e,(iy+4)                 ; hl = arg_list* 
-    ld d,(iy+5)
-    ex de,hl                    
-    ld a,l                      ; arg_list* == null, skip
-    or h
-    jr z,arg0a
-    dec hl                      ; a = num_args, hl = arg_list*
-    dec hl
-    ld a,(hl)                    
-    inc hl
-    inc hl
-    or a
-    jr z,arg0a                  ; num_args == 0, skip 
-    ld e,a                      ; e = a = num_args
-    inc bc                      ; a = next char = arg_name
-    ld a,(bc)
-    push bc                     ; save IP                         
-    ld b,e                      ; b = e = num_args
-    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
-    ld d,(iy+3)
-arg0:
-    dec de                      ; a = arg_name, de = next arg*
-    dec de
-    cp (hl)
-    jr z,arg1
-    inc hl                      ; hl = next arg_list*            
-    djnz arg0
-    pop bc                      ; no match, restore IP
-arg0a:
-    ld de,0                     ; return 0
-    jr arg1a
-arg1:
-    pop bc                      ; restore IP
-    ex de,hl                    ; hl = arg*
-    ld (vPointer),hl            ; store arg* in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)                   ; de = arg
-arg1a:
-    push de                     ; push arg
-    jp (ix)
 
 init:
     ld ix,(vNext)
@@ -1676,14 +1680,6 @@ error:
     ; dw bytes \b
 
     ; call define
-    ; .pstr "call",0                       
-    ; dw call :
-
-    ; call define
-    ; .pstr "exec",0                       
-    ; dw exec
-
-    ; call define
     ; .pstr "false",0                       
     ; dw false1 \f
 
@@ -1701,7 +1697,7 @@ error:
 
     ; call define
     ; .pstr "hash",0                       
-    ; dw hash \h
+    ; dw hash \hsh
 
     ; call define
     ; .pstr "input",0                       
@@ -1732,28 +1728,12 @@ error:
     ; dw map \m ?
 
     ; call define
-    ; .pstr "nil",0                       
-    ; dw null1. \0 ?
-
-    ; call define
     ; .pstr "output",0                       
     ; dw output \out ?
 
     ; call define
     ; .pstr "scan",0                       
     ; dw scan.  \fold ?
-
-    ; call define
-    ; .pstr "set",0                       
-    ; dw set. ?
-
-    ; call define
-    ; .pstr "shiftLeft",0                       
-    ; dw shiftLeft <<
-
-    ; call define
-    ; .pstr "shiftRight",0                       
-    ; dw shiftRight >>
 
     ; call define
     ; .pstr "sqrt",0                       
