@@ -120,7 +120,7 @@ opcodes:                        ; still available , ; DEL
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
-    DB lsb(arrItem_)            ; , 
+    DB lsb(nop_)                ; , 
     DB lsb(sub_)                ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -230,9 +230,6 @@ arrBegin_:
     jp arrBegin
 arrEnd_:
     jp arrEnd
-arrItem_:
-    jp arrItem
-; addr index -- addr2
 arrIndex_:        
     jp arrIndex 
 block_:
@@ -488,44 +485,109 @@ arg_list5:
     ld (hl),e
     jp (ix)  
 
+; arrBegin:
+;     ld hl,(vHeapPtr)            ; hl = heap
+;     inc hl                      ; reserve space for size
+;     inc hl
+;     ld (vHeapPtr),hl            ; hl = array start
+;     push hl                     ; return start of array
+;     jp (ix)
+
+; arrEnd:
+;     pop de                      ; de = dup array start
+;     push de                     
+;     push bc                     ; save IP
+;     ld bc,de                    ; bc = de = array start    
+;     ld hl,(vHeapPtr)            ; hl = array end
+;     or a                        ; de = array length
+;     sbc hl,de
+;     ex de,hl
+;     ld hl,bc                    ; hl = array start
+;     dec hl    
+;     ld (hl),d
+;     dec hl    
+;     ld (hl),e
+;     pop bc                      ; bc = IP
+;     jp (ix)
+
+; arrItem:
+;     pop de                      ; new value
+;     ld hl,(vHeapPtr)     
+;     ld (hl),e
+;     inc hl    
+;     ld a,(vDataWidth)                   
+;     dec a                       ; is it byte?
+;     jr z,arrItem1
+;     ld (hl),d
+;     inc hl    
+; arrItem1:	  
+;     ld (vHeapPtr),hl     
+;     jp (ix)
+
 arrBegin:
-    ld hl,(vHeapPtr)            ; hl = heap
-    inc hl                      ; reserve space for size
-    inc hl
-    ld (vHeapPtr),hl            ; hl = array start
-    push hl                     ; return start of array
+    ld de,0                     ; create stack frame
+    push de                     ; push null for IP
+    ld e,(iy+4)                 ; push arg_list* from parent stack frame
+    ld d,(iy+5)                 ; 
+    push de                     ; 
+    ld e,(iy+2)                 ; push ScopeBP from parent stack frame
+    ld d,(iy+3)                 ; 
+    push de                     ; 
+    push iy                     ; push BP  
+    ld iy,0                     ; BP = SP
+    add iy,sp
     jp (ix)
 
 arrEnd:
-    pop de                      ; de = dup array start
-    push de                     
-    push bc                     ; save IP
-    ld bc,de                    ; bc = de = array start    
-    ld hl,(vHeapPtr)            ; hl = array end
-    or a                        ; de = array length
-    sbc hl,de
-    ex de,hl
-    ld hl,bc                    ; hl = array start
-    dec hl    
-    ld (hl),d
-    dec hl    
-    ld (hl),e
-    pop bc                      ; bc = IP
+    ld d,iyh                    ; de = BP
+    ld e,iyl
+    ld (vTemp1),bc              ; save IP
+    ld hl,de                    ; hl = de = BP
+    or a 
+    sbc hl,sp                   ; hl = array count (items on stack)
+    srl h                       ; 
+    rr l                        
+    ld bc,hl                    ; bc = count
+    ld hl,(vHeapPtr)            ; hl = array[-2]
+    ld (hl),c                   ; write num items in length word
+    inc hl
+    ld (hl),b
+    inc hl                      ; hl = array[0], bc = count
+                                ; de = BP, hl = array[0], bc = count
+arrEnd1:                        
+    ld a,(iy-2)                 ; a = lsb of stack item
+    ld (hl),a                   ; write lsb of array item
+    inc hl                      ; move to msb of array item
+    ld a,(vDataWidth)           ; vDataWidth=1? 
+    dec a
+    jr z,arrEnd2
+    ld a,(iy-1)                 ; a = msb of stack item
+    ld (hl),a                   ; write msb of array item
+    inc hl                      ; move to next word in array
+arrEnd2:
+    dec iy                      ; move to next word on stack
+    dec iy
+    dec bc                      ; dec items count
+    ld a,c                      ; if not zero loop
+    or b
+    jr nz,arrEnd1
+    ex de,hl                    ; de = end of array, hl = BP 
+    ld sp,hl                    ; sp = BP
+    pop hl                      ; de = end of array, hl = old BP
+    ex de,hl                    ; iy = de = old BP, hl = end of array
+    ld iyh,d
+    ld iyl,e
+    pop de                      ; pop arg_list (discard)
+    pop de                      ; pop ScopeBP (discard)
+    pop de                      ; pop IP (discard)
+    ld de,(vHeapPtr)            ; de = array[-2]
+    ld (vHeapPtr),hl            ; move heapPtr to end of array
+    ld bc,(vTemp1)              ; restore IP
+    inc de                      ; de = array[0]
+    inc de
+    push de                     ; return array[0]
     jp (ix)
 
-arrItem:
-    pop de                      ; new value
-    ld hl,(vHeapPtr)     
-    ld (hl),e
-    inc hl    
-    ld a,(vDataWidth)                   
-    dec a                       ; is it byte?
-    jr z,arrItem1
-    ld (hl),d
-    inc hl    
-arrItem1:	  
-    ld (vHeapPtr),hl     
-    jp (ix)
 
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
@@ -751,6 +813,28 @@ dot4:
     call putchar
     jp (ix)
 
+; division subroutine.
+; bc: divisor, de: dividend, hl: remainder
+
+divide:        
+    ld hl,0    	                        ; zero the remainder
+    ld a,16    	                        ; loop counter
+divide1:		                        ; shift the bits from bc (numerator) into hl (accumulator)
+    sla c
+    rl b
+    adc hl,hl
+    sbc hl,de		                    ; check if remainder >= denominator (hl>=de)
+    jr c,divide2
+    inc c
+    jr divide3
+divide2:		                        ; remainder is not >= denominator, so we have to add de back to hl
+    add hl,de
+divide3:
+    dec a
+    jr nz,divide1
+    ld de,bc                              ; result from bc to de
+    ret
+
 ; hl = value1, de = value2
 ; hl = result
 equals:
@@ -785,11 +869,6 @@ false1:
     ld hl, FALSE
     push hl
     jp (ix) 
-
-remain:
-    ld hl,(vRemain)
-    push hl
-    jp (ix)
 
 ; arg_list* block* -- ptr
 func:
@@ -1084,6 +1163,11 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
+remain:
+    ld hl,(vRemain)
+    push hl
+    jp (ix)
+
 repeat:
     jp (ix)    
 
@@ -1168,7 +1252,7 @@ select:
     ld e,(hl)
     inc hl
     ld d,(hl)
-    jp go
+    jp go0
 
 words:
     ld hl,2
@@ -1290,28 +1374,6 @@ scan:
 ;     add hl,hl                           ; shift left
 ;     add hl,de                           ; add
 ;     jr hashStr1
-
-; division subroutine.
-; bc: divisor, de: dividend, hl: remainder
-
-divide:        
-    ld hl,0    	                        ; zero the remainder
-    ld a,16    	                        ; loop counter
-divide1:		                        ; shift the bits from bc (numerator) into hl (accumulator)
-    sla c
-    rl b
-    adc hl,hl
-    sbc hl,de		                    ; check if remainder >= denominator (hl>=de)
-    jr c,divide2
-    inc c
-    jr divide3
-divide2:		                        ; remainder is not >= denominator, so we have to add de back to hl
-    add hl,de
-divide3:
-    dec a
-    jr nz,divide1
-    ld de,bc                              ; result from bc to de
-    ret
 
 ; ; squareroot
 ; ; Input: HL = value
@@ -1625,8 +1687,6 @@ next:
     cp " "                      ; whitespace?
     jr z,next                   ; space? ignore
     jr c,next1
-    cp $80                      ; if bit 7 = 1, treat as a big endian 15 bit address
-    jr nc,next2
     ld l,a                      ; index into table
     ld h,msb(opcodesBase)       ; start address of jump table    
     ld l,(hl)                   ; get low jump address
@@ -1636,13 +1696,6 @@ next1:
     cp NUL                      ; end of input string?
     jr z,exit_
     jp interpret                ; no, other whitespace, macros?
-next2:
-    ld h,a                      ; hl = big endian 15 bit address, ignore high bit
-    inc bc
-    ld a,(bc)
-    ld l,a
-    add hl,hl                   ; hl = word aligned 16 bit address
-    jp (hl)
 exit_:
     ld hl,bc
     jp (hl)
