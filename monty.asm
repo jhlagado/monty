@@ -64,12 +64,8 @@ macros:
 ; Initial values for system vars		
 ; ***********************************************************************		
 isysVars:			            
-    DW 0                        ; a vFrac fractional part of calculation			
     DW 2                        ; b vDataWidth in bytes of array operations (default 1 byte) 
     DW 0                        ; c vTIBPtr an offset to the tib
-    DW 0                        ; d vPointer
-    DW 0                        ; e vLastDef
-    DW 0                        ; f vHashStr
     DW next                     ; g nNext
     DW heap                     ; h vHeapPtr \h start of the free mem
 
@@ -111,20 +107,20 @@ ctrlCodes:
     DB lsb(EMPTY)               ; ^^ 30 RS
     DB lsb(EMPTY)               ; ^_ 31 US
 
-opcodes:                        ; still available _ @ " % , ; DEL 
+opcodes:                        ; still available , ; DEL 
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
     DB lsb(string_)             ; "
     DB lsb(hexnum_)             ; #
     DB lsb(arg_)                ; $  
-    DB lsb(nop_)                ; %  
+    DB lsb(arrIndex_)           ; %  
     DB lsb(and_)                ; &
     DB lsb(char_)               ; '
     DB lsb(arg_list_)           ; (    
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
-    DB lsb(nop_)                ; , compile
+    DB lsb(arrItem_)            ; , 
     DB lsb(sub_)                ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -143,7 +139,7 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
-    DB lsb(index_)              ; ?    
+    DB lsb(if_)                 ; ?    
     DB lsb(addr_)               ; @  
     DB lsb(identU_)             ; A     
     DB lsb(identU_)             ; B     
@@ -171,11 +167,11 @@ opcodes:                        ; still available _ @ " % , ; DEL
     DB lsb(identU_)             ; X     
     DB lsb(identU_)             ; Y     
     DB lsb(identU_)             ; Z    
-    DB lsb(array_)              ; [
+    DB lsb(arrBegin_)           ; [
     DB lsb(command_)            ; \
-    DB lsb(arrayEnd_)           ; ]
+    DB lsb(arrEnd_)             ; ]
     DB lsb(xor_)                ; ^
-    DB lsb(nop_)                ; _
+    DB lsb(remain_)             ; _
     DB lsb(string_)             ; `     used for testing string   	    
     DB lsb(identL_)             ; a     
     DB lsb(identL_)             ; b  
@@ -230,27 +226,35 @@ arg_:
     jp arg
 arg_list_:    
     jp arg_list
-array_:
-    jp array
-arrayEnd_:
-    jp arrayEnd
+arrBegin_:
+    jp arrBegin
+arrEnd_:
+    jp arrEnd
+arrItem_:
+    jp arrItem
+; addr index -- addr2
+arrIndex_:        
+    jp arrIndex 
 block_:
     jp block
 blockend_:
     jp blockend
 char_:
     jp char
+command_:
+    jp command
 dot_:  
     jp dot
+remain_:
+    jp remain
 go_:
     jp go
 identU_:
     jp identU
 identL_:
     jp identL
-; addr index -- addr2
-index_:        
-    jp index 
+if_:
+    jp if
 inv_:				            ; Bitwise INVert the top member of the stack
     ld de, $FFFF                ; by xoring with $FFFF
     jp xor1    
@@ -267,10 +271,6 @@ or_:
     jp or
 xor_: 		 
     jp xor
-
-
-    
-
 string_:
     jp string
 sub_:  		                    ; negative sign or subtract
@@ -289,7 +289,6 @@ sub2:
     sbc hl,de       
     push hl        
     jp (ix)        
-        
 
 eq_:    
     inc bc
@@ -332,13 +331,11 @@ div_:
     push bc                     ; preserve the IP    
     ld bc,hl                
     call divide
-    ld (vFrac),hl
+    ld (vRemain),hl
     pop bc
     push de                     ; push result
     jp (ix)
 
-command_:
-    jp command
 nop_:  
     jp (ix)
 
@@ -491,83 +488,68 @@ arg_list5:
     ld (hl),e
     jp (ix)  
 
-array:
-    ld de,0                     ; create stack frame
-    push de                     ; push null for IP
-    ld e,(iy+4)                 ; push arg_list* from parent stack frame
-    ld d,(iy+5)                 ; 
-    push de                     ; 
-    ld e,(iy+2)                 ; push ScopeBP from parent stack frame
-    ld d,(iy+3)                 ; 
-    push de                     ; 
-    push iy                     ; push BP  
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    jp (ix)
-
-arrayEnd:
-    ld d,iyh                    ; de = BP
-    ld e,iyl
-    ld (vTemp1),bc              ; save IP
-    ld hl,de                    ; hl = de = BP
-    or a 
-    sbc hl,sp                   ; hl = array count (items on stack)
-    srl h                       ; 
-    rr l                        
-    ld bc,hl                    ; bc = count
-    ld hl,(vHeapPtr)            ; hl = array[-2]
-    ld (hl),c                   ; write num items in length word
+arrBegin:
+    ld hl,(vHeapPtr)            ; hl = heap
+    inc hl                      ; reserve space for size
     inc hl
-    ld (hl),b
-    inc hl                      ; hl = array[0], bc = count
-                                ; de = BP, hl = array[0], bc = count
-    ld a,(vDataWidth)           ; vDataWidth=1? 
-    cp 1                        
-    jr nz, arrayEnd2
-
-arrayEnd1:                      ; byte
-    ld a,(iy-2)                 ; a = lsb of stack item
-    ld (hl),a                   ; write a to array item
-    inc hl                      ; move to next byte in array
-    dec iy                      ; move tho next word on stack
-    dec iy
-    dec bc                      ; dec items count
-    ld a,c                      ; if not zero loop
-    or b
-    jr nz,arrayEnd1
-    jr arrayEnd3
-
-arrayEnd2:                      ; word
-    ld a,(iy-2)                 ; a = lsb of stack item
-    ld (hl),a                   ; write lsb of array item
-    inc hl                      ; move to msb of array item
-    ld a,(iy-1)                 ; a = msb of stack item
-    ld (hl),a                   ; write msb of array item
-    inc hl                      ; move to next word in array
-    dec iy                      ; move to next word on stack
-    dec iy
-    dec bc                      ; dec items count
-    ld a,c                      ; if not zero loop
-    or b
-    jr nz,arrayEnd2
-    
-arrayEnd3:
-    ex de,hl                    ; de = end of array, hl = BP 
-    ld sp,hl                    ; sp = BP
-    pop hl                      ; de = end of array, hl = old BP
-    ex de,hl                    ; iy = de = old BP, hl = end of array
-    ld iyh,d
-    ld iyl,e
-    pop de                      ; pop arg_list (discard)
-    pop de                      ; pop ScopeBP (discard)
-    pop de                      ; pop IP (discard)
-    ld de,(vHeapPtr)            ; de = array[-2]
-    ld (vHeapPtr),hl            ; move heapPtr to end of array
-    ld bc,(vTemp1)              ; restore IP
-    inc de                      ; de = array[0]
-    inc de
-    push de                     ; return array[0]
+    ld (vHeapPtr),hl            ; hl = array start
+    push hl                     ; return start of array
     jp (ix)
+
+arrEnd:
+    pop de                      ; de = dup array start
+    push de                     
+    push bc                     ; save IP
+    ld bc,de                    ; bc = de = array start    
+    ld hl,(vHeapPtr)            ; hl = array end
+    or a                        ; de = array length
+    sbc hl,de
+    ex de,hl
+    ld hl,bc                    ; hl = array start
+    dec hl    
+    ld (hl),d
+    dec hl    
+    ld (hl),e
+    pop bc                      ; bc = IP
+    jp (ix)
+
+arrItem:
+    pop de                      ; new value
+    ld hl,(vHeapPtr)     
+    ld (hl),e
+    inc hl    
+    ld a,(vDataWidth)                   
+    dec a                       ; is it byte?
+    jr z,arrItem1
+    ld (hl),d
+    inc hl    
+arrItem1:	  
+    ld (vHeapPtr),hl     
+    jp (ix)
+
+; index of an array, based on vDataWidth 
+; array num -- value    ; also sets vPointer to address 
+arrIndex:
+    pop hl                              ; hl = index  
+    pop de                              ; de = array
+    ld a,(vDataWidth)                   ; a = data width
+    dec a
+    jr z,arrIndex1
+arrIndex0:
+    add hl,hl                           ; if data width = 2 then double 
+arrIndex1:
+    add hl,de                           ; add addr
+    ld (vPointer),hl                    ; store address in setter    
+    ld d,0
+    ld e,(hl)
+    or a                                ; check data width again                                
+    jr z,arrIndex2
+    inc hl
+    ld d,(hl)
+arrIndex2:
+    push de
+    jp (ix)
+
 
 ; value _oldValue --            ; uses address in vPointer
 assign:
@@ -710,8 +692,29 @@ command:
     ld a,(bc)
     cp $5C                      ; \\ comment
     jr z,comment
-    cp "f"                      ; func
+    cp "a"                      ; \a absolute
+    jp z,abs1
+    cp "b"                      ; \b bytes
+    jp z,bytes
+    cp "f"                      ; \f func
     jp z,func
+    cp "F"                      ; \F false
+    jp z,false1
+    cp "i"                      ; \i input
+    jp z,input
+    cp "k"                      ; \k key
+    jp z,key
+    cp "o"                      ; \o output
+    jp z,output
+    cp "r"                      ; \r repeat
+    jp z,repeat
+    cp "s"                      ; \s select
+    jp z,select
+    cp "T"                      ; \T true
+    jp z,true1
+    cp "w"                      ; \w words
+    jp z,words
+
     ld hl,1                     ; error 1: unknown command
     jp error
 comment:
@@ -783,8 +786,8 @@ false1:
     push hl
     jp (ix) 
 
-frac:
-    ld hl,(vFrac)
+remain:
+    ld hl,(vRemain)
     push hl
     jp (ix)
 
@@ -852,6 +855,7 @@ func4a:
 ; else uses outer scope 
 go:				       
     pop de                      ; de = block*
+go0:
     ld a,e                      ; if block* == null, exit
     or d
     jr nz,go1
@@ -968,9 +972,13 @@ ident1:
 ; if
 ; condition then -- value
 if:
+    inc bc
+    ld a,(bc)
+    cp "?"
+    jr z,ifte
+    dec bc
     ld de,0                      ; NUL pointer for else
     jr ifte1
-
 ; ifte
 ; condition then else -- value
 ifte: 
@@ -981,32 +989,9 @@ ifte1:
     ld a,h
     or l
     pop hl                      ; hl = then
-    jp z,go                     ; if z de = else                   
-    ex de,hl                    ; condition = false, hl = else  
-    jp go
-
-; index of an array, based on vDataWidth 
-; array num -- value    ; also sets vPointer to address 
-index:
-    pop hl                              ; hl = index  
-    pop de                              ; de = array
-    ld a,(vDataWidth)                   ; a = data width
-    dec a
-    jr z,index1
-index0:
-    add hl,hl                           ; if data width = 2 then double 
-index1:
-    add hl,de                           ; add addr
-    ld (vPointer),hl                    ; store address in setter    
-    ld d,0
-    ld e,(hl)
-    or a                                ; check data width again                                
-    jr z,index2
-    inc hl
-    ld d,(hl)
-index2:
-    push de
-    jp (ix)
+    jp z,go0                    ; if z de = else                   
+    ex de,hl                    ; condition = false, de = then  
+    jp go0
 
 ; Z80 port input
 ; port -- value 
@@ -1099,6 +1084,8 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
+repeat:
+    jp (ix)    
 
 ; shiftLeft  
 ; value count -- value2          shift left count places
@@ -1171,13 +1158,13 @@ string2:
     ld (hl),e
     jp (ix)  
 
-; switch
+; select
 ; index array -- value
-switch: 
+select: 
     pop de                      ; de = array
     pop hl                      ; hl = index  
-    add hl,hl                           ; if data width = 2 then double 
-    add hl,de                           ; add addr
+    add hl,hl                   ; if data width = 2 then double 
+    add hl,de                   ; add addr
     ld e,(hl)
     inc hl
     ld d,(hl)
@@ -1263,7 +1250,7 @@ loop:
 ;     pop hl
 ;     push bc
 ;     call squareRoot
-;     ld (vFrac),bc
+;     ld (vRemain),bc
 ;     pop bc
 ;     push de
 ;     jp (ix)
@@ -1662,74 +1649,38 @@ exit_:
 
 error:
     call printStr		        
-    .cstr "Error"
+    .cstr "Error "
     call prtdec
     jp interpret
     
     
-    ; call define
-    ; .pstr "abs",0                       
-    ; dw abs1 \a
+    ; .pstr "hash",0                       
+    ; dw hash \hsh
+
+    ; .pstr "input",0                       
+    ; dw input \in ?
 
     ; call define
-    ; .pstr "addr",0                       
-    ; dw addr @
+    ; .pstr "output",0                       
+    ; dw output \out ?
 
-    ; call define
-    ; .pstr "bytes",0                       
-    ; dw bytes \b
+    ; .pstr "key",0                       
+    ; dw key \k
 
-    ; call define
-    ; .pstr "false",0                       
-    ; dw false1 \f
+    ; .pstr "loop",0                       
+    ; dw loop \rpt
+
+    ; .pstr "select",0                       
+    ; dw select. \sw
+
 
     ; call define
     ; .pstr "filter",0                       
     ; dw filter \f ?
 
     ; call define
-    ; .pstr "frac",0                       
-    ; dw frac %
-
-    ; call define
-    ; .pstr "func",0                       
-    ; dw func
-
-    ; call define
-    ; .pstr "hash",0                       
-    ; dw hash \hsh
-
-    ; call define
-    ; .pstr "input",0                       
-    ; dw input \in ?
-
-    ; call define
-    ; .pstr "if",0                       
-    ; dw if \if
-
-    ; call define
-    ; .pstr "ifte",0                       
-    ; dw ifte \ife
-
-    ; call define
-    ; .pstr "key",0                       
-    ; dw key \k
-
-    ; call define
-    ; .pstr "let",0                       
-    ; dw let =
-
-    ; call define
-    ; .pstr "loop",0                       
-    ; dw loop \rpt
-
-    ; call define
     ; .pstr "map",0                       
     ; dw map \m ?
-
-    ; call define
-    ; .pstr "output",0                       
-    ; dw output \out ?
 
     ; call define
     ; .pstr "scan",0                       
@@ -1738,18 +1689,6 @@ error:
     ; call define
     ; .pstr "sqrt",0                       
     ; dw sqrt1 \sqt
-
-    ; call define
-    ; .pstr "switch",0                       
-    ; dw switch. \sw
-
-    ; call define
-    ; .pstr "true",0                       
-    ; dw true1.   \t
-
-    ; call define
-    ; .pstr "words",0                       
-    ; dw words.  \w
 
     
     
