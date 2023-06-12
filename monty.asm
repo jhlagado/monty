@@ -135,7 +135,7 @@ opcodes:                        ; still available , ; DEL
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
     DB lsb(go_)                 ; :    
-    DB lsb(nop_)                ; ;
+    DB lsb(compile_)            ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
@@ -240,6 +240,8 @@ char_:
     jp char
 command_:
     jp command
+compile_:
+    jp compile
 dot_:  
     jp dot
 remain_:
@@ -340,19 +342,6 @@ nop_:
 ; word operators
 ;*******************************************************************
 
-abs1:
-    pop hl
-    bit 7,h
-    ret z
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-    push hl
-    jp (ix)
-
 ; -- ptr
 addr:
     ld hl,(vPointer)
@@ -445,7 +434,7 @@ arg1a:
 
 arg_list:
     ld de,0                     ; d = count locals, e = count args ()
-    ld hl,(vHeapPtr)            ; hl = heap ptr
+    ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
     inc hl
     push hl                     ; save start of arg_list
@@ -476,7 +465,7 @@ arg_list4:
     dec d                       ; remove initial inc
 arg_list5:
     inc hl
-    ld (vHeapPtr),hl            ; bump heap ptr to after end of string
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
     pop hl                      ; hl = start of arg_list
     push hl                     ; return start of string    
     dec hl                      ; write length bytes to length field at start - 2                                      
@@ -581,7 +570,7 @@ arrEnd2:
     pop de                      ; pop ScopeBP (discard)
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-2]
-    ld (vHeapPtr),hl            ; move heapPtr to end of array
+    ld (vHeapPtr),hl            ; move heap* to end of array
     ld bc,(vTemp1)              ; restore IP
     inc de                      ; de = array[0]
     inc de
@@ -725,12 +714,6 @@ blockend2:
     pop iy
     jp (ix)    
 
-bytes:
-    ld hl,1
-bytes1:
-    ld (vDataWidth),hl
-    jp (ix)
-
 char:
     ld hl,0                     ; if '' is empty or null
 char1:
@@ -749,43 +732,24 @@ char3:
     push hl
     jp (ix)  
 
-command:
-    inc bc
-    ld a,(bc)
-    cp $5C                      ; \\ comment
-    jr z,comment
-    cp "a"                      ; \a absolute
-    jp z,abs1
-    cp "b"                      ; \b bytes
-    jp z,bytes
-    cp "f"                      ; \f func
-    jp z,func
-    cp "F"                      ; \F false
-    jp z,false1
-    cp "i"                      ; \i input
-    jp z,input
-    cp "k"                      ; \k key
-    jp z,key
-    cp "o"                      ; \o output
-    jp z,output
-    cp "r"                      ; \r repeat
-    jp z,repeat
-    cp "s"                      ; \s select
-    jp z,select
-    cp "T"                      ; \T true
-    jp z,true1
-    cp "w"                      ; \w words
-    jp z,words
-
-    ld hl,1                     ; error 1: unknown command
-    jp error
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
+; ;
+; block* -- hblock*
+; copies bytes from TOS to IP to the heap
+compile:
+    ld (vTemp1),bc              ; save IP
+    pop de                      ; de = block*
+    ld hl,bc                    ; hl = IP
+    or a                        ; bc = size
+    sbc hl,de
+    ld bc,hl
+    ex de,hl                    ; hl = block*
+    ld de,(vHeapPtr)            ; de = heap*
+    push de                     ; return hblock*
+    ldir                        ; copy size bytes from block* to hblock*
+    ld (vHeapPtr),de
+    ld bc,(vTemp1)              ; restore IP
+    jp (ix)
+    
 dot:  
     pop hl
     inc bc
@@ -870,64 +834,6 @@ false1:
     push hl
     jp (ix) 
 
-; arg_list* block* -- ptr
-func:
-    ld hl,(vHeapPtr)                    ; hl = heapptr 
-    pop de                              ; hl = heapPtr, de = block
-    ex de,hl                            ; hl = heapPtr, de = arg_list*, (sp) = block*
-    ex (sp),hl                          
-    ex de,hl
-    ld (hl),e                           ; compile arg_list*
-    inc hl
-    ld (hl),d
-    inc hl
-    pop de                              ; de = block*
-    inc de
-    push bc                             ; (sp) = IP 
-    ld b,1                              ; b = nesting
-func1:
-    ld a,(de)                           
-    inc de
-    ld (hl),a
-    inc hl
-    cp ")"
-    jr z,func4
-    cp "}"                       
-    jr z,func4
-    cp "]"
-    jr z,func4
-    cp "("
-    jr z,func2
-    cp "{"
-    jr z,func2
-    cp "["
-    jr z,func2
-    cp DQUOTE
-    jr z,func3
-    cp "'"
-    jr z,func3
-    cp "`"
-    jr z,func3
-    jr func1
-func2:
-    inc b
-    jr func1                   
-func3:
-    ld a,$80
-    xor b
-    ld b,a
-    jr nz,func1
-    jr func4a
-func4:
-    dec b
-    jr nz, func1                        ; get the next element
-func4a:
-    inc hl
-    pop bc                              ; de = defstart, hl = IP
-    ld de,(vHeapPtr)                    ; de = defstart
-    push de
-    ld (vHeapPtr),hl                    ; update heap ptr to end of definition
-    jp (ix)
 
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
@@ -1072,25 +978,6 @@ ifte1:
     ex de,hl                    ; condition = false, de = then  
     jp go0
 
-; Z80 port input
-; port -- value 
-input:			    
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    in l,(c)
-    ld h,0
-    ld c,e                      ; restore IP
-    push hl
-    jp (ix)    
-
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
-
 mul:        
     pop  de                     ; get first value
     pop  hl
@@ -1152,24 +1039,10 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
-; Z80 port output
-; value port --
-output:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    pop hl
-    out (c),l
-    ld c,e                      ; restore IP
-    jp (ix)    
-
 remain:
     ld hl,(vRemain)
     push hl
     jp (ix)
-
-repeat:
-    jp (ix)    
 
 ; shiftLeft  
 ; value count -- value2          shift left count places
@@ -1210,7 +1083,7 @@ shiftRight2:
 ; -- ptr                        ; points to start of string chars, 
                                 ; length is stored at start - 2 bytes 
 string:     
-    ld hl,(vHeapPtr)            ; hl = heap ptr
+    ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
     inc hl
     push hl                     ; save start of string 
@@ -1229,7 +1102,7 @@ string2:
     xor a                       ; write NUL to terminate string
     ld (hl),a                   ; hl = end of string
     inc hl
-    ld (vHeapPtr),hl            ; bump heap ptr to after end of string
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
     dec hl                      ; hl = end of string without terminator
     pop de                      ; de = start of string
     push de                     ; return start of string    
@@ -1241,6 +1114,159 @@ string2:
     dec hl
     ld (hl),e
     jp (ix)  
+
+;*******************************************************************
+; commands
+;*******************************************************************
+command:
+    inc bc
+    ld a,(bc)
+    cp $5C                      ; \\ comment
+    jp z,comment
+    cp "a"                      ; \a absolute
+    jp z,abs1
+    cp "b"                      ; \b bytes
+    jp z,bytes
+    cp "f"                      ; \f func
+    jp z,func
+    cp "F"                      ; \F false
+    jp z,false1
+    cp "i"                      ; \i input
+    jp z,input
+    cp "k"                      ; \k key
+    jp z,key
+    cp "o"                      ; \o output
+    jp z,output
+    cp "r"                      ; \r repeat
+    jp z,repeat
+    cp "s"                      ; \s select
+    jp z,select
+    cp "T"                      ; \T true
+    jp z,true1
+    cp "w"                      ; \w words
+    jp z,words
+
+    ld hl,1                     ; error 1: unknown command
+    jp error
+
+abs1:
+    pop hl
+    bit 7,h
+    ret z
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+    push hl
+    jp (ix)
+
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
+
+bytes:
+    ld hl,1
+bytes1:
+    ld (vDataWidth),hl
+    jp (ix)
+
+; arg_list* block* -- ptr
+func:
+    ld hl,(vHeapPtr)                    ; hl = heap* 
+    pop de                              ; hl = heap*, de = block
+    ex de,hl                            ; hl = heap*, de = arg_list*, (sp) = block*
+    ex (sp),hl                          
+    ex de,hl
+    ld (hl),e                           ; compile arg_list*
+    inc hl
+    ld (hl),d
+    inc hl
+    pop de                              ; de = block*
+    inc de
+    push bc                             ; (sp) = IP 
+    ld b,1                              ; b = nesting
+func1:
+    ld a,(de)                           
+    inc de
+    ld (hl),a
+    inc hl
+    cp ")"
+    jr z,func4
+    cp "}"                       
+    jr z,func4
+    cp "]"
+    jr z,func4
+    cp "("
+    jr z,func2
+    cp "{"
+    jr z,func2
+    cp "["
+    jr z,func2
+    cp DQUOTE
+    jr z,func3
+    cp "'"
+    jr z,func3
+    cp "`"
+    jr z,func3
+    jr func1
+func2:
+    inc b
+    jr func1                   
+func3:
+    ld a,$80
+    xor b
+    ld b,a
+    jr nz,func1
+    jr func4a
+func4:
+    dec b
+    jr nz, func1                        ; get the next element
+func4a:
+    inc hl
+    pop bc                              ; de = defstart, hl = IP
+    ld de,(vHeapPtr)                    ; de = defstart
+    push de
+    ld (vHeapPtr),hl                    ; update heap* to end of definition
+    jp (ix)
+
+; Z80 port input
+; port -- value 
+input:			    
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    in l,(c)
+    ld h,0
+    ld c,e                      ; restore IP
+    push hl
+    jp (ix)    
+
+key:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
+    jp (ix)
+
+; Z80 port output
+; value port --
+output:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    pop hl
+    out (c),l
+    ld c,e                      ; restore IP
+    jp (ix)    
+
+repeat:
+    jp (ix)    
 
 ; select
 ; index array -- value
@@ -1257,10 +1283,7 @@ select:
 words:
     ld hl,2
     jp bytes1
-    
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,4 +1,4 @@
-    .engine mycomputer
+    ; .engine mycomputer
 
     .include "constants.asm"
     .include "test.fast.mac.asm"
@@ -15,10 +15,9 @@
     .org $4000
 testsStart:
 
-
+    test "{1};:", 1
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
     test "\\F", false
     test "\\T", true
@@ -114,7 +113,7 @@ testsStart:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ; test "10 sqrt", 3
-    ; test "10 sqrt frac", 1
+    ; test "10 sqrt %", 1
 
     ; test "[ 1 ] closure call", 1
     ; test "[ [ 2 ] ] closure call 0%", 2
