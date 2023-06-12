@@ -107,7 +107,7 @@ ctrlCodes:
     DB lsb(EMPTY)               ; ^^ 30 RS
     DB lsb(EMPTY)               ; ^_ 31 US
 
-opcodes:                        ; still available , ; DEL 
+opcodes:                        ; still available , ;  
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
     DB lsb(string_)             ; "
@@ -135,7 +135,7 @@ opcodes:                        ; still available , ; DEL
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
     DB lsb(go_)                 ; :    
-    DB lsb(compile_)            ; ;
+    DB lsb(nop_)                ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
@@ -240,8 +240,6 @@ char_:
     jp char
 command_:
     jp command
-compile_:
-    jp compile
 dot_:  
     jp dot
 remain_:
@@ -660,8 +658,28 @@ block4:
     dec d
     jr nz, block1               ; get the next element
 block5:
+    ld hl,bc                    ; hl = IP
+    ld de,HEAP                  ; is IP pointing to object in heap
+    or a                        ; IP - HEAP
+    sbc hl,de
+    bit 7,h                     ; if -ve then copy to heap else skip
+    jr z,block6
+    ld hl,bc                    ; hl = IP
+    pop de                      ; de = block*
+    ld (vTemp1),bc              ; save IP
+    or a                        ; bc = size
+    sbc hl,de
+    ld bc,hl
+    ex de,hl                    ; hl = block* de = heap*
+    ld de,(vHeapPtr)            
+    push de                     ; return hblock*
+    ldir                        ; copy size bytes from block* to hblock*
+    ld (vHeapPtr),de            ; heap* += size
+    ld bc,(vTemp1)              ; restore IP
+block6:
     dec bc                      ; balanced, exit
     jp (ix)  
+
 
 blockend:
     exx
@@ -732,24 +750,24 @@ char3:
     push hl
     jp (ix)  
 
-; ;
-; block* -- hblock*
-; copies bytes from TOS to IP to the heap
-compile:
-    ld (vTemp1),bc              ; save IP
-    pop de                      ; de = block*
-    ld hl,bc                    ; hl = IP
-    or a                        ; bc = size
-    sbc hl,de
-    ld bc,hl
-    ex de,hl                    ; hl = block*
-    ld de,(vHeapPtr)            ; de = heap*
-    push de                     ; return hblock*
-    ldir                        ; copy size bytes from block* to hblock*
-    ld (vHeapPtr),de
-    ld bc,(vTemp1)              ; restore IP
-    jp (ix)
-    
+; ; ;
+; ; block* -- hblock*
+; ; copies bytes from TOS to IP to the heap
+; compile:
+    ;   ld (vTemp1),bc              ; save IP
+    ; pop de                      ; de = block*
+    ; ld hl,bc                    ; hl = IP
+    ; or a                        ; bc = size
+    ; sbc hl,de
+    ; ld bc,hl
+    ; ex de,hl                    ; hl = block*
+    ; ld de,(vHeapPtr)            ; de = heap*
+    ; push de                     ; return hblock*
+    ; ldir                        ; copy size bytes from block* to hblock*
+    ; ld (vHeapPtr),de
+    ; ld bc,(vTemp1)              ; restore IP
+    ; jp (ix)
+
 dot:  
     pop hl
     inc bc
@@ -848,7 +866,7 @@ go0:
 go1:
     ld a,(de)
     cp "{"
-    jp nz,go10
+    jp nz,goFunc0
     inc de
     push bc                     ; push IP
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
@@ -871,38 +889,45 @@ go2:
     ld hl,4                     ; hl = first_arg* (BP+8)
     add hl,sp
 go3:
+    dec de
+go4:
     push hl                     ; push first_arg    
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
     add iy,sp
     ld bc,de                    ; bc = de = block*-1
-    dec bc                       
     jp (ix)    
 
-go10:				            ; execute code at pointer
-    ex de,hl                    ; hl = code*
-    ld e,(hl)                   ; de = block*, hl = arg_list*
+goFunc0:				            ; execute code at pointer
+    ex de,hl                    ; hl = func*
+    ld e,(hl)                   ; de = hblock*
     inc hl
     ld d,(hl)
     inc hl
-    ex de,hl
+    push de                     ; save hblock*
+    ld e,(hl)                   ; de = arg_list*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ex de,hl                    ; hl = arg_list*
+    pop de                      ; restore hblock*
     ld a,l                      ; if arg_list* != null skip
     or h
-    jr nz,go11              
+    jr nz,goFunc1              
     push bc                     ; push IP
     jr go2                  
-go11:
-    dec hl                      ; a = num_locals*, de = block* hl = arg_list*
+goFunc1:
+    dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
     inc hl
     or a
-    jr z,go13
-go12:
+    jr z,goFunc3
+goFunc2:
     dec sp
     dec sp
     dec a
-    jr nz,go12
-go13:
+    jr nz,goFunc2
+goFunc3:
     push bc                     ; push IP    
     push hl                     ; push arg_list*
     dec hl                      ; hl = num_args*
@@ -913,7 +938,7 @@ go13:
     ld l,a
     ld h,$0
     add hl,sp                   ; hl = first_arg*
-    jr go3
+    jr go4
 
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
@@ -1176,63 +1201,81 @@ bytes1:
     ld (vDataWidth),hl
     jp (ix)
 
+; ; arg_list* block* -- ptr
+; func:
+;     ld hl,(vHeapPtr)                    ; hl = heap* 
+;     pop de                              ; hl = heap*, de = block
+;     ex de,hl                            ; hl = heap*, de = arg_list*, (sp) = block*
+;     ex (sp),hl                          
+;     ex de,hl
+;     ld (hl),e                           ; compile arg_list*
+;     inc hl
+;     ld (hl),d
+;     inc hl
+;     pop de                              ; de = block*
+;     inc de
+;     push bc                             ; (sp) = IP 
+;     ld b,1                              ; b = nesting
+; func1:
+;     ld a,(de)                           
+;     inc de
+;     ld (hl),a
+;     inc hl
+;     cp ")"
+;     jr z,func4
+;     cp "}"                       
+;     jr z,func4
+;     cp "]"
+;     jr z,func4
+;     cp "("
+;     jr z,func2
+;     cp "{"
+;     jr z,func2
+;     cp "["
+;     jr z,func2
+;     cp DQUOTE
+;     jr z,func3
+;     cp "'"
+;     jr z,func3
+;     cp "`"
+;     jr z,func3
+;     jr func1
+; func2:
+;     inc b
+;     jr func1                   
+; func3:
+;     ld a,$80
+;     xor b
+;     ld b,a
+;     jr nz,func1
+;     jr func4a
+; func4:
+;     dec b
+;     jr nz, func1                        ; get the next element
+; func4a:
+;     inc hl
+;     pop bc                              ; de = defstart, hl = IP
+;     ld de,(vHeapPtr)                    ; de = defstart
+;     push de
+;     ld (vHeapPtr),hl                    ; update heap* to end of definition
+;     jp (ix)
+
 ; arg_list* block* -- ptr
 func:
-    ld hl,(vHeapPtr)                    ; hl = heap* 
-    pop de                              ; hl = heap*, de = block
-    ex de,hl                            ; hl = heap*, de = arg_list*, (sp) = block*
-    ex (sp),hl                          
-    ex de,hl
-    ld (hl),e                           ; compile arg_list*
+    pop de                              ; de = block* hl = heap*
+    ld hl,(vHeapPtr)
+    ld (hl),e                           ; compile block*
     inc hl
     ld (hl),d
     inc hl
     pop de                              ; de = block*
-    inc de
-    push bc                             ; (sp) = IP 
-    ld b,1                              ; b = nesting
-func1:
-    ld a,(de)                           
-    inc de
-    ld (hl),a
+    ld (hl),e                           ; compile arg_list*
     inc hl
-    cp ")"
-    jr z,func4
-    cp "}"                       
-    jr z,func4
-    cp "]"
-    jr z,func4
-    cp "("
-    jr z,func2
-    cp "{"
-    jr z,func2
-    cp "["
-    jr z,func2
-    cp DQUOTE
-    jr z,func3
-    cp "'"
-    jr z,func3
-    cp "`"
-    jr z,func3
-    jr func1
-func2:
-    inc b
-    jr func1                   
-func3:
-    ld a,$80
-    xor b
-    ld b,a
-    jr nz,func1
-    jr func4a
-func4:
-    dec b
-    jr nz, func1                        ; get the next element
-func4a:
+    ld (hl),d
     inc hl
-    pop bc                              ; de = defstart, hl = IP
-    ld de,(vHeapPtr)                    ; de = defstart
+    ld de,(vHeapPtr)                    ; return func*
     push de
-    ld (vHeapPtr),hl                    ; update heap* to end of definition
+    ld (vHeapPtr),hl                    ; heap* += 4
     jp (ix)
 
 ; Z80 port input

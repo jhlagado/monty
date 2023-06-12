@@ -1,4 +1,5 @@
-.org RAMSTART
+.align $100
+; .org RAMSTART
 
             ds DSIZE
 STACK:
@@ -32,6 +33,7 @@ vHeapPtr:   ds 2                ;
 
 ; uninitialised sys variables
 
+vBlockEnd   ds 2                ; 
 vPointer    ds 2                ; 
 vHashStr:   ds 2                ; 
 vLastDef:   ds 2                ; 

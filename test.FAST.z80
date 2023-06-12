@@ -1,21 +1,18 @@
-    ; .engine mycomputer
+.engine mycomputer
 
-    .include "constants.asm"
-    .include "test.fast.mac.asm"
-    
-    .include "IOSerial.asm"
-    
+.include "constants.asm"
+.include "test.fast.mac.asm"
+
+.include "IOSerial.asm"
+
     ld SP,STACK
     call init
     jp testsStart
-    
-    .include "monty.asm"
-    .include "ram.asm"
 
-    .org $4000
+.include "monty.asm"
+
+.align $100
 testsStart:
-
-    test "{1};:", 1
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -128,3 +125,4 @@ printer:
     call prtdec
     jp (ix)
 
+.include "ram.asm"
