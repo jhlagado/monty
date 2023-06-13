@@ -14,6 +14,8 @@
 .align $100
 testsStart:
 
+    test "1 { 10. } \\r", 1
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     test "\\F", false
@@ -60,6 +62,7 @@ testsStart:
     test "3 1 <<", 6
     test "10 1 >>", 5
     test "1 x = x", 1
+    test "1{}:", 1
     test "{1}:", 1
     test "{{1}:}:", 1
     test "{{{1}:}:}:", 1
@@ -124,5 +127,18 @@ printer:
     pop hl
     call prtdec
     jp (ix)
+
+; executes a null teminated string (null executes exit_)
+; the string should be immedaitely following the call
+execStr:                        ; create a root stack frame
+    pop bc                      ; bc = code*
+    dec bc                      ; dec to prepare for next routine
+    ld de,0
+    push de                     ; push fake IP
+    push de                     ; push null arg_list*
+    push de                     ; push null first_arg*
+    push de                     ; push fake BP
+    jp (ix) 
+
 
 .include "ram.asm"

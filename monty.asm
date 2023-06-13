@@ -40,7 +40,7 @@ z80_RST8    EQU     $CF
 ; locn                              -- last local             
 ; IP                                -- IP (saved interpreter ptr, return)
 ; arg_list*                         -- arg_list*
-; ScopeBP                           -- first_arg           
+; first_arg*                        -- first_arg*           
 ; BP                                -- BP (saved base ptr)           <-- iy
 ; res0                              -- 0th result
 ; res1
@@ -472,52 +472,13 @@ arg_list5:
     ld (hl),e
     jp (ix)  
 
-; arrBegin:
-;     ld hl,(vHeapPtr)            ; hl = heap
-;     inc hl                      ; reserve space for size
-;     inc hl
-;     ld (vHeapPtr),hl            ; hl = array start
-;     push hl                     ; return start of array
-;     jp (ix)
-
-; arrEnd:
-;     pop de                      ; de = dup array start
-;     push de                     
-;     push bc                     ; save IP
-;     ld bc,de                    ; bc = de = array start    
-;     ld hl,(vHeapPtr)            ; hl = array end
-;     or a                        ; de = array length
-;     sbc hl,de
-;     ex de,hl
-;     ld hl,bc                    ; hl = array start
-;     dec hl    
-;     ld (hl),d
-;     dec hl    
-;     ld (hl),e
-;     pop bc                      ; bc = IP
-;     jp (ix)
-
-; arrItem:
-;     pop de                      ; new value
-;     ld hl,(vHeapPtr)     
-;     ld (hl),e
-;     inc hl    
-;     ld a,(vDataWidth)                   
-;     dec a                       ; is it byte?
-;     jr z,arrItem1
-;     ld (hl),d
-;     inc hl    
-; arrItem1:	  
-;     ld (vHeapPtr),hl     
-;     jp (ix)
-
 arrBegin:
     ld de,0                     ; create stack frame
     push de                     ; push null for IP
     ld e,(iy+4)                 ; push arg_list* from parent stack frame
     ld d,(iy+5)                 ; 
     push de                     ; 
-    ld e,(iy+2)                 ; push ScopeBP from parent stack frame
+    ld e,(iy+2)                 ; push first_arg* from parent stack frame
     ld d,(iy+3)                 ; 
     push de                     ; 
     push iy                     ; push BP  
@@ -565,7 +526,7 @@ arrEnd2:
     ld iyh,d
     ld iyl,e
     pop de                      ; pop arg_list (discard)
-    pop de                      ; pop ScopeBP (discard)
+    pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-2]
     ld (vHeapPtr),hl            ; move heap* to end of array
@@ -680,7 +641,6 @@ block6:
     dec bc                      ; balanced, exit
     jp (ix)  
 
-
 blockend:
     exx
     ld e,(iy+0)                 ; de = oldBP
@@ -715,14 +675,18 @@ blockend2:
     ld bc,hl                    ; bc = hl = BP
     or a                        ; hl = BP - SP = count 
     sbc hl,sp                   
+    ld a,l
+    or h
+    jr z,blockend3                      
     push bc                     ; bc = count, hl = BP
     ld bc,hl
     pop hl                      
     dec hl                      ; hl = BP-1
     dec de                      ; de = args*-1
     lddr
-    inc de                      ; hl = new tos
-    ex de,hl                    
+    inc de                      
+blockend3:                      
+    ex de,hl                    ; hl = new tos
     ld sp,hl                    ; sp = new tos
     exx                         ; bc = IP, iy = oldBP
     push de                     
@@ -858,47 +822,17 @@ false1:
 ; else uses outer scope 
 go:				       
     pop de                      ; de = block*
-go0:
+go1:
     ld a,e                      ; if block* == null, exit
     or d
-    jr nz,go1
+    jr nz,go2
     jp (ix)
-go1:
+go2:
     ld a,(de)
     cp "{"
-    jp nz,goFunc0
-    inc de
-    push bc                     ; push IP
-    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
-    ld b,iyh                    
-    ld c,iyl
-    or a                        ; hl = stack - BP = root_scope
-    sbc hl,bc                   
-    ld a,l                      ; if root_scope, skip
-    or h                    
-    jr z,go2
-    ld c,(iy+4)                 ; push arg_list* (parent)
-    ld b,(iy+5)                 
-    push bc                     
-    ld c,(iy+2)                 ; hl = first_arg* (parent)
-    ld b,(iy+3)                 
-    ld hl,bc
-    jr go3
-go2:
-    push hl                     ; push arg_list (null)
-    ld hl,4                     ; hl = first_arg* (BP+8)
-    add hl,sp
-go3:
-    dec de
-go4:
-    push hl                     ; push first_arg    
-    push iy                     ; push BP
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    ld bc,de                    ; bc = de = block*-1
-    jp (ix)    
+    jp z,goBlock
 
-goFunc0:				            ; execute code at pointer
+goFunc:				        ; execute code at pointer
     ex de,hl                    ; hl = func*
     ld e,(hl)                   ; de = hblock*
     inc hl
@@ -915,7 +849,7 @@ goFunc0:				            ; execute code at pointer
     or h
     jr nz,goFunc1              
     push bc                     ; push IP
-    jr go2                  
+    jr goBlock2                  
 goFunc1:
     dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
@@ -938,7 +872,39 @@ goFunc3:
     ld l,a
     ld h,$0
     add hl,sp                   ; hl = first_arg*
-    jr go4
+    jr goBlock4
+
+goBlock:
+    inc de
+    push bc                     ; push IP
+    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
+    ld b,iyh                    
+    ld c,iyl
+    or a                        ; hl = stack - BP = root_scope
+    sbc hl,bc                   
+    ld a,l                      ; if root_scope, skip
+    or h                    
+    jr z,goBlock2
+    ld c,(iy+4)                 ; push arg_list* (parent)
+    ld b,(iy+5)                 
+    push bc                     
+    ld c,(iy+2)                 ; hl = first_arg* (parent)
+    ld b,(iy+3)                 
+    ld hl,bc
+    jr goBlock3
+goBlock2:
+    push hl                     ; push arg_list (null)
+    ld hl,4                     ; hl = first_arg* (BP+8)
+    add hl,sp
+goBlock3:
+    dec de
+goBlock4:
+    push hl                     ; push first_arg    
+    push iy                     ; push BP
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    ld bc,de                    ; bc = de = block*-1
+    jp (ix)    
 
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
@@ -999,9 +965,9 @@ ifte1:
     ld a,h
     or l
     pop hl                      ; hl = then
-    jp z,go0                    ; if z de = else                   
+    jp z,go1                ; if z de = else                   
     ex de,hl                    ; condition = false, de = then  
-    jp go0
+    jp go1
 
 mul:        
     pop  de                     ; get first value
@@ -1201,65 +1167,6 @@ bytes1:
     ld (vDataWidth),hl
     jp (ix)
 
-; ; arg_list* block* -- ptr
-; func:
-;     ld hl,(vHeapPtr)                    ; hl = heap* 
-;     pop de                              ; hl = heap*, de = block
-;     ex de,hl                            ; hl = heap*, de = arg_list*, (sp) = block*
-;     ex (sp),hl                          
-;     ex de,hl
-;     ld (hl),e                           ; compile arg_list*
-;     inc hl
-;     ld (hl),d
-;     inc hl
-;     pop de                              ; de = block*
-;     inc de
-;     push bc                             ; (sp) = IP 
-;     ld b,1                              ; b = nesting
-; func1:
-;     ld a,(de)                           
-;     inc de
-;     ld (hl),a
-;     inc hl
-;     cp ")"
-;     jr z,func4
-;     cp "}"                       
-;     jr z,func4
-;     cp "]"
-;     jr z,func4
-;     cp "("
-;     jr z,func2
-;     cp "{"
-;     jr z,func2
-;     cp "["
-;     jr z,func2
-;     cp DQUOTE
-;     jr z,func3
-;     cp "'"
-;     jr z,func3
-;     cp "`"
-;     jr z,func3
-;     jr func1
-; func2:
-;     inc b
-;     jr func1                   
-; func3:
-;     ld a,$80
-;     xor b
-;     ld b,a
-;     jr nz,func1
-;     jr func4a
-; func4:
-;     dec b
-;     jr nz, func1                        ; get the next element
-; func4a:
-;     inc hl
-;     pop bc                              ; de = defstart, hl = IP
-;     ld de,(vHeapPtr)                    ; de = defstart
-;     push de
-;     ld (vHeapPtr),hl                    ; update heap* to end of definition
-;     jp (ix)
-
 ; arg_list* block* -- ptr
 func:
     pop de                              ; de = block* hl = heap*
@@ -1308,9 +1215,6 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
-repeat:
-    jp (ix)    
-
 ; select
 ; index array -- value
 select: 
@@ -1321,7 +1225,7 @@ select:
     ld e,(hl)
     inc hl
     ld d,(hl)
-    jp go0
+    jp go1
 
 words:
     ld hl,2
@@ -1332,20 +1236,29 @@ words:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+repeat:
+    dec bc
+    dec bc
+    pop hl
+    push hl
+    push hl
+    jp go    
 
 
 ; c b --
 ; loops until c = 0
 loop:                           
-    jp (ix)                     
+    
+    jp (ix)     
+    
 ;     pop de                      ; de = block                    c
 ;     pop hl                      ; hl = condition    
 ;     push de
 ;     push bc                     ; push IP
 ;     ld bc,de                    ; bc = block
-;     ld e,(iy+2)                 ; get ScopeBP from parent stack frame
+;     ld e,(iy+2)                 ; get first_arg* from parent stack frame
 ;     ld d,(iy+3)                 ; make this the old BP for this stack frame
-;     push de                     ; push ScopeBP
+;     push de                     ; push first_arg*
 ;     push iy                     ; push BP  
 ;     ld iy,0                     ; iy = sp
 ;     add iy,sp
@@ -1355,7 +1268,7 @@ loop:
 ;     jr z,loop3
 ;     ld de,loop2-1               ; IP return address
 ;     push de
-;     ld e,(iy+2)                 ; push parent ScopeBP
+;     ld e,(iy+2)                 ; push parent first_arg*
 ;     ld d,(iy+3)                  
 ;     push de                     ; 
 ;     push iy                     ; push BP  
@@ -1378,7 +1291,7 @@ loop:
 ;     ex de,hl                    ; hl = BP, de = result
 ;     ld sp,hl                    ; sp = BP
 ;     pop hl                      ; hl = old BP
-;     pop bc                      ; pop ScopeBP (discard)
+;     pop bc                      ; pop first_arg* (discard)
 ;     pop bc                      ; bc = IP
 ;     ld sp,hl                    ; sp = old BP
 ;     ld iy,0                     ; iy = sp
@@ -1626,24 +1539,6 @@ printStr:
     ex (sp),hl		            ; put it back	
     ret
 
-; executes a null teminated string (null executes exit_)
-; the string should be immedaitely following the call
-execStr:                        ; create a root stack frame
-    pop bc                      ; bc = code*
-    dec bc                      ; dec to prepare for next routine
-    ld de,0
-    push de                     ; push fake IP
-    push de                     ; push null arg_list*
-    push de                     ; push null first_arg*
-    push de                     ; push fake BP
-    jp (ix) 
-
-; arg1 .. argn func -- ?
-call:
-    pop hl
-    jp (hl)
-
-
 init:
     ld ix,(vNext)
     ld iy,STACK
@@ -1771,43 +1666,3 @@ error:
     .cstr "Error "
     call prtdec
     jp interpret
-    
-    
-    ; .pstr "hash",0                       
-    ; dw hash \hsh
-
-    ; .pstr "input",0                       
-    ; dw input \in ?
-
-    ; call define
-    ; .pstr "output",0                       
-    ; dw output \out ?
-
-    ; .pstr "key",0                       
-    ; dw key \k
-
-    ; .pstr "loop",0                       
-    ; dw loop \rpt
-
-    ; .pstr "select",0                       
-    ; dw select. \sw
-
-
-    ; call define
-    ; .pstr "filter",0                       
-    ; dw filter \f ?
-
-    ; call define
-    ; .pstr "map",0                       
-    ; dw map \m ?
-
-    ; call define
-    ; .pstr "scan",0                       
-    ; dw scan.  \fold ?
-
-    ; call define
-    ; .pstr "sqrt",0                       
-    ; dw sqrt1 \sqt
-
-    
-    
