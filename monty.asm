@@ -213,11 +213,7 @@ opcodes:                        ; still available , ;
 page4:
 
 add_:                           ; add the top 2 members of the stack
-    pop de        
-    pop hl        
-    add hl,de    
-    push hl        
-    jp (ix)    
+    jp add
 addr_:
     jp addr
 and_:
@@ -270,23 +266,8 @@ xor_:
     jp xor
 string_:
     jp string
-sub_:  		                    ; negative sign or subtract
-    inc bc                      ; check if sign of a number
-    ld a,(bc)
-    dec bc
-    cp "0"
-    jr c,sub1
-    cp "9"+1
-    jp c,num_    
-sub1:                           ; Subtract the value 2nd on stack from top of stack 
-    pop de    
-    pop hl                      ; Entry point for INVert
-sub2:    
-    or a                        ; Entry point for NEGate
-    sbc hl,de       
-    push hl        
-    jp (ix)        
-
+sub_:
+    jp sub
 eq_:    
     inc bc
     ld a,(bc)                   ; is it == ?
@@ -339,6 +320,31 @@ nop_:
 ;*******************************************************************
 ; word operators
 ;*******************************************************************
+
+add:
+    inc bc
+    ld a,(bc)
+    dec bc
+    cp "+"                      ; ++ increment variable
+    jr nz,add1
+    inc bc
+    pop hl                      ; second term
+    inc hl
+    jp assign0
+add1:
+    cp "="                      ; += add to variable
+    jr nz,add2
+    inc bc
+    pop hl                      ; second term
+    pop de                      ; first term
+    add hl,de    
+    jp assign0
+add2:
+    pop de                      ; second term
+    pop hl                      ; first term
+    add hl,de    
+    push hl        
+    jp (ix)    
 
 ; -- ptr
 addr:
@@ -560,11 +566,13 @@ arrIndex2:
     push de
     jp (ix)
 
-
 ; value _oldValue --            ; uses address in vPointer
 assign:
     pop hl                      ; discard last accessed value
-    pop de                      ; new value
+    pop hl                      ; hl = new value
+assign0:
+    ex de,hl                    ; de = new value
+assignx:
     ld hl,(vPointer)     
     ld (hl),e
     ld a,(vDataWidth)                   
@@ -1104,6 +1112,38 @@ string2:
     dec hl
     ld (hl),e
     jp (ix)  
+
+sub:  		                    ; negative sign or subtract
+    inc bc                      ; check if sign of a number
+    ld a,(bc)
+    dec bc
+    cp "0"
+    jr c,sub1
+    cp "9"+1
+    jp c,num_    
+sub1:                           ; Subtract the value 2nd on stack from top of stack 
+    cp "-"
+    jr nz,sub2
+    inc bc
+    pop hl    
+    dec hl
+    jp assign0
+sub2:
+    cp "="                      ; += add to variable
+    jr nz,sub3
+    inc bc
+    pop hl                      ; second term
+    pop de                      ; first term
+    or a
+    sbc hl,de    
+    jp assign0
+sub3:
+    pop de                      ; second term
+    pop hl                      ; first term
+    or a                        
+    sbc hl,de       
+    push hl        
+    jp (ix)        
 
 ;*******************************************************************
 ; commands
