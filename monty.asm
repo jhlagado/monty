@@ -841,6 +841,8 @@ go2:
 
 goFunc:				        ; execute code at pointer
     ex de,hl                    ; hl = func*
+    inc de                      ; skip closure
+    inc de
     ld e,(hl)                   ; de = hblock*
     inc hl
     ld d,(hl)
@@ -1212,6 +1214,11 @@ bytes1:
 func:
     pop de                              ; de = block* hl = heap*
     ld hl,(vHeapPtr)
+    xor a
+    ld (hl),a                           ; compile null closure*
+    inc hl
+    ld (hl),a
+    inc hl
     ld (hl),e                           ; compile block*
     inc hl
     ld (hl),d
@@ -1601,6 +1608,31 @@ printStr:
     call prtstr		
     inc hl			            ; inc past NUL
     ex (sp),hl		            ; put it back	
+    ret
+
+; push contents of array on stack
+; hl = array*
+pushArray:
+    ld (vTemp1),bc                      ; save IP
+    dec hl                              ; bc = count
+    ld b,(hl)
+    dec hl
+    ld c,(hl)
+    inc hl                              ; push each item on stack
+    inc hl
+    jr pushArray2
+pushArray1:
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    inc hl
+    push de
+    dec bc
+pushArray2:
+    ld a,c
+    or b
+    jr nz,pushArray1
+    ld bc,(vTemp1)                      ; restore IP
     ret
 
 init:

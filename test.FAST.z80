@@ -14,12 +14,11 @@
 .align $100
 testsStart:
 
-    ; test "4 a= 1 a -= a",3
+    test "5 \\F {10} ?", 5
 
-    ; test "4 i= { i \\x i. i 1 - i= } \\r i ", 0
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
