@@ -642,10 +642,10 @@ block6:
     jp (ix)  
 
 blockend:
-    exx
-    ld e,(iy+0)                 ; de = oldBP
+    exx                         ; de' = oldBP bc' = oldIP
+    ld e,(iy+0)                  
     ld d,(iy+1)
-    ld c,(iy+6)                 ; bc = IP
+    ld c,(iy+6)                  
     ld b,(iy+7)
     exx
     ld e,(iy+2)                 ; hl = first_arg*, is it in this scope?
@@ -653,7 +653,6 @@ blockend:
     ex de,hl                                                              
     ld e,(iy+0)                 ; de = oldBP
     ld d,(iy+1)
-    ; ex de,hl                    ; de = first_arg*, hl = oldBP                                          
     inc de                      ; for carry flag <=
     or a
     sbc hl,de
@@ -1136,6 +1135,8 @@ command:
     jp z,true1
     cp "w"                      ; \w words
     jp z,words
+    cp "x"                      ; \x exit loop or block
+    jp z,blockExit
 
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1215,6 +1216,16 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
+; repeat
+; block* -- 
+repeat:
+    dec bc                      ; rewind IP to before \r
+    dec bc
+    pop hl
+    push hl
+    push hl
+    jp go    
+
 ; select
 ; index array -- value
 select: 
@@ -1231,18 +1242,31 @@ words:
     ld hl,2
     jp bytes1
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-repeat:
-    dec bc
-    dec bc
+blockExit:
     pop hl
-    push hl
-    push hl
-    jp go    
+    ld a,l
+    or h
+    jr z,blockExit1
+    jp (ix)
+blockExit1:    
+    ld l,(iy+6)                 ; hl = oldIP
+    ld h,(iy+7)
+    inc hl                      ; forward IP on stack to after \r
+    inc hl
+    ld (iy+6),l                  
+    ld (iy+7),h
+    ld e,(iy+2)                 ; hl = first_arg*, is it in this scope?
+    ld d,(iy+3)
+    inc de
+    inc de
+    ld (iy+2),e                 ; hl = first_arg*, is it in this scope?
+    ld (iy+3),d
+    jp blockEnd
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ; c b --
