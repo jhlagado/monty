@@ -804,7 +804,6 @@ false1:
     push hl
     jp (ix) 
 
-
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
@@ -820,10 +819,22 @@ go2:
     cp "{"
     jp z,goBlock
 
-goFunc:				        ; execute code at pointer
+goFunc:				            ; execute code at pointer
     ex de,hl                    ; hl = func*
-    inc hl                      ; skip closure
+    ld e,(hl)                   ; de = hblock*
     inc hl
+    ld d,(hl)
+    inc hl
+    ld a,e
+    or d
+    jr z,goFunc0
+    ld (vTemp1),hl
+    ld (vTemp2),bc
+    ex de,hl
+    call pushArray
+    ld hl,(vTemp1)
+    ld bc,(vTemp2)
+goFunc0:
     ld e,(hl)                   ; de = hblock*
     inc hl
     ld d,(hl)
@@ -1131,6 +1142,8 @@ command:
     jp z,abs1
     cp "b"                      ; \b bytes
     jp z,bytes
+    cp "c"                      ; \c closure
+    jp z,bytes
     cp "f"                      ; \f func
     jp z,func
     cp "F"                      ; \F false
@@ -1166,6 +1179,32 @@ abs1:
     sub h  
     ld h,a
     push hl
+    jp (ix)
+
+; array* arg_list* block* -- ptr
+closure:
+    ld hl,(vHeapPtr)                    ; hl = heap*
+    inc hl
+    inc hl
+    pop de                              ; de = block*
+    ld (hl),e                           ; compile block*
+    inc hl
+    ld (hl),d
+    inc hl
+    pop de                              ; de = arg_list*
+    ld (hl),e                           ; compile arg_list*
+    inc hl
+    ld (hl),d
+    inc hl
+    ld de,(vHeapPtr)                    ; de = closure*
+    ld (vHeapPtr),hl                    ; heap* += 6
+    ex de,hl                            ; hl = closure*
+    pop de                              ; de = array* 
+    push hl                             ; return closure*
+    ld (hl),e                           ; compile array*
+    inc hl
+    ld (hl),d
+    inc hl
     jp (ix)
 
 comment:
@@ -1444,8 +1483,8 @@ printStr:
 
 ; push contents of array on stack
 ; hl = array*
+; destroys bc,de
 pushArray:
-    ld (vTemp1),bc                      ; save IP
     dec hl                              ; bc = count
     ld b,(hl)
     dec hl
@@ -1464,7 +1503,6 @@ pushArray2:
     ld a,c
     or b
     jr nz,pushArray1
-    ld bc,(vTemp1)                      ; restore IP
     ret
 
 init:

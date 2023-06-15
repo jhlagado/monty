@@ -14,9 +14,11 @@
 .align $100
 testsStart:
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    test "5 [1] (a) {$a} \\c :", 5
+
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
