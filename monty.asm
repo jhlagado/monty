@@ -303,17 +303,8 @@ lt1:
     dec bc
     jp lessthan
     
-div_:    
-    pop  de                     ; get first value
-    pop  hl                     ; get 2nd value
-    push bc                     ; preserve the IP    
-    ld bc,hl                
-    call divide
-    ld (vRemain),hl
-    pop bc
-    push de                     ; push result
-    jp (ix)
-
+div_:
+    jp div
 nop_:  
     jp (ix)
 
@@ -324,26 +315,21 @@ nop_:
 add:
     inc bc
     ld a,(bc)
-    dec bc
     cp "+"                      ; ++ increment variable
     jr nz,add1
-    inc bc
-    pop hl                      ; second term
-    inc hl
-    jp assign0
+    ld de,1
+    ld a,"="
+    jr add2
 add1:
-    cp "="                      ; += add to variable
-    jr nz,add2
-    inc bc
-    pop hl                      ; second term
-    pop de                      ; first term
-    add hl,de    
-    jp assign0
-add2:
     pop de                      ; second term
+add2:
     pop hl                      ; first term
     add hl,de    
+add3:
+    cp "="                      ; += add to variable
+    jp z,assign0
     push hl        
+    dec bc
     jp (ix)    
 
 ; -- ptr
@@ -721,23 +707,18 @@ char3:
     push hl
     jp (ix)  
 
-; ; ;
-; ; block* -- hblock*
-; ; copies bytes from TOS to IP to the heap
-; compile:
-    ;   ld (vTemp1),bc              ; save IP
-    ; pop de                      ; de = block*
-    ; ld hl,bc                    ; hl = IP
-    ; or a                        ; bc = size
-    ; sbc hl,de
-    ; ld bc,hl
-    ; ex de,hl                    ; hl = block*
-    ; ld de,(vHeapPtr)            ; de = heap*
-    ; push de                     ; return hblock*
-    ; ldir                        ; copy size bytes from block* to hblock*
-    ; ld (vHeapPtr),de
-    ; ld bc,(vTemp1)              ; restore IP
-    ; jp (ix)
+div:
+    pop de
+    pop hl
+    push bc                     ; preserve the IP    
+    ld bc,hl                
+    call divide
+    ex de,hl
+    ld (vRemain),de
+    pop bc
+    inc bc                      
+    ld a,(bc)
+    jp add3
 
 dot:  
     pop hl
@@ -841,8 +822,8 @@ go2:
 
 goFunc:				        ; execute code at pointer
     ex de,hl                    ; hl = func*
-    inc de                      ; skip closure
-    inc de
+    inc hl                      ; skip closure
+    inc hl
     ld e,(hl)                   ; de = hblock*
     inc hl
     ld d,(hl)
@@ -981,13 +962,12 @@ ifte1:
 mul:        
     pop  de                     ; get first value
     pop  hl
+mul2:
     push bc                     ; Preserve the IP
-    ld b,h                      ; bc = 2nd value
-    ld c,l
-    
+    ld bc,hl                    ; bc = 2nd value
     ld hl,0
     ld a,16
-mul2:
+mul3:
     add hl,hl
     rl e
     rl d
@@ -996,10 +976,11 @@ mul2:
     jr nc,$+3
     inc de
     dec a
-    jr nz,mul2
+    jr nz,mul3
 	pop bc			            ; Restore the IP
-	push hl                     ; Put the product on the stack - stack bug fixed 2/12/21
-	jp (ix)
+    inc bc                      
+    ld a,(bc)
+    jp add3
 
 num:
 	ld hl,$0000				    ; Clear hl to accept the number
@@ -1120,32 +1101,23 @@ sub:  		                    ; negative sign or subtract
     ld a,(bc)
     dec bc
     cp "0"
-    jr c,sub1
+    jr c,sub0
     cp "9"+1
     jp c,num_    
-sub1:                           ; Subtract the value 2nd on stack from top of stack 
+sub0:                           ; Subtract the value 2nd on stack from top of stack 
+    inc bc
     cp "-"
-    jr nz,sub2
-    inc bc
-    pop hl    
-    dec hl
-    jp assign0
-sub2:
-    cp "="                      ; += add to variable
-    jr nz,sub3
-    inc bc
-    pop hl                      ; second term
-    pop de                      ; first term
+    jr nz,sub1
+    ld de,1
+    ld a,"="
+    jr sub3
+sub1:
+    pop de
+sub3:
+    pop hl
     or a
     sbc hl,de    
-    jp assign0
-sub3:
-    pop de                      ; second term
-    pop hl                      ; first term
-    or a                        
-    sbc hl,de       
-    push hl        
-    jp (ix)        
+    jp add3
 
 ;*******************************************************************
 ; commands
@@ -1315,152 +1287,12 @@ blockExit1:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-; c b --
-; loops until c = 0
-loop:                           
-    
-    jp (ix)     
-    
-;     pop de                      ; de = block                    c
-;     pop hl                      ; hl = condition    
-;     push de
-;     push bc                     ; push IP
-;     ld bc,de                    ; bc = block
-;     ld e,(iy+2)                 ; get first_arg* from parent stack frame
-;     ld d,(iy+3)                 ; make this the old BP for this stack frame
-;     push de                     ; push first_arg*
-;     push iy                     ; push BP  
-;     ld iy,0                     ; iy = sp
-;     add iy,sp
-; loop1:    
-;     ld a,l                      ; bc = block, hl = condition = zero?
-;     or h                        
-;     jr z,loop3
-;     ld de,loop2-1               ; IP return address
-;     push de
-;     ld e,(iy+2)                 ; push parent first_arg*
-;     ld d,(iy+3)                  
-;     push de                     ; 
-;     push iy                     ; push BP  
-;     ld iy,0                     ; iy = sp
-;     add iy,sp
-;     push hl                     ; push condition
-;     dec bc
-;     jp (ix)                     
-
-; loop2:
-;     db ESC                      ; escape from interpreter
-;     ld c,(iy+6)                 ; bc = block
-;     ld b,(iy+7)                  
-;     pop hl                      ; hl = condition
-;     jr loop1
-    
-; loop3:
-;     ld d,iyh                    ; de = BP
-;     ld e,iyl
-;     ex de,hl                    ; hl = BP, de = result
-;     ld sp,hl                    ; sp = BP
-;     pop hl                      ; hl = old BP
-;     pop bc                      ; pop first_arg* (discard)
-;     pop bc                      ; bc = IP
-;     ld sp,hl                    ; sp = old BP
-;     ld iy,0                     ; iy = sp
-;     add iy,sp
-;     ld ix,(vNext)                  ; needed?
-;     jp (ix)
-
-;; str -- num
-; hash:
-    ; pop hl
-    ; push bc
-    ; ld bc,hl
-    ; call hashStr
-    ; pop bc
-    ; push hl
-    ; jp (ix)
-
-; sqrt1:
-;     pop hl
-;     push bc
-;     call squareRoot
-;     ld (vRemain),bc
-;     pop bc
-;     push de
-;     jp (ix)
-
 filter:
 map:
 scan:
     jp (ix)
 
 
-; -------------------------------------------------------------------------------
-
-
-; ; hash C-string 
-; ; BC = str
-; ; HL = hash
-; hashStr:
-;     ld (vHashStr),bc                    ; store source string
-;     ld hl,0                             
-; hashStr1:    
-;     ld a,(bc)                           ; load next char
-;     inc bc
-;     cp 0                                ; NUL?
-;     ret z                     
-; hashStr2:
-;     ld d,0
-;     ld e,a 
-;     add hl,de
-;     ld de,hl                            ; hl *= 193 (11000001)
-;     add hl,hl                           ; shift left
-;     add hl,de                           ; add
-;     add hl,hl                           ; shift left
-;     add hl,hl                           ; shift left
-;     add hl,hl                           ; shift left
-;     add hl,hl                           ; shift left
-;     add hl,hl                           ; shift left
-;     add hl,hl                           ; shift left
-;     add hl,de                           ; add
-;     jr hashStr1
-
-; ; squareroot
-; ; Input: HL = value
-; ; Result: DE = square root BC = remainder
-
-; squareRoot:
-;     ld bc,0800h   
-;     ld e,c        
-;     xor a         
-; squareRoot1:        
-;     add hl,hl     
-;     rl c          
-;     adc hl,hl     
-;     rl c          
-;     jr nc,$+4     
-;     set 0,l       
-;     ld a,e        
-;     add a,a       
-;     ld e,a        
-;     add a,a       
-;     bit 0,l       
-;     jr nz,$+5     
-;     sub c         
-;     jr nc,squareRoot4     
-;     ld a,c         
-;     sub e              
-;     inc e          
-;     sub e           
-;     ld c,a         
-; squareRoot4:
-;     djnz squareRoot1
-;     bit 0,l       
-;     jr z,squareRoot5         
-;     inc b         
-; squareRoot5:
-;     ld d,0
-;     ret           
 
 ; print decimal
 ; hl = value
