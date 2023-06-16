@@ -837,11 +837,11 @@ go2:
     jr go11
 go3:				            ; execute function
     ex de,hl                    ; hl = func*
-    ld e,(hl)                   ; de = capture*
+    ld e,(hl)                   ; de = closure*
     inc hl
     ld d,(hl)
     inc hl
-    ld a,e                      ; if capture* == null skip
+    ld a,e                      ; if closure* == null skip
     or d
     jr z,go6
     ld (vTemp1),bc
@@ -855,7 +855,7 @@ go3:				            ; execute function
     inc hl
     jr go5
 go4:
-    ld e,(hl)                   ; de = capture item
+    ld e,(hl)                   ; de = closure item
     inc hl
     ld d,(hl)
     inc hl
@@ -1156,8 +1156,8 @@ command:
     jp z,abs1
     cp "b"                      ; \b bytes
     jp z,bytes
-    cp "c"                      ; \c capture
-    jp z,capture
+    cp "c"                      ; \c closure
+    jp z,closure
     cp "f"                      ; \f func
     jp z,func
     cp "F"                      ; \F false
@@ -1195,19 +1195,19 @@ abs1:
     push hl
     jp (ix)
 
-; capture
+; closure
 ; array* func* -- func1*
-capture:
+closure:
     pop hl                              ; h1 = func*
-    ld de,(vHeapPtr)                    ; de = heap* = capture*
+    ld de,(vHeapPtr)                    ; de = heap* = closure*
     ld (vTemp1),bc                      ; save IP
     ld bc,6                             ; bc = count
     ldir                                ; clone func
     ld bc,(vTemp1)                      ; restore IP
-    ld hl,(vHeapPtr)                    ; hl = heap* = capture*
+    ld hl,(vHeapPtr)                    ; hl = heap* = closure*
     ld (vHeapPtr),de                    ; heap* += 6
     pop de                              ; de = array*    
-    push hl                             ; return capture*
+    push hl                             ; return closure*
     ld (hl),e                           ; compile array*
     inc hl
     ld (hl),d
@@ -1232,7 +1232,7 @@ func:
     pop de                              ; de = block* hl = heap*
     ld hl,(vHeapPtr)
     xor a
-    ld (hl),a                           ; compile null capture*
+    ld (hl),a                           ; compile null closure*
     inc hl
     ld (hl),a
     inc hl
