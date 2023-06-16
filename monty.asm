@@ -120,7 +120,7 @@ opcodes:                        ; still available , ;
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
-    DB lsb(nop_)                ; , 
+    DB lsb(discard_)            ; , 
     DB lsb(sub_)                ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -236,6 +236,9 @@ char_:
     jp char
 command_:
     jp command
+discard_:  
+    pop hl
+    jp (ix)
 dot_:  
     jp dot
 remain_:
@@ -317,15 +320,17 @@ add:
     ld a,(bc)
     cp "+"                      ; ++ increment variable
     jr nz,add1
-    ld de,1
-    ld a,"="
-    jr add2
+    pop hl
+    inc hl
+    jp assign0
 add1:
+    dec bc
     pop de                      ; second term
-add2:
     pop hl                      ; first term
     add hl,de    
 add3:
+    inc bc                      
+    ld a,(bc)
     cp "="                      ; += add to variable
     jp z,assign0
     push hl        
@@ -349,8 +354,8 @@ and:
     and h           
 and1:
     ld h,a        
-    push hl         
-    jp (ix)        
+    jp add3
+    
 or:
     pop de                      ; Bitwise or the top 2 elements of the stack
     pop hl
@@ -365,10 +370,10 @@ xor:
 xor1:
     pop hl
     ld a,e
-    xor     l
+    xor l
     ld l,a
     ld a,d
-    xor     h
+    xor h
     jr and1
 
 ; $a .. $z
@@ -716,8 +721,6 @@ div:
     ex de,hl
     ld (vRemain),de
     pop bc
-    inc bc                      
-    ld a,(bc)
     jp add3
 
 dot:  
@@ -1003,8 +1006,6 @@ mul3:
     dec a
     jr nz,mul3
 	pop bc			            ; Restore the IP
-    inc bc                      
-    ld a,(bc)
     jp add3
 
 num:
@@ -1133,12 +1134,12 @@ sub0:                           ; Subtract the value 2nd on stack from top of st
     inc bc
     cp "-"
     jr nz,sub1
-    ld de,1
-    ld a,"="
-    jr sub3
+    pop hl
+    dec hl
+    jp assign0
 sub1:
+    dec bc
     pop de
-sub3:
     pop hl
     or a
     sbc hl,de    
@@ -1177,7 +1178,7 @@ command:
     cp "w"                      ; \w words
     jp z,words
     cp "x"                      ; \x exit loop or block
-    jp z,blockExit
+    jp z,break
 
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1220,6 +1221,27 @@ comment:
     jr nc,comment
     dec bc
     jp (ix) 
+
+break:
+    pop hl
+    ld a,l
+    or h
+    jr z,break1
+    jp (ix)
+break1:    
+    ld l,(iy+6)                 ; hl = oldIP
+    ld h,(iy+7)
+    inc hl                      ; forward IP on stack to after \r
+    inc hl
+    ld (iy+6),l                  
+    ld (iy+7),h
+    ld e,(iy+2)                 ; dec first_arg*
+    ld d,(iy+3)
+    inc de
+    inc de
+    ld (iy+2),e                 
+    ld (iy+3),d
+    jp blockEnd
 
 bytes:
     ld hl,1
@@ -1305,27 +1327,6 @@ select:
 words:
     ld hl,2
     jp bytes1
-
-blockExit:
-    pop hl
-    ld a,l
-    or h
-    jr z,blockExit1
-    jp (ix)
-blockExit1:    
-    ld l,(iy+6)                 ; hl = oldIP
-    ld h,(iy+7)
-    inc hl                      ; forward IP on stack to after \r
-    inc hl
-    ld (iy+6),l                  
-    ld (iy+7),h
-    ld e,(iy+2)                 ; hl = first_arg*, is it in this scope?
-    ld d,(iy+3)
-    inc de
-    inc de
-    ld (iy+2),e                 ; hl = first_arg*, is it in this scope?
-    ld (iy+3),d
-    jp blockEnd
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

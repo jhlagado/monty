@@ -14,6 +14,8 @@
 .align $100
 testsStart:
 
+    ; test "1 i= { i i \\x i-- } \\r", $4002
+
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -49,7 +51,11 @@ testsStart:
     test "3 a= a-- a",2
     test "4 a= a 2 -= a",2
     test "3 5 &", 1
+    test "3 a= 5 a &= a",1
     test "3 5 |", 7
+    test "3 a= 5 a |= a",7
+    test "3 5 ^", 6
+    test "3 a= 5 a ^= a",6
     test "2 3 *", 6
     test "3 x= 2 x *= x",6 
     test "1 2 3 + *", 5
