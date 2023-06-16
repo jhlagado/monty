@@ -817,52 +817,85 @@ go1:
 go2:
     ld a,(de)
     cp "{"
-    jp z,goBlock
-
-goFunc:				            ; execute code at pointer
+    jp nz,go3
+    inc de                      ; execute block of monty code
+    push bc                     ; push IP
+    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
+    ld b,iyh                    
+    ld c,iyl
+    or a                        ; hl = stack - BP = root_scope
+    sbc hl,bc                   
+    ld a,l                      ; if root_scope, skip
+    or h                    
+    jr z,go10
+    ld c,(iy+4)                 ; push arg_list* (parent)
+    ld b,(iy+5)                 
+    push bc                     
+    ld c,(iy+2)                 ; hl = first_arg* (parent)
+    ld b,(iy+3)                 
+    ld hl,bc
+    jr go11
+go3:				            ; execute function
     ex de,hl                    ; hl = func*
-    ld e,(hl)                   ; de = hblock*
+    ld e,(hl)                   ; de = capture*
     inc hl
     ld d,(hl)
     inc hl
-    ld a,e
+    ld a,e                      ; if capture* == null skip
     or d
-    jr z,goFunc0
-    ld (vTemp1),hl
-    ld (vTemp2),bc
-    ex de,hl
-    call pushArray
-    ld hl,(vTemp1)
-    ld bc,(vTemp2)
-goFunc0:
-    ld e,(hl)                   ; de = hblock*
+    jr z,go6
+    ld (vTemp1),bc
+    ld (vTemp2),hl              ; save bc,hl
+    ex de,hl                    ; hl = array*
+    dec hl                      ; bc = count
+    ld b,(hl)
+    dec hl
+    ld c,(hl)
+    inc hl                      ; push each item on stack
+    inc hl
+    jr go5
+go4:
+    ld e,(hl)                   ; de = capture item
     inc hl
     ld d,(hl)
     inc hl
-    push de                     ; save hblock*
+    push de                     ; push on stack
+    dec bc
+go5:
+    ld a,c                      ; if count != 0 then loop
+    or b
+    jr nz,go4
+    ld bc,(vTemp1)              ; restore bc
+    ld hl,(vTemp2)              ; restore hl
+go6:
+    ld e,(hl)                   ; de = block*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ld (vTemp1),de              ; save block*
     ld e,(hl)                   ; de = arg_list*
     inc hl
     ld d,(hl)
     inc hl
     ex de,hl                    ; hl = arg_list*
-    pop de                      ; restore hblock*
+    ld de,(vTemp1)              ; restore de = block*
     ld a,l                      ; if arg_list* != null skip
     or h
-    jr nz,goFunc1              
+    jr nz,go7              
     push bc                     ; push IP
-    jr goBlock2                  
-goFunc1:
+    jr go10                  
+go7:
     dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
     inc hl
     or a
-    jr z,goFunc3
-goFunc2:
+    jr z,go9
+go8:
     dec sp
     dec sp
     dec a
-    jr nz,goFunc2
-goFunc3:
+    jr nz,go8
+go9:
     push bc                     ; push IP    
     push hl                     ; push arg_list*
     dec hl                      ; hl = num_args*
@@ -873,33 +906,14 @@ goFunc3:
     ld l,a
     ld h,$0
     add hl,sp                   ; hl = first_arg*
-    jr goBlock4
-
-goBlock:
-    inc de
-    push bc                     ; push IP
-    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
-    ld b,iyh                    
-    ld c,iyl
-    or a                        ; hl = stack - BP = root_scope
-    sbc hl,bc                   
-    ld a,l                      ; if root_scope, skip
-    or h                    
-    jr z,goBlock2
-    ld c,(iy+4)                 ; push arg_list* (parent)
-    ld b,(iy+5)                 
-    push bc                     
-    ld c,(iy+2)                 ; hl = first_arg* (parent)
-    ld b,(iy+3)                 
-    ld hl,bc
-    jr goBlock3
-goBlock2:
+    jr go12
+go10:
     push hl                     ; push arg_list (null)
     ld hl,4                     ; hl = first_arg* (BP+8)
     add hl,sp
-goBlock3:
+go11:
     dec de
-goBlock4:
+go12:
     push hl                     ; push first_arg    
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
@@ -1142,8 +1156,8 @@ command:
     jp z,abs1
     cp "b"                      ; \b bytes
     jp z,bytes
-    cp "c"                      ; \c closure
-    jp z,bytes
+    cp "c"                      ; \c capture
+    jp z,capture
     cp "f"                      ; \f func
     jp z,func
     cp "F"                      ; \F false
@@ -1181,30 +1195,22 @@ abs1:
     push hl
     jp (ix)
 
-; array* arg_list* block* -- ptr
-closure:
-    ld hl,(vHeapPtr)                    ; hl = heap*
-    inc hl
-    inc hl
-    pop de                              ; de = block*
-    ld (hl),e                           ; compile block*
-    inc hl
-    ld (hl),d
-    inc hl
-    pop de                              ; de = arg_list*
-    ld (hl),e                           ; compile arg_list*
-    inc hl
-    ld (hl),d
-    inc hl
-    ld de,(vHeapPtr)                    ; de = closure*
-    ld (vHeapPtr),hl                    ; heap* += 6
-    ex de,hl                            ; hl = closure*
-    pop de                              ; de = array* 
-    push hl                             ; return closure*
+; capture
+; array* func* -- func1*
+capture:
+    pop hl                              ; h1 = func*
+    ld de,(vHeapPtr)                    ; de = heap* = capture*
+    ld (vTemp1),bc                      ; save IP
+    ld bc,6                             ; bc = count
+    ldir                                ; clone func
+    ld bc,(vTemp1)                      ; restore IP
+    ld hl,(vHeapPtr)                    ; hl = heap* = capture*
+    ld (vHeapPtr),de                    ; heap* += 6
+    pop de                              ; de = array*    
+    push hl                             ; return capture*
     ld (hl),e                           ; compile array*
     inc hl
     ld (hl),d
-    inc hl
     jp (ix)
 
 comment:
@@ -1226,7 +1232,7 @@ func:
     pop de                              ; de = block* hl = heap*
     ld hl,(vHeapPtr)
     xor a
-    ld (hl),a                           ; compile null closure*
+    ld (hl),a                           ; compile null capture*
     inc hl
     ld (hl),a
     inc hl
@@ -1479,30 +1485,6 @@ printStr:
     call prtstr		
     inc hl			            ; inc past NUL
     ex (sp),hl		            ; put it back	
-    ret
-
-; push contents of array on stack
-; hl = array*
-; destroys bc,de
-pushArray:
-    dec hl                              ; bc = count
-    ld b,(hl)
-    dec hl
-    ld c,(hl)
-    inc hl                              ; push each item on stack
-    inc hl
-    jr pushArray2
-pushArray1:
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    inc hl
-    push de
-    dec bc
-pushArray2:
-    ld a,c
-    or b
-    jr nz,pushArray1
     ret
 
 init:
