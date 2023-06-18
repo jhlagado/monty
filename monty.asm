@@ -820,8 +820,7 @@ go1:
 go2:
     ld a,(de)
     cp "{"
-    jp nz,go3
-
+    jp nz,goFunc
 goBlock:
     ld (vTemp1),de              ; save de
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
@@ -833,7 +832,7 @@ goBlock:
     ld a,l                      ; if (not root_scope) then inherit scope vars from parent
     or h                    
     ld a,0
-    jr z,go10
+    jr z,goFunc8
     push bc                     ; push IP
     ld c,(iy+4)                 ; push arg_list* (parent)
     ld b,(iy+5)                 
@@ -848,7 +847,7 @@ goBlock1:
     ld bc,de                    ; bc = de = block*-1
     jp (ix)    
     
-go3:				            ; execute function
+goFunc:				            ; execute function
     ex de,hl                    ; hl = func*
     ld e,(hl)                   ; de = closure*
     inc hl
@@ -856,31 +855,31 @@ go3:				            ; execute function
     inc hl
     ld a,e                      ; if closure* == null skip
     or d
-    jr z,go6
+    jr z,goFunc3
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
-    ex de,hl                    ; hl = array*
+    ex de,hl                    ; hl = closure*
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
     ld c,(hl)
     inc hl                      ; push each item on stack
     inc hl
-    jr go5
-go4:
+    jr goFunc2
+goFunc1:
     ld e,(hl)                   ; de = closure item
     inc hl
     ld d,(hl)
     inc hl
     push de                     ; push on stack
     dec bc
-go5:
+goFunc2:
     ld a,c                      ; if count != 0 then loop
     or b
-    jr nz,go4
+    jr nz,goFunc1
     ld bc,(vTemp1)              ; restore bc
     ld hl,(vTemp2)              ; restore hl
-go6:
+goFunc3:
     ld e,(hl)                   ; de = block*
     inc hl
     ld d,(hl)
@@ -892,38 +891,36 @@ go6:
     inc hl
     ex de,hl                    ; hl = arg_list*
     ld de,(vTemp1)              ; restore de = block*
-    ld a,l                      ; if arg_list* != null skip
+    ld a,l                      ; if arg_list* == null a = 0
     or h
-    jr nz,go7          
-    xor a
-    jr go10                  
-go7:
+    jr nz,goFunc4          
+    xor a                       ; a = num_args (zero), num locals (zero)
+    jr goFunc8                  
+goFunc4:                        ; allocate locals 
     dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
-    inc hl
-    or a
-    jr z,go9
-go8:
+    jr goFunc6
+goFunc5:                        ; loop
     dec sp
     dec sp
     dec a
-    jr nz,go8
-go9:
-    dec hl                      ; hl = num_args*
-    dec hl
-    ld a,(hl)                   ; hl = num_args * 2
+goFunc6:
+    or a
+    jr nz,goFunc5               ; end loop
+goFunc7:
+    dec hl                      ; a = num_args* x 2 
+    ld a,(hl)                   
     inc hl 
     inc hl
     add a,a                     ; a *= 2
-go10:
+goFunc8:
     push bc                     ; push IP
     ld bc,hl
     ld hl,2                     ; hl = first_arg* (BP+8), a = num args offset
-    add a,l                     ; 
+    add a,l                     
     ld l,a
     add hl,sp
     jr goBlock1
-
 
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
