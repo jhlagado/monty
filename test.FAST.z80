@@ -14,7 +14,10 @@
 .align $100
 testsStart:
 
-    test "(b) {1 0\\x $b} \\f \\r", 4
+    test "3i= { i i. i--  i\\x \\z} \\r + +", 6
+
+
+    ; test "3i= (b) {i i. i--  i\\x $b} \\f \\r", 4
     ; test "5 (i){ $i } \\f :", 5
 
     ; test "1 x= { x \\x x-- } \\r + ", $4002

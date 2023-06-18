@@ -230,8 +230,8 @@ arrIndex_:
     jp arrIndex 
 block_:
     jp block
-blockend_:
-    jp blockend
+blockEnd_:
+    jp blockEnd
 char_:
     jp char
 command_:
@@ -640,7 +640,7 @@ block6:
     dec bc                      ; balanced, exit
     jp (ix)  
 
-blockend:
+blockEnd:
     exx                         ; de' = oldBP bc' = oldIP
     ld e,(iy+0)                  
     ld d,(iy+1)
@@ -655,27 +655,27 @@ blockend:
     inc de                      ; for carry flag <=
     or a
     sbc hl,de
-    jr c,blockend1              ; oldBP >= first_arg, same scope skip
+    jr c,blockEnd1              ; oldBP >= first_arg, same scope skip
     ld d,iyh                    ; de = BP = first_result*, no args in this scope
     ld e,iyl
     ld hl,8
     add hl,de                   ; de = BP = first_result* (BP), hl = first_arg* (BP+8)
     ex de,hl                    ; de = first_arg*, hl = first_result*
-    jr blockend2
-blockend1:                      ; same scope
+    jr blockEnd2
+blockEnd1:                      ; same scope
     ld e,(iy+2)                 ; hl = first_arg*, in scope
     ld d,(iy+3)
     ex de,hl                                                              
     ld d,iyh                    ; de = first_arg*, hl = BP = first_result*
     ld e,iyl
     ex de,hl                                                              
-blockend2:                      
+blockEnd2:                      
     ld bc,hl                    ; bc = hl = BP
     or a                        ; hl = BP - SP = count 
     sbc hl,sp                   
     ld a,l
     or h
-    jr z,blockend3                      
+    jr z,blockEnd3                      
     push bc                     ; bc = count, hl = BP
     ld bc,hl
     pop hl                      
@@ -683,7 +683,7 @@ blockend2:
     dec de                      ; de = args*-1
     lddr
     inc de                      
-blockend3:                      
+blockEnd3:                      
     ex de,hl                    ; hl = new tos
     ld sp,hl                    ; sp = new tos
     exx                         ; bc = IP, iy = oldBP
@@ -1175,8 +1175,10 @@ command:
     jp z,true1
     cp "w"                      ; \w words
     jp z,words
-    cp "x"                      ; \x exit loop or block
+    cp "x"                      ; \x exit loop
     jp z,break
+    cp "z"                      ; \z end loop
+    jp z,loopEnd
 
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1220,6 +1222,26 @@ comment:
     dec bc
     jp (ix) 
 
+loopEnd:
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    ld e,(hl)                   ; return block* after other returns
+    inc hl
+    ld d,(hl)
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+    push de
+    ld l,(iy+6)                 ; hl = oldIP
+    ld h,(iy+7)
+    dec hl                      ; rewind return IP to jus before \r
+    dec hl
+    ld (iy+6),l                  
+    ld (iy+7),h
+    jp blockEnd
+
 break:
     pop hl
     ld a,l
@@ -1227,25 +1249,36 @@ break:
     jr z,break1
     jp (ix)
 break1:    
-    ld l,(iy+6)                 ; hl = oldIP
-    ld h,(iy+7)
-    inc hl                      ; forward IP on stack to after \r
-    inc hl
-    ld (iy+6),l                  
-    ld (iy+7),h
+    ; ld l,(iy+6)                 ; hl = oldIP
+    ; ld h,(iy+7)
+    ; inc hl                      ; forward IP on stack to after \r
+    ; inc hl
+    ; ld (iy+6),l                  
+    ; ld (iy+7),h
+
     ; ld e,(iy+2)                 ; dec first_arg*
     ; ld d,(iy+3)
     ; inc de
     ; inc de
     ; ld (iy+2),e                 
     ; ld (iy+3),d
+
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    inc hl
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+
     jp blockEnd
 
 ; repeat
 ; block* -- 
 repeat:
-    dec bc                      ; rewind IP to before \r
-    dec bc
+    ; dec bc                      ; rewind IP to before \r
+    ; dec bc
     pop hl
     push hl
     push hl
