@@ -821,23 +821,33 @@ go2:
     ld a,(de)
     cp "{"
     jp nz,go3
-    inc de                      ; execute block of monty code
-    push bc                     ; push IP
+
+goBlock:
+    ld (vTemp1),de              ; save de
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
-    ld b,iyh                    
-    ld c,iyl
-    or a                        ; hl = stack - BP = root_scope
-    sbc hl,bc                   
-    ld a,l                      ; if root_scope, skip
+    ld d,iyh                    
+    ld e,iyl
+    or a                        ; if stack* == BP then this is the root_scope
+    sbc hl,de                   
+    ld de,(vTemp1)              ; restore de
+    ld a,l                      ; if (not root_scope) then inherit scope vars from parent
     or h                    
+    ld a,0
     jr z,go10
+    push bc                     ; push IP
     ld c,(iy+4)                 ; push arg_list* (parent)
     ld b,(iy+5)                 
-    push bc                     
-    ld c,(iy+2)                 ; hl = first_arg* (parent)
-    ld b,(iy+3)                 
-    ld hl,bc
-    jr go11
+    ld l,(iy+2)                 ; push first_arg* (parent)
+    ld h,(iy+3)                 
+goBlock1:
+    push bc                     ; arg_list*
+    push hl                     ; first_arg*
+    push iy                     ; push BP
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    ld bc,de                    ; bc = de = block*-1
+    jp (ix)    
+    
 go3:				            ; execute function
     ex de,hl                    ; hl = func*
     ld e,(hl)                   ; de = closure*
@@ -884,8 +894,8 @@ go6:
     ld de,(vTemp1)              ; restore de = block*
     ld a,l                      ; if arg_list* != null skip
     or h
-    jr nz,go7              
-    push bc                     ; push IP
+    jr nz,go7          
+    xor a
     jr go10                  
 go7:
     dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
@@ -899,30 +909,21 @@ go8:
     dec a
     jr nz,go8
 go9:
-    push bc                     ; push IP    
-    push hl                     ; push arg_list*
     dec hl                      ; hl = num_args*
     dec hl
     ld a,(hl)                   ; hl = num_args * 2
-    add a,a
-    add a,4                     ; offset for IP and arg_list
-    ld l,a
-    ld h,$0
-    add hl,sp                   ; hl = first_arg*
-    jr go12
+    inc hl 
+    inc hl
+    add a,a                     ; a *= 2
 go10:
-    push hl                     ; push arg_list (null)
-    ld hl,4                     ; hl = first_arg* (BP+8)
+    push bc                     ; push IP
+    ld bc,hl
+    ld hl,2                     ; hl = first_arg* (BP+8), a = num args offset
+    add a,l                     ; 
+    ld l,a
     add hl,sp
-go11:
-    dec de
-go12:
-    push hl                     ; push first_arg    
-    push iy                     ; push BP
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    ld bc,de                    ; bc = de = block*-1
-    jp (ix)    
+    jr goBlock1
+
 
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number

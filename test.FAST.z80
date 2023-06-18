@@ -14,7 +14,10 @@
 .align $100
 testsStart:
 
-    test "1 x= { x \\x x-- } \\r + ", $4002
+    ; test "(b) {$b} \\f \\r", 4
+    ; test "5 (i){ $i } \\f :", 5
+
+    ; test "1 x= { x \\x x-- } \\r + ", $4002
     ; test "1 i= { i i \\x i-- } \\r", $4002
 
     ; call printStr

@@ -47,5 +47,3 @@ expect%%M:
     db msb(label1 / 2) + $80
     db lsb(label1 / 2)
 .endm
-
-
