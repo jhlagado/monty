@@ -120,7 +120,7 @@ opcodes:                        ; still available , ;
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(add_)                ; +
-    DB lsb(discard_)            ; , 
+    DB lsb(nop_)                ; , 
     DB lsb(sub_)                ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -135,7 +135,7 @@ opcodes:                        ; still available , ;
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
     DB lsb(go_)                 ; :    
-    DB lsb(nop_)                ; ;
+    DB lsb(discard_)            ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
@@ -1243,6 +1243,16 @@ break1:
     ld (iy+3),d
     jp blockEnd
 
+; repeat
+; block* -- 
+repeat:
+    dec bc                      ; rewind IP to before \r
+    dec bc
+    pop hl
+    push hl
+    push hl
+    jp go    
+
 bytes:
     ld hl,1
 bytes1:
@@ -1301,16 +1311,6 @@ output:
     out (c),l
     ld c,e                      ; restore IP
     jp (ix)    
-
-; repeat
-; block* -- 
-repeat:
-    dec bc                      ; rewind IP to before \r
-    dec bc
-    pop hl
-    push hl
-    push hl
-    jp go    
 
 ; select
 ; index array -- value
