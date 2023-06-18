@@ -1233,12 +1233,12 @@ break1:
     inc hl
     ld (iy+6),l                  
     ld (iy+7),h
-    ld e,(iy+2)                 ; dec first_arg*
-    ld d,(iy+3)
-    inc de
-    inc de
-    ld (iy+2),e                 
-    ld (iy+3),d
+    ; ld e,(iy+2)                 ; dec first_arg*
+    ; ld d,(iy+3)
+    ; inc de
+    ; inc de
+    ; ld (iy+2),e                 
+    ; ld (iy+3),d
     jp blockEnd
 
 ; repeat
