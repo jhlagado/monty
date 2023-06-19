@@ -119,9 +119,9 @@ opcodes:                        ; still available , ;
     DB lsb(arg_list_)           ; (    
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
-    DB lsb(add_)                ; +
+    DB lsb(plus_)               ; +
     DB lsb(nop_)                ; , 
-    DB lsb(sub_)                ; -
+    DB lsb(minus_)              ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
     DB lsb(num_)                ; 0     
@@ -134,8 +134,8 @@ opcodes:                        ; still available , ;
     DB lsb(num_)                ; 7    
     DB lsb(num_)                ; 8    
     DB lsb(num_)                ; 9    
-    DB lsb(go_)                 ; :    
-    DB lsb(discard_)            ; ;
+    DB lsb(colon_)              ; :    
+    DB lsb(semicolon_)          ; ;
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
@@ -170,7 +170,7 @@ opcodes:                        ; still available , ;
     DB lsb(arrBegin_)           ; [
     DB lsb(nop_)                ; \
     DB lsb(arrEnd_)             ; ]
-    DB lsb(xor_)                ; ^
+    DB lsb(caret_)              ; ^
     DB lsb(remain_)             ; _
     DB lsb(string_)             ; `     used for testing string   	    
     DB lsb(identL_)             ; a     
@@ -212,8 +212,8 @@ opcodes:                        ; still available , ;
     .align $100
 page4:
 
-add_:                           ; add the top 2 members of the stack
-    jp add
+plus_:                           ; add the top 2 members of the stack
+    jp plus
 addr_:
     jp addr
 and_:
@@ -236,15 +236,15 @@ char_:
     jp char
 command_:
     jp command
-discard_:  
+semicolon_:  
     pop hl
     jp (ix)
 dot_:  
     jp dot
 remain_:
     jp remain
-go_:
-    jp go
+colon_:
+    jp colon
 identU_:
     jp identU
 identL_:
@@ -265,12 +265,12 @@ hexnum_:
     jp hexnum
 or_: 		 
     jp or
-xor_: 		 
-    jp xor
+caret_: 		 
+    jp caret
 string_:
     jp string
-sub_:
-    jp sub
+minus_:
+    jp minus
 eq_:    
     inc bc
     ld a,(bc)                   ; is it == ?
@@ -315,12 +315,13 @@ nop_:
 ; word operators
 ;*******************************************************************
 
-add:
+plus:
     inc bc
     ld a,(bc)
     cp "+"                      ; ++ increment variable
     jr nz,add1
     pop hl
+    push hl                     ; return pre-incremented value
     inc hl
     jp assign0
 add1:
@@ -365,7 +366,8 @@ or:
     ld a,d
     or h
     jr and1
-xor:		 
+
+xor:
     pop de                      ; Bitwise xor the top 2 elements of the stack
 xor1:
     pop hl
@@ -374,7 +376,9 @@ xor1:
     ld l,a
     ld a,d
     xor h
-    jr and1
+    ld h,a        
+    push hl        
+    jp (ix)    
 
 ; $a .. $z
 ; -- value
@@ -814,9 +818,17 @@ false1:
     push hl
     jp (ix) 
 
+colon:
+    inc bc
+    ld a,(bc)
+    cp "}"
+    jp z,loopEnd
+    dec bc
+    
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
+caret:
 go:				       
     pop de                      ; de = block*
 go1:
@@ -1127,19 +1139,20 @@ string2:
     ld (hl),e
     jp (ix)  
 
-sub:  		                    ; negative sign or subtract
+minus:  		                    ; negative sign or subtract
     inc bc                      ; check if sign of a number
     ld a,(bc)
     dec bc
     cp "0"
-    jr c,sub0
+    jr c,sub
     cp "9"+1
     jp c,num_    
-sub0:                           ; Subtract the value 2nd on stack from top of stack 
+sub:                           ; Subtract the value 2nd on stack from top of stack 
     inc bc
     cp "-"
     jr nz,sub1
     pop hl
+    push hl                     ; return the preincremented value
     dec hl
     jp assign0
 sub1:
@@ -1158,8 +1171,10 @@ sub1:
 command:
     cp "a"                      ; \a absolute
     jp z,abs1
-    cp "b"                      ; \b bytes
-    jp z,bytes
+    cp "b"                      ; \x break
+    jp z,break
+    cp "c"                      ; \c chars
+    jp z,chars
     cp "p"                      ; \p partial
     jp z,partial
     cp "f"                      ; \f func
@@ -1170,20 +1185,20 @@ command:
     jp z,input
     cp "k"                      ; \k key
     jp z,key
+    cp "n"                      ; \n numbers
+    jp z,numbers
     cp "o"                      ; \o output
     jp z,output
-    cp "r"                      ; \r repeat
-    jp z,repeat
+    cp "d"                      ; \d do
+    jp z,do
+    cp "r"                      ; \r redo
+    jp z,redo
     cp "s"                      ; \s select
     jp z,select
     cp "T"                      ; \T true
     jp z,true1
-    cp "w"                      ; \w words
-    jp z,words
-    cp "x"                      ; \x exit loop
-    jp z,break
-    cp "z"                      ; \z end loop
-    jp z,loopEnd
+    cp "x"                      ; \x xor
+    jp z,xor
 
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1227,25 +1242,39 @@ comment:
     dec bc
     jp (ix) 
 
+; redo
+; -- 
+redo:
+    pop hl
+    ld a,l
+    or h
+    jr z,redo1
+redo0:
+    ld c,(iy+8)                    ; get block* just under stack frame
+    ld b,(iy+9)
+redo1:    
+    jp (ix)
+
 loopEnd:
-    ld e,iyl                    ; get block* just under stack frame
-    ld d,iyh
-    ld hl,8
-    add hl,de
-    ld e,(hl)                   ; return block* after other returns
-    inc hl
-    ld d,(hl)
-    inc hl
-    ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ld (iy+3),h                 ; first_arg* = address of block*
-    push de
-    ld l,(iy+6)                 ; hl = oldIP
-    ld h,(iy+7)
-    dec hl                      ; rewind return IP to jus before \r
-    dec hl
-    ld (iy+6),l                  
-    ld (iy+7),h
-    jp blockEnd
+    jp redo0
+    ; ld e,iyl                    ; get block* just under stack frame
+    ; ld d,iyh
+    ; ld hl,8
+    ; add hl,de
+    ; ld e,(hl)                   ; return block* after other returns
+    ; inc hl
+    ; ld d,(hl)
+    ; inc hl
+    ; ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ; ld (iy+3),h                 ; first_arg* = address of block*
+    ; push de
+    ; ld l,(iy+6)                 ; hl = oldIP
+    ; ld h,(iy+7)
+    ; dec hl                      ; rewind return IP to jus before \r
+    ; dec hl
+    ; ld (iy+6),l                  
+    ; ld (iy+7),h
+    ; jp blockEnd
 
 break:
     pop hl
@@ -1254,20 +1283,6 @@ break:
     jr z,break1
     jp (ix)
 break1:    
-    ; ld l,(iy+6)                 ; hl = oldIP
-    ; ld h,(iy+7)
-    ; inc hl                      ; forward IP on stack to after \r
-    ; inc hl
-    ; ld (iy+6),l                  
-    ; ld (iy+7),h
-
-    ; ld e,(iy+2)                 ; dec first_arg*
-    ; ld d,(iy+3)
-    ; inc de
-    ; inc de
-    ; ld (iy+2),e                 
-    ; ld (iy+3),d
-
     ld e,iyl                    ; get block* just under stack frame
     ld d,iyh
     ld hl,8
@@ -1276,12 +1291,11 @@ break1:
     inc hl
     ld (iy+2),l                 ; force first_arg* into this scope for clean up
     ld (iy+3),h                 ; first_arg* = address of block*
-
     jp blockEnd
 
-; repeat
-; block* -- 
-repeat:
+; do
+; rblock* --                    ; a rblock is a block ending with :} 
+do:
     ; dec bc                      ; rewind IP to before \r
     ; dec bc
     pop hl
@@ -1289,9 +1303,9 @@ repeat:
     push hl
     jp go    
 
-bytes:
+chars:
     ld hl,1
-bytes1:
+chars1:
     ld (vDataWidth),hl
     jp (ix)
 
@@ -1360,9 +1374,9 @@ select:
     ld d,(hl)
     jp go1
 
-words:
+numbers:
     ld hl,2
-    jp bytes1
+    jp chars1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

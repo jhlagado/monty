@@ -14,6 +14,7 @@
 .align $100
 testsStart:
 
+    ; test "3i= { i/b i-- :}/d + +", 6
 
     ; call printStr
     ; .cstr "Done!"
@@ -53,8 +54,8 @@ testsStart:
     test "3 a= 5 a &= a",1
     test "3 5 |", 7
     test "3 a= 5 a |= a",7
-    test "3 5 ^", 6
-    test "3 a= 5 a ^= a",6
+    test "3 5 /x", 6
+    test "3 a= 5 a /x a= a",6
     test "2 3 *", 6
     test "3 x= 2 x *= x",6 
     test "1 2 3 + *", 5
@@ -77,10 +78,10 @@ testsStart:
     test "3 1 <<", 6
     test "10 1 >>", 5
     test "1 x = x", 1
-    test "1{}:", 1
-    test "{1}:", 1
-    test "{{1}:}:", 1
-    test "{{{1}:}:}:", 1
+    test "1{}^", 1
+    test "{1}^", 1
+    test "{{1}^}^", 1
+    test "{{{1}^}^}^", 1
     test "5 /F {10} ?", 5
     test "5 /T {10} ? +", 15
     test "1 /F {10} {20} ?? +", 21
@@ -90,39 +91,39 @@ testsStart:
     test "(a:) -1%", $0001
     test "(a:b) -1%", $0102
     test "(:b) -1%", $0101
-    test "() {2} /f:", 2
-    test "(a) {2} /f:", 2
-    test "5 (a) {$a} /f:", 5
-    test "5 (a:b) {$a} /f:", 5
-    test "(a) {{2}:} /f:", 2
-    test "1 5 (a) {{$a}:} /f:", 5
-    test "1 5 (ab) {{$a}:} /f:", 1
-    test "1 5 (a) {{$a 2 +}:} /f:", 7
-    test "1 5 (ab) {{$a $b +}:} /f:", 6
-    test "(a) {2} /f x= 1 x:", 2
-    test "(a) {$a} /f x= 0 1 x:", 1
-    test "(ab) {$b} /f x= 1 2 x:", 2
-    test "(a:b) {$a} /f x= 1 2 x:", 2
-    test "(ab) {$b} /f x= 1 2 x:", 2
-    test "(ab) {$b $a} /f x= 10 15 x: -", 5
-    test "(a:b) {2} /f x= 1 x:", 2
-    test "(:b) {100 $b= $b} /f x= x:", 100
-    test "(a:b) {1 $b= $b} /f x= 2 x:", 1
-    test "(a:b) {$a $b= $b} /f x= 2 x:", 2
-    test "1 10 20 (ab) {/T {$a} {$b} ??} /f: +", 11
-    test "1 10 20 (ab) {/F {$a} {$b} ??} /f: +", 21
+    test "() {2} /f^", 2
+    test "(a) {2} /f^", 2
+    test "5 (a) {$a} /f^", 5
+    test "5 (a:b) {$a} /f^", 5
+    test "(a) {{2}^} /f^", 2
+    test "1 5 (a) {{$a}^} /f^", 5
+    test "1 5 (ab) {{$a}^} /f^", 1
+    test "1 5 (a) {{$a 2 +}^} /f^", 7
+    test "1 5 (ab) {{$a $b +}^} /f^", 6
+    test "(a) {2} /f x= 1 x^", 2
+    test "(a) {$a} /f x= 0 1 x^", 1
+    test "(ab) {$b} /f x= 1 2 x^", 2
+    test "(a:b) {$a} /f x= 1 2 x^", 2
+    test "(ab) {$b} /f x= 1 2 x^", 2
+    test "(ab) {$b $a} /f x= 10 15 x^ -", 5
+    test "(a:b) {2} /f x= 1 x^", 2
+    test "(:b) {100 $b= $b} /f x= x^", 100
+    test "(a:b) {1 $b= $b} /f x= 2 x^", 1
+    test "(a:b) {$a $b= $b} /f x= 2 x^", 2
+    test "1 10 20 (ab) {/T {$a} {$b} ??} /f^ +", 11
+    test "1 10 20 (ab) {/F {$a} {$b} ??} /f^ +", 21
     test "[10 20 30] 1%", 20
-    test "/b [1 2 3] 1%", 2
-    test "/b ['A' 'B' 'C'] 1%", 66
+    test "/c [1 2 3] 1%", 2
+    test "/c ['A' 'B' 'C'] 1%", 66
     test "0 [{10} {20} {30}] /s", 10
-    test "1 10 20 (ab) {0 [{$a} {$b}] /s} /f:", 10
-    test "0 10 20 (iab) {$i [{$a} {$b}] /s} /f:", 10
-    test "1 10 20 (iab) {$i [{$a} {$b}] /s} /f:", 20
-    test "5 [4] (a) {$a} /f /p :", 4
-    test "5 [4] (ab) {$a $b +} /f /p :", 9
-    test "3i= { i i--  i/x /z} /r + +", 6
-    test "0 j= 4 i= { j i+ j= i /x i 1 -= /z} /r j ", 10
-    test "3i= [ { i i--  i/x /z} /r ] 1%", 2
+    test "1 10 20 (ab) {0 [{$a} {$b}] /s} /f^", 10
+    test "0 10 20 (iab) {$i [{$a} {$b}] /s} /f^", 10
+    test "1 10 20 (iab) {$i [{$a} {$b}] /s} /f^", 20
+    test "5 [4] (a) {$a} /f /p ^", 4
+    test "5 [4] (ab) {$a $b +} /f /p ^", 9
+    test "3i= { i/b i-- :}/d + +", 6
+    test "3i= [ { i/b i-- :}/d ] 1%", 2
+    test "0 j= 4 i= { i/b i j+= i--; :}/d j ", 10
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
