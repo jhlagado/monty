@@ -544,7 +544,7 @@ assign1:
 ; names after the : represent uninitialised locals
 ; return values are the state of the stack after the block ends
 
-backslash:
+colon:
 arglist:
     ld de,0                     ; d = count locals, e = count args ()
     ld hl,(vHeapPtr)            ; hl = heap*
@@ -731,7 +731,7 @@ char3:
     push hl
     jp (ix)  
 
-colon:
+backslash:
     jp (ix)
 
 ; , discard stack item

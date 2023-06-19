@@ -788,7 +788,7 @@
 0312                PERCENT_:      
 0312   C3 75 04               JP   arrIndex   
 0315                BACKSLASH_:      
-0315   C3 9E 04               JP   backslash   
+0315   C3 A7 05               JP   backslash   
 0318                LBRACE_:      
 0318   C3 D4 04               JP   lbrace   
 031B                RBRACE_:      
@@ -802,7 +802,7 @@
 0327                UNDERSCORE_:      
 0327   C3 78 07               JP   underscore   
 032A                COLON_:      
-032A   C3 A7 05               JP   colon   
+032A   C3 9E 04               JP   colon   
 032D                UPCASE_:      
 032D   C3 FC 06               JP   upcase   
 0330                LOWCASE_:      
@@ -1090,7 +1090,7 @@
 049E                             ; arg_list - parses input (ab:c)
 049E                             ; names after the : represent uninitialised locals
 049E                             ; return values are the state of the stack after the block ends
-049E                BACKSLASH:      
+049E                COLON:       
 049E                ARGLIST:      
 049E   11 00 00               LD   de,0   ; d = count locals, e = count args ()
 04A1   2A EC 3D               LD   hl,(vHeapPtr)   ; hl = heap*
@@ -1270,7 +1270,7 @@
 05A4                CHAR3:       
 05A4   E5                     PUSH   hl   
 05A5   DD E9                  JP   (ix)   
-05A7                COLON:       
+05A7                BACKSLASH:      
 05A7   DD E9                  JP   (ix)   
 05A9                             ; , discard stack item
 05A9                             ; x y -- x
@@ -2143,7 +2143,7 @@
 0B00                          ;*Macro unroll:  test "/f", false
 0B00   31 80 3C               LD   SP,STACK   
 0B03   CD 95 09               CALL   init   
-0B06   CD 44 3B               CALL   execStr   
+0B06   CD 10 3B               CALL   execStr   
 0B09   2F 66 00               .CSTR   "/f"   
 0B0C                          ;*Macro unroll:  expect "/f",false
 0B0C   E1                     POP   HL   
@@ -2178,7 +2178,7 @@
 0B66                          ;*Macro unroll:  test "/t", true
 0B66   31 80 3C               LD   SP,STACK   
 0B69   CD 95 09               CALL   init   
-0B6C   CD 44 3B               CALL   execStr   
+0B6C   CD 10 3B               CALL   execStr   
 0B6F   2F 74 00               .CSTR   "/t"   
 0B72                          ;*Macro unroll:  expect "/t",true
 0B72   E1                     POP   HL   
@@ -2213,7 +2213,7 @@
 0BCC                          ;*Macro unroll:  test "1", 1
 0BCC   31 80 3C               LD   SP,STACK   
 0BCF   CD 95 09               CALL   init   
-0BD2   CD 44 3B               CALL   execStr   
+0BD2   CD 10 3B               CALL   execStr   
 0BD5   31 00                  .CSTR   "1"   
 0BD7                          ;*Macro unroll:  expect "1",1
 0BD7   E1                     POP   HL   
@@ -2248,7 +2248,7 @@
 0C30                          ;*Macro unroll:  test "2", 2
 0C30   31 80 3C               LD   SP,STACK   
 0C33   CD 95 09               CALL   init   
-0C36   CD 44 3B               CALL   execStr   
+0C36   CD 10 3B               CALL   execStr   
 0C39   32 00                  .CSTR   "2"   
 0C3B                          ;*Macro unroll:  expect "2",2
 0C3B   E1                     POP   HL   
@@ -2283,7 +2283,7 @@
 0C94                          ;*Macro unroll:  test "1", 1
 0C94   31 80 3C               LD   SP,STACK   
 0C97   CD 95 09               CALL   init   
-0C9A   CD 44 3B               CALL   execStr   
+0C9A   CD 10 3B               CALL   execStr   
 0C9D   31 00                  .CSTR   "1"   
 0C9F                          ;*Macro unroll:  expect "1",1
 0C9F   E1                     POP   HL   
@@ -2318,7 +2318,7 @@
 0CF8                          ;*Macro unroll:  test "0", 0
 0CF8   31 80 3C               LD   SP,STACK   
 0CFB   CD 95 09               CALL   init   
-0CFE   CD 44 3B               CALL   execStr   
+0CFE   CD 10 3B               CALL   execStr   
 0D01   30 00                  .CSTR   "0"   
 0D03                          ;*Macro unroll:  expect "0",0
 0D03   E1                     POP   HL   
@@ -2353,7 +2353,7 @@
 0D5C                          ;*Macro unroll:  test "10", 10
 0D5C   31 80 3C               LD   SP,STACK   
 0D5F   CD 95 09               CALL   init   
-0D62   CD 44 3B               CALL   execStr   
+0D62   CD 10 3B               CALL   execStr   
 0D65   31 30 00               .CSTR   "10"   
 0D68                          ;*Macro unroll:  expect "10",10
 0D68   E1                     POP   HL   
@@ -2388,7 +2388,7 @@
 0DC2                          ;*Macro unroll:  test "123", 123
 0DC2   31 80 3C               LD   SP,STACK   
 0DC5   CD 95 09               CALL   init   
-0DC8   CD 44 3B               CALL   execStr   
+0DC8   CD 10 3B               CALL   execStr   
 0DCB   31 32 33 00            .CSTR   "123"   
 0DCF                          ;*Macro unroll:  expect "123",123
 0DCF   E1                     POP   HL   
@@ -2423,7 +2423,7 @@
 0E2A                          ;*Macro unroll:  test "-1",-1
 0E2A   31 80 3C               LD   SP,STACK   
 0E2D   CD 95 09               CALL   init   
-0E30   CD 44 3B               CALL   execStr   
+0E30   CD 10 3B               CALL   execStr   
 0E33   2D 31 00               .CSTR   "-1"   
 0E36                          ;*Macro unroll:  expect "-1",-1
 0E36   E1                     POP   HL   
@@ -2458,7 +2458,7 @@
 0E90                          ;*Macro unroll:  test "''", 0
 0E90   31 80 3C               LD   SP,STACK   
 0E93   CD 95 09               CALL   init   
-0E96   CD 44 3B               CALL   execStr   
+0E96   CD 10 3B               CALL   execStr   
 0E99   27 27 00               .CSTR   "''"   
 0E9C                          ;*Macro unroll:  expect "''",0
 0E9C   E1                     POP   HL   
@@ -2493,7 +2493,7 @@
 0EF6                          ;*Macro unroll:  test "'a'", $61
 0EF6   31 80 3C               LD   SP,STACK   
 0EF9   CD 95 09               CALL   init   
-0EFC   CD 44 3B               CALL   execStr   
+0EFC   CD 10 3B               CALL   execStr   
 0EFF   27 61 27 00            .CSTR   "'a'"   
 0F03                          ;*Macro unroll:  expect "'a'",$61
 0F03   E1                     POP   HL   
@@ -2528,7 +2528,7 @@
 0F5E                          ;*Macro unroll:  test "'\\''", $27
 0F5E   31 80 3C               LD   SP,STACK   
 0F61   CD 95 09               CALL   init   
-0F64   CD 44 3B               CALL   execStr   
+0F64   CD 10 3B               CALL   execStr   
 0F67   27 5C 27 27 00         .CSTR   "'\\''"   
 0F6C                          ;*Macro unroll:  expect "'\\''",$27
 0F6C   E1                     POP   HL   
@@ -2563,7 +2563,7 @@
 0FC8                          ;*Macro unroll:  test "#10", $10
 0FC8   31 80 3C               LD   SP,STACK   
 0FCB   CD 95 09               CALL   init   
-0FCE   CD 44 3B               CALL   execStr   
+0FCE   CD 10 3B               CALL   execStr   
 0FD1   23 31 30 00            .CSTR   "#10"   
 0FD5                          ;*Macro unroll:  expect "#10",$10
 0FD5   E1                     POP   HL   
@@ -2598,7 +2598,7 @@
 1030                          ;*Macro unroll:  test "#FF", $FF
 1030   31 80 3C               LD   SP,STACK   
 1033   CD 95 09               CALL   init   
-1036   CD 44 3B               CALL   execStr   
+1036   CD 10 3B               CALL   execStr   
 1039   23 46 46 00            .CSTR   "#FF"   
 103D                          ;*Macro unroll:  expect "#FF",$FF
 103D   E1                     POP   HL   
@@ -2633,7 +2633,7 @@
 1098                          ;*Macro unroll:  test "-1 2 +",1
 1098   31 80 3C               LD   SP,STACK   
 109B   CD 95 09               CALL   init   
-109E   CD 44 3B               CALL   execStr   
+109E   CD 10 3B               CALL   execStr   
 10A1   2D 31 20 32 20 2B 00   .CSTR   "-1 2 +"   
 10A8                          ;*Macro unroll:  expect "-1 2 +",1
 10A8   E1                     POP   HL   
@@ -2668,7 +2668,7 @@
 1106                          ;*Macro unroll:  test "-1 1 +",0
 1106   31 80 3C               LD   SP,STACK   
 1109   CD 95 09               CALL   init   
-110C   CD 44 3B               CALL   execStr   
+110C   CD 10 3B               CALL   execStr   
 110F   2D 31 20 31 20 2B 00   .CSTR   "-1 1 +"   
 1116                          ;*Macro unroll:  expect "-1 1 +",0
 1116   E1                     POP   HL   
@@ -2703,7 +2703,7 @@
 1174                          ;*Macro unroll:  test "1 2 +", 3
 1174   31 80 3C               LD   SP,STACK   
 1177   CD 95 09               CALL   init   
-117A   CD 44 3B               CALL   execStr   
+117A   CD 10 3B               CALL   execStr   
 117D   31 20 32 20 2B 00      .CSTR   "1 2 +"   
 1183                          ;*Macro unroll:  expect "1 2 +",3
 1183   E1                     POP   HL   
@@ -2738,7 +2738,7 @@
 11E0                          ;*Macro unroll:  test "4 1 2 +", 3
 11E0   31 80 3C               LD   SP,STACK   
 11E3   CD 95 09               CALL   init   
-11E6   CD 44 3B               CALL   execStr   
+11E6   CD 10 3B               CALL   execStr   
 11E9   34 20 31 20 32 20 2B 00 .CSTR   "4 1 2 +"   
 11F1                          ;*Macro unroll:  expect "4 1 2 +",3
 11F1   E1                     POP   HL   
@@ -2773,7 +2773,7 @@
 1250                          ;*Macro unroll:  test "123 456 +", 123+456
 1250   31 80 3C               LD   SP,STACK   
 1253   CD 95 09               CALL   init   
-1256   CD 44 3B               CALL   execStr   
+1256   CD 10 3B               CALL   execStr   
 1259   31 32 33 20 34 35 36 20 2B 00 .CSTR   "123 456 +"   
 1263                          ;*Macro unroll:  expect "123 456 +",123+456
 1263   E1                     POP   HL   
@@ -2808,7 +2808,7 @@
 12C4                          ;*Macro unroll:  test "64 128 +", 64+128
 12C4   31 80 3C               LD   SP,STACK   
 12C7   CD 95 09               CALL   init   
-12CA   CD 44 3B               CALL   execStr   
+12CA   CD 10 3B               CALL   execStr   
 12CD   36 34 20 31 32 38 20 2B 00 .CSTR   "64 128 +"   
 12D6                          ;*Macro unroll:  expect "64 128 +",64+128
 12D6   E1                     POP   HL   
@@ -2843,7 +2843,7 @@
 1336                          ;*Macro unroll:  test "1 2 +", 3
 1336   31 80 3C               LD   SP,STACK   
 1339   CD 95 09               CALL   init   
-133C   CD 44 3B               CALL   execStr   
+133C   CD 10 3B               CALL   execStr   
 133F   31 20 32 20 2B 00      .CSTR   "1 2 +"   
 1345                          ;*Macro unroll:  expect "1 2 +",3
 1345   E1                     POP   HL   
@@ -2878,7 +2878,7 @@
 13A2                          ;*Macro unroll:  test "1 a= a++ a",2
 13A2   31 80 3C               LD   SP,STACK   
 13A5   CD 95 09               CALL   init   
-13A8   CD 44 3B               CALL   execStr   
+13A8   CD 10 3B               CALL   execStr   
 13AB   31 20 61 3D 20 61 2B 2B 20 61 00 .CSTR   "1 a= a++ a"   
 13B6                          ;*Macro unroll:  expect "1 a= a++ a",2
 13B6   E1                     POP   HL   
@@ -2913,7 +2913,7 @@
 1418                          ;*Macro unroll:  test "1 a= 2 a += a",3
 1418   31 80 3C               LD   SP,STACK   
 141B   CD 95 09               CALL   init   
-141E   CD 44 3B               CALL   execStr   
+141E   CD 10 3B               CALL   execStr   
 1421   31 20 61 3D 20 32 20 61 20 2B 3D 20 61 00 .CSTR   "1 a= 2 a += a"   
 142F                          ;*Macro unroll:  expect "1 a= 2 a += a",3
 142F   E1                     POP   HL   
@@ -2948,7 +2948,7 @@
 1494                          ;*Macro unroll:  test "-1 -1 -",0
 1494   31 80 3C               LD   SP,STACK   
 1497   CD 95 09               CALL   init   
-149A   CD 44 3B               CALL   execStr   
+149A   CD 10 3B               CALL   execStr   
 149D   2D 31 20 2D 31 20 2D 00 .CSTR   "-1 -1 -"   
 14A5                          ;*Macro unroll:  expect "-1 -1 -",0
 14A5   E1                     POP   HL   
@@ -2983,7 +2983,7 @@
 1504                          ;*Macro unroll:  test "5 3 -", 2
 1504   31 80 3C               LD   SP,STACK   
 1507   CD 95 09               CALL   init   
-150A   CD 44 3B               CALL   execStr   
+150A   CD 10 3B               CALL   execStr   
 150D   35 20 33 20 2D 00      .CSTR   "5 3 -"   
 1513                          ;*Macro unroll:  expect "5 3 -",2
 1513   E1                     POP   HL   
@@ -3018,7 +3018,7 @@
 1570                          ;*Macro unroll:  test "2 1 -",1
 1570   31 80 3C               LD   SP,STACK   
 1573   CD 95 09               CALL   init   
-1576   CD 44 3B               CALL   execStr   
+1576   CD 10 3B               CALL   execStr   
 1579   32 20 31 20 2D 00      .CSTR   "2 1 -"   
 157F                          ;*Macro unroll:  expect "2 1 -",1
 157F   E1                     POP   HL   
@@ -3053,7 +3053,7 @@
 15DC                          ;*Macro unroll:  test "3 a= a-- a",2
 15DC   31 80 3C               LD   SP,STACK   
 15DF   CD 95 09               CALL   init   
-15E2   CD 44 3B               CALL   execStr   
+15E2   CD 10 3B               CALL   execStr   
 15E5   33 20 61 3D 20 61 2D 2D 20 61 00 .CSTR   "3 a= a-- a"   
 15F0                          ;*Macro unroll:  expect "3 a= a-- a",2
 15F0   E1                     POP   HL   
@@ -3088,7 +3088,7 @@
 1652                          ;*Macro unroll:  test "4 a= a 2 -= a",2
 1652   31 80 3C               LD   SP,STACK   
 1655   CD 95 09               CALL   init   
-1658   CD 44 3B               CALL   execStr   
+1658   CD 10 3B               CALL   execStr   
 165B   34 20 61 3D 20 61 20 32 20 2D 3D 20 61 00 .CSTR   "4 a= a 2 -= a"   
 1669                          ;*Macro unroll:  expect "4 a= a 2 -= a",2
 1669   E1                     POP   HL   
@@ -3123,7 +3123,7 @@
 16CE                          ;*Macro unroll:  test "3 5 &", 1
 16CE   31 80 3C               LD   SP,STACK   
 16D1   CD 95 09               CALL   init   
-16D4   CD 44 3B               CALL   execStr   
+16D4   CD 10 3B               CALL   execStr   
 16D7   33 20 35 20 26 00      .CSTR   "3 5 &"   
 16DD                          ;*Macro unroll:  expect "3 5 &",1
 16DD   E1                     POP   HL   
@@ -3158,7 +3158,7 @@
 173A                          ;*Macro unroll:  test "3 a= 5 a &= a",1
 173A   31 80 3C               LD   SP,STACK   
 173D   CD 95 09               CALL   init   
-1740   CD 44 3B               CALL   execStr   
+1740   CD 10 3B               CALL   execStr   
 1743   33 20 61 3D 20 35 20 61 20 26 3D 20 61 00 .CSTR   "3 a= 5 a &= a"   
 1751                          ;*Macro unroll:  expect "3 a= 5 a &= a",1
 1751   E1                     POP   HL   
@@ -3193,7 +3193,7 @@
 17B6                          ;*Macro unroll:  test "3 5 |", 7
 17B6   31 80 3C               LD   SP,STACK   
 17B9   CD 95 09               CALL   init   
-17BC   CD 44 3B               CALL   execStr   
+17BC   CD 10 3B               CALL   execStr   
 17BF   33 20 35 20 7C 00      .CSTR   "3 5 |"   
 17C5                          ;*Macro unroll:  expect "3 5 |",7
 17C5   E1                     POP   HL   
@@ -3228,7 +3228,7 @@
 1822                          ;*Macro unroll:  test "3 a= 5 a |= a",7
 1822   31 80 3C               LD   SP,STACK   
 1825   CD 95 09               CALL   init   
-1828   CD 44 3B               CALL   execStr   
+1828   CD 10 3B               CALL   execStr   
 182B   33 20 61 3D 20 35 20 61 20 7C 3D 20 61 00 .CSTR   "3 a= 5 a |= a"   
 1839                          ;*Macro unroll:  expect "3 a= 5 a |= a",7
 1839   E1                     POP   HL   
@@ -3263,7 +3263,7 @@
 189E                          ;*Macro unroll:  test "3 5 /x", 6
 189E   31 80 3C               LD   SP,STACK   
 18A1   CD 95 09               CALL   init   
-18A4   CD 44 3B               CALL   execStr   
+18A4   CD 10 3B               CALL   execStr   
 18A7   33 20 35 20 2F 78 00   .CSTR   "3 5 /x"   
 18AE                          ;*Macro unroll:  expect "3 5 /x",6
 18AE   E1                     POP   HL   
@@ -3298,7 +3298,7 @@
 190C                          ;*Macro unroll:  test "3 a= 5 a /x a= a",6
 190C   31 80 3C               LD   SP,STACK   
 190F   CD 95 09               CALL   init   
-1912   CD 44 3B               CALL   execStr   
+1912   CD 10 3B               CALL   execStr   
 1915   33 20 61 3D 20 35 20 61 20 2F 78 20 61 3D 20 61 00 .CSTR   "3 a= 5 a /x a= a"   
 1926                          ;*Macro unroll:  expect "3 a= 5 a /x a= a",6
 1926   E1                     POP   HL   
@@ -3333,7 +3333,7 @@
 198E                          ;*Macro unroll:  test "2 3 *", 6
 198E   31 80 3C               LD   SP,STACK   
 1991   CD 95 09               CALL   init   
-1994   CD 44 3B               CALL   execStr   
+1994   CD 10 3B               CALL   execStr   
 1997   32 20 33 20 2A 00      .CSTR   "2 3 *"   
 199D                          ;*Macro unroll:  expect "2 3 *",6
 199D   E1                     POP   HL   
@@ -3368,7 +3368,7 @@
 19FA                          ;*Macro unroll:  test "3 x= 2 x *= x",6
 19FA   31 80 3C               LD   SP,STACK   
 19FD   CD 95 09               CALL   init   
-1A00   CD 44 3B               CALL   execStr   
+1A00   CD 10 3B               CALL   execStr   
 1A03   33 20 78 3D 20 32 20 78 20 2A 3D 20 78 00 .CSTR   "3 x= 2 x *= x"   
 1A11                          ;*Macro unroll:  expect "3 x= 2 x *= x",6
 1A11   E1                     POP   HL   
@@ -3403,7 +3403,7 @@
 1A76                          ;*Macro unroll:  test "1 2 3 + *", 5
 1A76   31 80 3C               LD   SP,STACK   
 1A79   CD 95 09               CALL   init   
-1A7C   CD 44 3B               CALL   execStr   
+1A7C   CD 10 3B               CALL   execStr   
 1A7F   31 20 32 20 33 20 2B 20 2A 00 .CSTR   "1 2 3 + *"   
 1A89                          ;*Macro unroll:  expect "1 2 3 + *",5
 1A89   E1                     POP   HL   
@@ -3438,7 +3438,7 @@
 1AEA                          ;*Macro unroll:  test "7 3 /", 2
 1AEA   31 80 3C               LD   SP,STACK   
 1AED   CD 95 09               CALL   init   
-1AF0   CD 44 3B               CALL   execStr   
+1AF0   CD 10 3B               CALL   execStr   
 1AF3   37 20 33 20 2F 00      .CSTR   "7 3 /"   
 1AF9                          ;*Macro unroll:  expect "7 3 /",2
 1AF9   E1                     POP   HL   
@@ -3473,7 +3473,7 @@
 1B56                          ;*Macro unroll:  test "7 x= x 3 /= x", 2
 1B56   31 80 3C               LD   SP,STACK   
 1B59   CD 95 09               CALL   init   
-1B5C   CD 44 3B               CALL   execStr   
+1B5C   CD 10 3B               CALL   execStr   
 1B5F   37 20 78 3D 20 78 20 33 20 2F 3D 20 78 00 .CSTR   "7 x= x 3 /= x"   
 1B6D                          ;*Macro unroll:  expect "7 x= x 3 /= x",2
 1B6D   E1                     POP   HL   
@@ -3508,7 +3508,7 @@
 1BD2                          ;*Macro unroll:  test "7 3 / _", 1
 1BD2   31 80 3C               LD   SP,STACK   
 1BD5   CD 95 09               CALL   init   
-1BD8   CD 44 3B               CALL   execStr   
+1BD8   CD 10 3B               CALL   execStr   
 1BDB   37 20 33 20 2F 20 5F 00 .CSTR   "7 3 / _"   
 1BE3                          ;*Macro unroll:  expect "7 3 / _",1
 1BE3   E1                     POP   HL   
@@ -3543,7 +3543,7 @@
 1C42                          ;*Macro unroll:  test "7 3 /", 2
 1C42   31 80 3C               LD   SP,STACK   
 1C45   CD 95 09               CALL   init   
-1C48   CD 44 3B               CALL   execStr   
+1C48   CD 10 3B               CALL   execStr   
 1C4B   37 20 33 20 2F 00      .CSTR   "7 3 /"   
 1C51                          ;*Macro unroll:  expect "7 3 /",2
 1C51   E1                     POP   HL   
@@ -3578,7 +3578,7 @@
 1CAE                          ;*Macro unroll:  test "2 3 ==", FALSE
 1CAE   31 80 3C               LD   SP,STACK   
 1CB1   CD 95 09               CALL   init   
-1CB4   CD 44 3B               CALL   execStr   
+1CB4   CD 10 3B               CALL   execStr   
 1CB7   32 20 33 20 3D 3D 00   .CSTR   "2 3 =="   
 1CBE                          ;*Macro unroll:  expect "2 3 ==",FALSE
 1CBE   E1                     POP   HL   
@@ -3613,7 +3613,7 @@
 1D1C                          ;*Macro unroll:  test "3 3 ==", TRUE
 1D1C   31 80 3C               LD   SP,STACK   
 1D1F   CD 95 09               CALL   init   
-1D22   CD 44 3B               CALL   execStr   
+1D22   CD 10 3B               CALL   execStr   
 1D25   33 20 33 20 3D 3D 00   .CSTR   "3 3 =="   
 1D2C                          ;*Macro unroll:  expect "3 3 ==",TRUE
 1D2C   E1                     POP   HL   
@@ -3648,7 +3648,7 @@
 1D8A                          ;*Macro unroll:  test "1 2 <", TRUE
 1D8A   31 80 3C               LD   SP,STACK   
 1D8D   CD 95 09               CALL   init   
-1D90   CD 44 3B               CALL   execStr   
+1D90   CD 10 3B               CALL   execStr   
 1D93   31 20 32 20 3C 00      .CSTR   "1 2 <"   
 1D99                          ;*Macro unroll:  expect "1 2 <",TRUE
 1D99   E1                     POP   HL   
@@ -3683,7 +3683,7 @@
 1DF6                          ;*Macro unroll:  test "2 1 <", FALSE
 1DF6   31 80 3C               LD   SP,STACK   
 1DF9   CD 95 09               CALL   init   
-1DFC   CD 44 3B               CALL   execStr   
+1DFC   CD 10 3B               CALL   execStr   
 1DFF   32 20 31 20 3C 00      .CSTR   "2 1 <"   
 1E05                          ;*Macro unroll:  expect "2 1 <",FALSE
 1E05   E1                     POP   HL   
@@ -3718,7 +3718,7 @@
 1E62                          ;*Macro unroll:  test "2 3 <", TRUE
 1E62   31 80 3C               LD   SP,STACK   
 1E65   CD 95 09               CALL   init   
-1E68   CD 44 3B               CALL   execStr   
+1E68   CD 10 3B               CALL   execStr   
 1E6B   32 20 33 20 3C 00      .CSTR   "2 3 <"   
 1E71                          ;*Macro unroll:  expect "2 3 <",TRUE
 1E71   E1                     POP   HL   
@@ -3753,7 +3753,7 @@
 1ECE                          ;*Macro unroll:  test "3 3 <", FALSE
 1ECE   31 80 3C               LD   SP,STACK   
 1ED1   CD 95 09               CALL   init   
-1ED4   CD 44 3B               CALL   execStr   
+1ED4   CD 10 3B               CALL   execStr   
 1ED7   33 20 33 20 3C 00      .CSTR   "3 3 <"   
 1EDD                          ;*Macro unroll:  expect "3 3 <",FALSE
 1EDD   E1                     POP   HL   
@@ -3788,7 +3788,7 @@
 1F3A                          ;*Macro unroll:  test "1 2 >", FALSE
 1F3A   31 80 3C               LD   SP,STACK   
 1F3D   CD 95 09               CALL   init   
-1F40   CD 44 3B               CALL   execStr   
+1F40   CD 10 3B               CALL   execStr   
 1F43   31 20 32 20 3E 00      .CSTR   "1 2 >"   
 1F49                          ;*Macro unroll:  expect "1 2 >",FALSE
 1F49   E1                     POP   HL   
@@ -3823,7 +3823,7 @@
 1FA6                          ;*Macro unroll:  test "2 1 >", TRUE
 1FA6   31 80 3C               LD   SP,STACK   
 1FA9   CD 95 09               CALL   init   
-1FAC   CD 44 3B               CALL   execStr   
+1FAC   CD 10 3B               CALL   execStr   
 1FAF   32 20 31 20 3E 00      .CSTR   "2 1 >"   
 1FB5                          ;*Macro unroll:  expect "2 1 >",TRUE
 1FB5   E1                     POP   HL   
@@ -3858,7 +3858,7 @@
 2012                          ;*Macro unroll:  test "3 3 >", FALSE
 2012   31 80 3C               LD   SP,STACK   
 2015   CD 95 09               CALL   init   
-2018   CD 44 3B               CALL   execStr   
+2018   CD 10 3B               CALL   execStr   
 201B   33 20 33 20 3E 00      .CSTR   "3 3 >"   
 2021                          ;*Macro unroll:  expect "3 3 >",FALSE
 2021   E1                     POP   HL   
@@ -3893,7 +3893,7 @@
 207E                          ;*Macro unroll:  test "4 3 >", TRUE
 207E   31 80 3C               LD   SP,STACK   
 2081   CD 95 09               CALL   init   
-2084   CD 44 3B               CALL   execStr   
+2084   CD 10 3B               CALL   execStr   
 2087   34 20 33 20 3E 00      .CSTR   "4 3 >"   
 208D                          ;*Macro unroll:  expect "4 3 >",TRUE
 208D   E1                     POP   HL   
@@ -3928,7 +3928,7 @@
 20EA                          ;*Macro unroll:  test "2 2 <=", TRUE
 20EA   31 80 3C               LD   SP,STACK   
 20ED   CD 95 09               CALL   init   
-20F0   CD 44 3B               CALL   execStr   
+20F0   CD 10 3B               CALL   execStr   
 20F3   32 20 32 20 3C 3D 00   .CSTR   "2 2 <="   
 20FA                          ;*Macro unroll:  expect "2 2 <=",TRUE
 20FA   E1                     POP   HL   
@@ -3963,7 +3963,7 @@
 2158                          ;*Macro unroll:  test "2 2 >=", TRUE
 2158   31 80 3C               LD   SP,STACK   
 215B   CD 95 09               CALL   init   
-215E   CD 44 3B               CALL   execStr   
+215E   CD 10 3B               CALL   execStr   
 2161   32 20 32 20 3E 3D 00   .CSTR   "2 2 >="   
 2168                          ;*Macro unroll:  expect "2 2 >=",TRUE
 2168   E1                     POP   HL   
@@ -3998,7 +3998,7 @@
 21C6                          ;*Macro unroll:  test "3 1 <<", 6
 21C6   31 80 3C               LD   SP,STACK   
 21C9   CD 95 09               CALL   init   
-21CC   CD 44 3B               CALL   execStr   
+21CC   CD 10 3B               CALL   execStr   
 21CF   33 20 31 20 3C 3C 00   .CSTR   "3 1 <<"   
 21D6                          ;*Macro unroll:  expect "3 1 <<",6
 21D6   E1                     POP   HL   
@@ -4033,7 +4033,7 @@
 2234                          ;*Macro unroll:  test "10 1 >>", 5
 2234   31 80 3C               LD   SP,STACK   
 2237   CD 95 09               CALL   init   
-223A   CD 44 3B               CALL   execStr   
+223A   CD 10 3B               CALL   execStr   
 223D   31 30 20 31 20 3E 3E 00 .CSTR   "10 1 >>"   
 2245                          ;*Macro unroll:  expect "10 1 >>",5
 2245   E1                     POP   HL   
@@ -4068,7 +4068,7 @@
 22A4                          ;*Macro unroll:  test "1 x = x", 1
 22A4   31 80 3C               LD   SP,STACK   
 22A7   CD 95 09               CALL   init   
-22AA   CD 44 3B               CALL   execStr   
+22AA   CD 10 3B               CALL   execStr   
 22AD   31 20 78 20 3D 20 78 00 .CSTR   "1 x = x"   
 22B5                          ;*Macro unroll:  expect "1 x = x",1
 22B5   E1                     POP   HL   
@@ -4103,7 +4103,7 @@
 2314                          ;*Macro unroll:  test "1{}^", 1
 2314   31 80 3C               LD   SP,STACK   
 2317   CD 95 09               CALL   init   
-231A   CD 44 3B               CALL   execStr   
+231A   CD 10 3B               CALL   execStr   
 231D   31 7B 7D 5E 00         .CSTR   "1{}^"   
 2322                          ;*Macro unroll:  expect "1{}^",1
 2322   E1                     POP   HL   
@@ -4138,7 +4138,7 @@
 237E                          ;*Macro unroll:  test "{1}^", 1
 237E   31 80 3C               LD   SP,STACK   
 2381   CD 95 09               CALL   init   
-2384   CD 44 3B               CALL   execStr   
+2384   CD 10 3B               CALL   execStr   
 2387   7B 31 7D 5E 00         .CSTR   "{1}^"   
 238C                          ;*Macro unroll:  expect "{1}^",1
 238C   E1                     POP   HL   
@@ -4173,7 +4173,7 @@
 23E8                          ;*Macro unroll:  test "{{1}^}^", 1
 23E8   31 80 3C               LD   SP,STACK   
 23EB   CD 95 09               CALL   init   
-23EE   CD 44 3B               CALL   execStr   
+23EE   CD 10 3B               CALL   execStr   
 23F1   7B 7B 31 7D 5E 7D 5E 00 .CSTR   "{{1}^}^"   
 23F9                          ;*Macro unroll:  expect "{{1}^}^",1
 23F9   E1                     POP   HL   
@@ -4208,7 +4208,7 @@
 2458                          ;*Macro unroll:  test "{{{1}^}^}^", 1
 2458   31 80 3C               LD   SP,STACK   
 245B   CD 95 09               CALL   init   
-245E   CD 44 3B               CALL   execStr   
+245E   CD 10 3B               CALL   execStr   
 2461   7B 7B 7B 31 7D 5E 7D 5E 7D 5E 00 .CSTR   "{{{1}^}^}^"   
 246C                          ;*Macro unroll:  expect "{{{1}^}^}^",1
 246C   E1                     POP   HL   
@@ -4243,7 +4243,7 @@
 24CE                          ;*Macro unroll:  test "5 /f {10} ?", 5
 24CE   31 80 3C               LD   SP,STACK   
 24D1   CD 95 09               CALL   init   
-24D4   CD 44 3B               CALL   execStr   
+24D4   CD 10 3B               CALL   execStr   
 24D7   35 20 2F 66 20 7B 31 30 7D 20 3F 00 .CSTR   "5 /f {10} ?"   
 24E3                          ;*Macro unroll:  expect "5 /f {10} ?",5
 24E3   E1                     POP   HL   
@@ -4278,7 +4278,7 @@
 2546                          ;*Macro unroll:  test "5 /t {10} ? +", 15
 2546   31 80 3C               LD   SP,STACK   
 2549   CD 95 09               CALL   init   
-254C   CD 44 3B               CALL   execStr   
+254C   CD 10 3B               CALL   execStr   
 254F   35 20 2F 74 20 7B 31 30 7D 20 3F 20 2B 00 .CSTR   "5 /t {10} ? +"   
 255D                          ;*Macro unroll:  expect "5 /t {10} ? +",15
 255D   E1                     POP   HL   
@@ -4313,7 +4313,7 @@
 25C2                          ;*Macro unroll:  test "1 /f {10} {20} ?? +", 21
 25C2   31 80 3C               LD   SP,STACK   
 25C5   CD 95 09               CALL   init   
-25C8   CD 44 3B               CALL   execStr   
+25C8   CD 10 3B               CALL   execStr   
 25CB   31 20 2F 66 20 7B 31 30 7D 20 7B 32 30 7D 20 3F 3F 20 2B 00 .CSTR   "1 /f {10} {20} ?? +"   
 25DF                          ;*Macro unroll:  expect "1 /f {10} {20} ?? +",21
 25DF   E1                     POP   HL   
@@ -4348,7 +4348,7 @@
 264A                          ;*Macro unroll:  test "1 /t {10} {20} ?? +", 11
 264A   31 80 3C               LD   SP,STACK   
 264D   CD 95 09               CALL   init   
-2650   CD 44 3B               CALL   execStr   
+2650   CD 10 3B               CALL   execStr   
 2653   31 20 2F 74 20 7B 31 30 7D 20 7B 32 30 7D 20 3F 3F 20 2B 00 .CSTR   "1 /t {10} {20} ?? +"   
 2667                          ;*Macro unroll:  expect "1 /t {10} {20} ?? +",11
 2667   E1                     POP   HL   
@@ -4380,12 +4380,12 @@
 26D0   00                     .CSTR      
 26D1                EXPECTM_0_2205S43:      
 26D1   E1                     POP   HL   
-26D2                          ;*Macro unroll:  test "\\ -2%", $0000
+26D2                          ;*Macro unroll:  test ": -2%", $0000
 26D2   31 80 3C               LD   SP,STACK   
 26D5   CD 95 09               CALL   init   
-26D8   CD 44 3B               CALL   execStr   
-26DB   5C 20 2D 32 25 00      .CSTR   "\\ -2%"   
-26E1                          ;*Macro unroll:  expect "\\ -2%",$0000
+26D8   CD 10 3B               CALL   execStr   
+26DB   3A 20 2D 32 25 00      .CSTR   ": -2%"   
+26E1                          ;*Macro unroll:  expect ": -2%",$0000
 26E1   E1                     POP   HL   
 26E2   E5                     PUSH   HL   
 26E3   11 00 00               LD   DE,$0000   
@@ -4395,7 +4395,7 @@
 26EA   B4                     OR   H   
 26EB   28 50                  JR   Z,expectM_0_2206S43   
 26ED   CD 8E 09               CALL   printStr   
-26F0   43 6F 64 65 3A 20 5C 20 2D 32 25 00 .CSTR   "Code: ","\\ -2%"   
+26F0   43 6F 64 65 3A 20 3A 20 2D 32 25 00 .CSTR   "Code: ",": -2%"   
 26FC   CD 8E 09               CALL   printStr   
 26FF   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
 270E   21 00 00               LD   HL,$0000   
@@ -4415,12 +4415,12 @@
 273C   00                     .CSTR      
 273D                EXPECTM_0_2206S43:      
 273D   E1                     POP   HL   
-273E                          ;*Macro unroll:  test "\\a -1%", $0001
+273E                          ;*Macro unroll:  test ":a -1%", $0001
 273E   31 80 3C               LD   SP,STACK   
 2741   CD 95 09               CALL   init   
-2744   CD 44 3B               CALL   execStr   
-2747   5C 61 20 2D 31 25 00   .CSTR   "\\a -1%"   
-274E                          ;*Macro unroll:  expect "\\a -1%",$0001
+2744   CD 10 3B               CALL   execStr   
+2747   3A 61 20 2D 31 25 00   .CSTR   ":a -1%"   
+274E                          ;*Macro unroll:  expect ":a -1%",$0001
 274E   E1                     POP   HL   
 274F   E5                     PUSH   HL   
 2750   11 01 00               LD   DE,$0001   
@@ -4430,7 +4430,7 @@
 2757   B4                     OR   H   
 2758   28 51                  JR   Z,expectM_0_2207S43   
 275A   CD 8E 09               CALL   printStr   
-275D   43 6F 64 65 3A 20 5C 61 20 2D 31 25 00 .CSTR   "Code: ","\\a -1%"   
+275D   43 6F 64 65 3A 20 3A 61 20 2D 31 25 00 .CSTR   "Code: ",":a -1%"   
 276A   CD 8E 09               CALL   printStr   
 276D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
 277C   21 01 00               LD   HL,$0001   
@@ -4450,12 +4450,12 @@
 27AA   00                     .CSTR      
 27AB                EXPECTM_0_2207S43:      
 27AB   E1                     POP   HL   
-27AC                          ;*Macro unroll:  test "\\a: -1%", $0001
+27AC                          ;*Macro unroll:  test ":a: -1%", $0001
 27AC   31 80 3C               LD   SP,STACK   
 27AF   CD 95 09               CALL   init   
-27B2   CD 44 3B               CALL   execStr   
-27B5   5C 61 3A 20 2D 31 25 00 .CSTR   "\\a: -1%"   
-27BD                          ;*Macro unroll:  expect "\\a: -1%",$0001
+27B2   CD 10 3B               CALL   execStr   
+27B5   3A 61 3A 20 2D 31 25 00 .CSTR   ":a: -1%"   
+27BD                          ;*Macro unroll:  expect ":a: -1%",$0001
 27BD   E1                     POP   HL   
 27BE   E5                     PUSH   HL   
 27BF   11 01 00               LD   DE,$0001   
@@ -4465,7 +4465,7 @@
 27C6   B4                     OR   H   
 27C7   28 52                  JR   Z,expectM_0_2208S43   
 27C9   CD 8E 09               CALL   printStr   
-27CC   43 6F 64 65 3A 20 5C 61 3A 20 2D 31 25 00 .CSTR   "Code: ","\\a: -1%"   
+27CC   43 6F 64 65 3A 20 3A 61 3A 20 2D 31 25 00 .CSTR   "Code: ",":a: -1%"   
 27DA   CD 8E 09               CALL   printStr   
 27DD   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
 27EC   21 01 00               LD   HL,$0001   
@@ -4485,12 +4485,12 @@
 281A   00                     .CSTR      
 281B                EXPECTM_0_2208S43:      
 281B   E1                     POP   HL   
-281C                          ;*Macro unroll:  test "\\a:b -1%", $0102
+281C                          ;*Macro unroll:  test ":a:b -1%", $0102
 281C   31 80 3C               LD   SP,STACK   
 281F   CD 95 09               CALL   init   
-2822   CD 44 3B               CALL   execStr   
-2825   5C 61 3A 62 20 2D 31 25 00 .CSTR   "\\a:b -1%"   
-282E                          ;*Macro unroll:  expect "\\a:b -1%",$0102
+2822   CD 10 3B               CALL   execStr   
+2825   3A 61 3A 62 20 2D 31 25 00 .CSTR   ":a:b -1%"   
+282E                          ;*Macro unroll:  expect ":a:b -1%",$0102
 282E   E1                     POP   HL   
 282F   E5                     PUSH   HL   
 2830   11 02 01               LD   DE,$0102   
@@ -4500,7 +4500,7 @@
 2837   B4                     OR   H   
 2838   28 53                  JR   Z,expectM_0_2209S43   
 283A   CD 8E 09               CALL   printStr   
-283D   43 6F 64 65 3A 20 5C 61 3A 62 20 2D 31 25 00 .CSTR   "Code: ","\\a:b -1%"   
+283D   43 6F 64 65 3A 20 3A 61 3A 62 20 2D 31 25 00 .CSTR   "Code: ",":a:b -1%"   
 284C   CD 8E 09               CALL   printStr   
 284F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
 285E   21 02 01               LD   HL,$0102   
@@ -4520,12 +4520,12 @@
 288C   00                     .CSTR      
 288D                EXPECTM_0_2209S43:      
 288D   E1                     POP   HL   
-288E                          ;*Macro unroll:  test "\\:b -1%", $0101
+288E                          ;*Macro unroll:  test "::b -1%", $0101
 288E   31 80 3C               LD   SP,STACK   
 2891   CD 95 09               CALL   init   
-2894   CD 44 3B               CALL   execStr   
-2897   5C 3A 62 20 2D 31 25 00 .CSTR   "\\:b -1%"   
-289F                          ;*Macro unroll:  expect "\\:b -1%",$0101
+2894   CD 10 3B               CALL   execStr   
+2897   3A 3A 62 20 2D 31 25 00 .CSTR   "::b -1%"   
+289F                          ;*Macro unroll:  expect "::b -1%",$0101
 289F   E1                     POP   HL   
 28A0   E5                     PUSH   HL   
 28A1   11 01 01               LD   DE,$0101   
@@ -4535,7 +4535,7 @@
 28A8   B4                     OR   H   
 28A9   28 52                  JR   Z,expectM_0_2210S43   
 28AB   CD 8E 09               CALL   printStr   
-28AE   43 6F 64 65 3A 20 5C 3A 62 20 2D 31 25 00 .CSTR   "Code: ","\\:b -1%"   
+28AE   43 6F 64 65 3A 20 3A 3A 62 20 2D 31 25 00 .CSTR   "Code: ","::b -1%"   
 28BC   CD 8E 09               CALL   printStr   
 28BF   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
 28CE   21 01 01               LD   HL,$0101   
@@ -4555,1182 +4555,1182 @@
 28FC   00                     .CSTR      
 28FD                EXPECTM_0_2210S43:      
 28FD   E1                     POP   HL   
-28FE                          ;*Macro unroll:  test "\\ {2} ;^", 2
+28FE                          ;*Macro unroll:  test ": {2};^", 2
 28FE   31 80 3C               LD   SP,STACK   
 2901   CD 95 09               CALL   init   
-2904   CD 44 3B               CALL   execStr   
-2907   5C 20 7B 32 7D 20 3B 5E 00 .CSTR   "\\ {2} ;^"   
-2910                          ;*Macro unroll:  expect "\\ {2} ;^",2
-2910   E1                     POP   HL   
-2911   E5                     PUSH   HL   
-2912   11 02 00               LD   DE,2   
-2915   B7                     OR   A   
-2916   ED 52                  SBC   HL,DE   
-2918   7D                     LD   A,L   
-2919   B4                     OR   H   
-291A   28 53                  JR   Z,expectM_0_2211S43   
-291C   CD 8E 09               CALL   printStr   
-291F   43 6F 64 65 3A 20 5C 20 7B 32 7D 20 3B 5E 00 .CSTR   "Code: ","\\ {2} ;^"   
-292E   CD 8E 09               CALL   printStr   
-2931   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2940   21 02 00               LD   HL,2   
-2943   CD DC 08               CALL   prtdec   
-2946   CD 8E 09               CALL   printStr   
-2949   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2956   E1                     POP   hl   
-2957   E5                     PUSH   hl   
-2958   CD DC 08               CALL   prtdec   
-295B   E1                     POP   hl   
-295C   CD 8E 09               CALL   printStr   
-295F   20 28 23 00            .CSTR   " (#"   
-2963   CD 24 09               CALL   prthex   
-2966   CD 8E 09               CALL   printStr   
-2969   29 0D 0A 00            .CSTR   ")\r\n"   
-296D   76                     HALT      
-296E   00                     .CSTR      
-296F                EXPECTM_0_2211S43:      
-296F   E1                     POP   HL   
-2970                          ;*Macro unroll:  test "\\a {2} ;^", 2
-2970   31 80 3C               LD   SP,STACK   
-2973   CD 95 09               CALL   init   
-2976   CD 44 3B               CALL   execStr   
-2979   5C 61 20 7B 32 7D 20 3B 5E 00 .CSTR   "\\a {2} ;^"   
-2983                          ;*Macro unroll:  expect "\\a {2} ;^",2
-2983   E1                     POP   HL   
-2984   E5                     PUSH   HL   
-2985   11 02 00               LD   DE,2   
-2988   B7                     OR   A   
-2989   ED 52                  SBC   HL,DE   
-298B   7D                     LD   A,L   
-298C   B4                     OR   H   
-298D   28 54                  JR   Z,expectM_0_2212S43   
-298F   CD 8E 09               CALL   printStr   
-2992   43 6F 64 65 3A 20 5C 61 20 7B 32 7D 20 3B 5E 00 .CSTR   "Code: ","\\a {2} ;^"   
-29A2   CD 8E 09               CALL   printStr   
-29A5   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-29B4   21 02 00               LD   HL,2   
-29B7   CD DC 08               CALL   prtdec   
-29BA   CD 8E 09               CALL   printStr   
-29BD   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-29CA   E1                     POP   hl   
-29CB   E5                     PUSH   hl   
-29CC   CD DC 08               CALL   prtdec   
-29CF   E1                     POP   hl   
-29D0   CD 8E 09               CALL   printStr   
-29D3   20 28 23 00            .CSTR   " (#"   
-29D7   CD 24 09               CALL   prthex   
-29DA   CD 8E 09               CALL   printStr   
-29DD   29 0D 0A 00            .CSTR   ")\r\n"   
-29E1   76                     HALT      
-29E2   00                     .CSTR      
-29E3                EXPECTM_0_2212S43:      
-29E3   E1                     POP   HL   
-29E4                          ;*Macro unroll:  test "5 \\a {$a} ;^", 5
-29E4   31 80 3C               LD   SP,STACK   
-29E7   CD 95 09               CALL   init   
-29EA   CD 44 3B               CALL   execStr   
-29ED   35 20 5C 61 20 7B 24 61 7D 20 3B 5E 00 .CSTR   "5 \\a {$a} ;^"   
-29FA                          ;*Macro unroll:  expect "5 \\a {$a} ;^",5
-29FA   E1                     POP   HL   
-29FB   E5                     PUSH   HL   
-29FC   11 05 00               LD   DE,5   
-29FF   B7                     OR   A   
-2A00   ED 52                  SBC   HL,DE   
-2A02   7D                     LD   A,L   
-2A03   B4                     OR   H   
-2A04   28 57                  JR   Z,expectM_0_2213S43   
-2A06   CD 8E 09               CALL   printStr   
-2A09   43 6F 64 65 3A 20 35 20 5C 61 20 7B 24 61 7D 20 3B 5E 00 .CSTR   "Code: ","5 \\a {$a} ;^"   
-2A1C   CD 8E 09               CALL   printStr   
-2A1F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2A2E   21 05 00               LD   HL,5   
-2A31   CD DC 08               CALL   prtdec   
-2A34   CD 8E 09               CALL   printStr   
-2A37   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2A44   E1                     POP   hl   
-2A45   E5                     PUSH   hl   
-2A46   CD DC 08               CALL   prtdec   
-2A49   E1                     POP   hl   
-2A4A   CD 8E 09               CALL   printStr   
-2A4D   20 28 23 00            .CSTR   " (#"   
-2A51   CD 24 09               CALL   prthex   
-2A54   CD 8E 09               CALL   printStr   
-2A57   29 0D 0A 00            .CSTR   ")\r\n"   
-2A5B   76                     HALT      
-2A5C   00                     .CSTR      
-2A5D                EXPECTM_0_2213S43:      
-2A5D   E1                     POP   HL   
-2A5E                          ;*Macro unroll:  test "5 \\a:b {$a} ;^", 5
-2A5E   31 80 3C               LD   SP,STACK   
-2A61   CD 95 09               CALL   init   
-2A64   CD 44 3B               CALL   execStr   
-2A67   35 20 5C 61 3A 62 20 7B 24 61 7D 20 3B 5E 00 .CSTR   "5 \\a:b {$a} ;^"   
-2A76                          ;*Macro unroll:  expect "5 \\a:b {$a} ;^",5
-2A76   E1                     POP   HL   
-2A77   E5                     PUSH   HL   
-2A78   11 05 00               LD   DE,5   
-2A7B   B7                     OR   A   
-2A7C   ED 52                  SBC   HL,DE   
-2A7E   7D                     LD   A,L   
-2A7F   B4                     OR   H   
-2A80   28 59                  JR   Z,expectM_0_2214S43   
-2A82   CD 8E 09               CALL   printStr   
-2A85   43 6F 64 65 3A 20 35 20 5C 61 3A 62 20 7B 24 61 7D 20 3B 5E 00 .CSTR   "Code: ","5 \\a:b {$a} ;^"   
-2A9A   CD 8E 09               CALL   printStr   
-2A9D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2AAC   21 05 00               LD   HL,5   
-2AAF   CD DC 08               CALL   prtdec   
-2AB2   CD 8E 09               CALL   printStr   
-2AB5   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2AC2   E1                     POP   hl   
-2AC3   E5                     PUSH   hl   
-2AC4   CD DC 08               CALL   prtdec   
-2AC7   E1                     POP   hl   
-2AC8   CD 8E 09               CALL   printStr   
-2ACB   20 28 23 00            .CSTR   " (#"   
-2ACF   CD 24 09               CALL   prthex   
-2AD2   CD 8E 09               CALL   printStr   
-2AD5   29 0D 0A 00            .CSTR   ")\r\n"   
-2AD9   76                     HALT      
-2ADA   00                     .CSTR      
-2ADB                EXPECTM_0_2214S43:      
-2ADB   E1                     POP   HL   
-2ADC                          ;*Macro unroll:  test "\\a {{2}^} ;^", 2
-2ADC   31 80 3C               LD   SP,STACK   
-2ADF   CD 95 09               CALL   init   
-2AE2   CD 44 3B               CALL   execStr   
-2AE5   5C 61 20 7B 7B 32 7D 5E 7D 20 3B 5E 00 .CSTR   "\\a {{2}^} ;^"   
-2AF2                          ;*Macro unroll:  expect "\\a {{2}^} ;^",2
-2AF2   E1                     POP   HL   
-2AF3   E5                     PUSH   HL   
-2AF4   11 02 00               LD   DE,2   
-2AF7   B7                     OR   A   
-2AF8   ED 52                  SBC   HL,DE   
-2AFA   7D                     LD   A,L   
-2AFB   B4                     OR   H   
-2AFC   28 57                  JR   Z,expectM_0_2215S43   
-2AFE   CD 8E 09               CALL   printStr   
-2B01   43 6F 64 65 3A 20 5C 61 20 7B 7B 32 7D 5E 7D 20 3B 5E 00 .CSTR   "Code: ","\\a {{2}^} ;^"   
-2B14   CD 8E 09               CALL   printStr   
-2B17   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2B26   21 02 00               LD   HL,2   
-2B29   CD DC 08               CALL   prtdec   
-2B2C   CD 8E 09               CALL   printStr   
-2B2F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2B3C   E1                     POP   hl   
-2B3D   E5                     PUSH   hl   
-2B3E   CD DC 08               CALL   prtdec   
-2B41   E1                     POP   hl   
+2904   CD 10 3B               CALL   execStr   
+2907   3A 20 7B 32 7D 3B 5E 00 .CSTR   ": {2};^"   
+290F                          ;*Macro unroll:  expect ": {2};^",2
+290F   E1                     POP   HL   
+2910   E5                     PUSH   HL   
+2911   11 02 00               LD   DE,2   
+2914   B7                     OR   A   
+2915   ED 52                  SBC   HL,DE   
+2917   7D                     LD   A,L   
+2918   B4                     OR   H   
+2919   28 52                  JR   Z,expectM_0_2211S43   
+291B   CD 8E 09               CALL   printStr   
+291E   43 6F 64 65 3A 20 3A 20 7B 32 7D 3B 5E 00 .CSTR   "Code: ",": {2};^"   
+292C   CD 8E 09               CALL   printStr   
+292F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+293E   21 02 00               LD   HL,2   
+2941   CD DC 08               CALL   prtdec   
+2944   CD 8E 09               CALL   printStr   
+2947   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2954   E1                     POP   hl   
+2955   E5                     PUSH   hl   
+2956   CD DC 08               CALL   prtdec   
+2959   E1                     POP   hl   
+295A   CD 8E 09               CALL   printStr   
+295D   20 28 23 00            .CSTR   " (#"   
+2961   CD 24 09               CALL   prthex   
+2964   CD 8E 09               CALL   printStr   
+2967   29 0D 0A 00            .CSTR   ")\r\n"   
+296B   76                     HALT      
+296C   00                     .CSTR      
+296D                EXPECTM_0_2211S43:      
+296D   E1                     POP   HL   
+296E                          ;*Macro unroll:  test ":a {2};^", 2
+296E   31 80 3C               LD   SP,STACK   
+2971   CD 95 09               CALL   init   
+2974   CD 10 3B               CALL   execStr   
+2977   3A 61 20 7B 32 7D 3B 5E 00 .CSTR   ":a {2};^"   
+2980                          ;*Macro unroll:  expect ":a {2};^",2
+2980   E1                     POP   HL   
+2981   E5                     PUSH   HL   
+2982   11 02 00               LD   DE,2   
+2985   B7                     OR   A   
+2986   ED 52                  SBC   HL,DE   
+2988   7D                     LD   A,L   
+2989   B4                     OR   H   
+298A   28 53                  JR   Z,expectM_0_2212S43   
+298C   CD 8E 09               CALL   printStr   
+298F   43 6F 64 65 3A 20 3A 61 20 7B 32 7D 3B 5E 00 .CSTR   "Code: ",":a {2};^"   
+299E   CD 8E 09               CALL   printStr   
+29A1   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+29B0   21 02 00               LD   HL,2   
+29B3   CD DC 08               CALL   prtdec   
+29B6   CD 8E 09               CALL   printStr   
+29B9   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+29C6   E1                     POP   hl   
+29C7   E5                     PUSH   hl   
+29C8   CD DC 08               CALL   prtdec   
+29CB   E1                     POP   hl   
+29CC   CD 8E 09               CALL   printStr   
+29CF   20 28 23 00            .CSTR   " (#"   
+29D3   CD 24 09               CALL   prthex   
+29D6   CD 8E 09               CALL   printStr   
+29D9   29 0D 0A 00            .CSTR   ")\r\n"   
+29DD   76                     HALT      
+29DE   00                     .CSTR      
+29DF                EXPECTM_0_2212S43:      
+29DF   E1                     POP   HL   
+29E0                          ;*Macro unroll:  test "5 :a {$a};^", 5
+29E0   31 80 3C               LD   SP,STACK   
+29E3   CD 95 09               CALL   init   
+29E6   CD 10 3B               CALL   execStr   
+29E9   35 20 3A 61 20 7B 24 61 7D 3B 5E 00 .CSTR   "5 :a {$a};^"   
+29F5                          ;*Macro unroll:  expect "5 :a {$a};^",5
+29F5   E1                     POP   HL   
+29F6   E5                     PUSH   HL   
+29F7   11 05 00               LD   DE,5   
+29FA   B7                     OR   A   
+29FB   ED 52                  SBC   HL,DE   
+29FD   7D                     LD   A,L   
+29FE   B4                     OR   H   
+29FF   28 56                  JR   Z,expectM_0_2213S43   
+2A01   CD 8E 09               CALL   printStr   
+2A04   43 6F 64 65 3A 20 35 20 3A 61 20 7B 24 61 7D 3B 5E 00 .CSTR   "Code: ","5 :a {$a};^"   
+2A16   CD 8E 09               CALL   printStr   
+2A19   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2A28   21 05 00               LD   HL,5   
+2A2B   CD DC 08               CALL   prtdec   
+2A2E   CD 8E 09               CALL   printStr   
+2A31   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2A3E   E1                     POP   hl   
+2A3F   E5                     PUSH   hl   
+2A40   CD DC 08               CALL   prtdec   
+2A43   E1                     POP   hl   
+2A44   CD 8E 09               CALL   printStr   
+2A47   20 28 23 00            .CSTR   " (#"   
+2A4B   CD 24 09               CALL   prthex   
+2A4E   CD 8E 09               CALL   printStr   
+2A51   29 0D 0A 00            .CSTR   ")\r\n"   
+2A55   76                     HALT      
+2A56   00                     .CSTR      
+2A57                EXPECTM_0_2213S43:      
+2A57   E1                     POP   HL   
+2A58                          ;*Macro unroll:  test "5 :a:b {$a};^", 5
+2A58   31 80 3C               LD   SP,STACK   
+2A5B   CD 95 09               CALL   init   
+2A5E   CD 10 3B               CALL   execStr   
+2A61   35 20 3A 61 3A 62 20 7B 24 61 7D 3B 5E 00 .CSTR   "5 :a:b {$a};^"   
+2A6F                          ;*Macro unroll:  expect "5 :a:b {$a};^",5
+2A6F   E1                     POP   HL   
+2A70   E5                     PUSH   HL   
+2A71   11 05 00               LD   DE,5   
+2A74   B7                     OR   A   
+2A75   ED 52                  SBC   HL,DE   
+2A77   7D                     LD   A,L   
+2A78   B4                     OR   H   
+2A79   28 58                  JR   Z,expectM_0_2214S43   
+2A7B   CD 8E 09               CALL   printStr   
+2A7E   43 6F 64 65 3A 20 35 20 3A 61 3A 62 20 7B 24 61 7D 3B 5E 00 .CSTR   "Code: ","5 :a:b {$a};^"   
+2A92   CD 8E 09               CALL   printStr   
+2A95   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2AA4   21 05 00               LD   HL,5   
+2AA7   CD DC 08               CALL   prtdec   
+2AAA   CD 8E 09               CALL   printStr   
+2AAD   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2ABA   E1                     POP   hl   
+2ABB   E5                     PUSH   hl   
+2ABC   CD DC 08               CALL   prtdec   
+2ABF   E1                     POP   hl   
+2AC0   CD 8E 09               CALL   printStr   
+2AC3   20 28 23 00            .CSTR   " (#"   
+2AC7   CD 24 09               CALL   prthex   
+2ACA   CD 8E 09               CALL   printStr   
+2ACD   29 0D 0A 00            .CSTR   ")\r\n"   
+2AD1   76                     HALT      
+2AD2   00                     .CSTR      
+2AD3                EXPECTM_0_2214S43:      
+2AD3   E1                     POP   HL   
+2AD4                          ;*Macro unroll:  test ":a {{2}^};^", 2
+2AD4   31 80 3C               LD   SP,STACK   
+2AD7   CD 95 09               CALL   init   
+2ADA   CD 10 3B               CALL   execStr   
+2ADD   3A 61 20 7B 7B 32 7D 5E 7D 3B 5E 00 .CSTR   ":a {{2}^};^"   
+2AE9                          ;*Macro unroll:  expect ":a {{2}^};^",2
+2AE9   E1                     POP   HL   
+2AEA   E5                     PUSH   HL   
+2AEB   11 02 00               LD   DE,2   
+2AEE   B7                     OR   A   
+2AEF   ED 52                  SBC   HL,DE   
+2AF1   7D                     LD   A,L   
+2AF2   B4                     OR   H   
+2AF3   28 56                  JR   Z,expectM_0_2215S43   
+2AF5   CD 8E 09               CALL   printStr   
+2AF8   43 6F 64 65 3A 20 3A 61 20 7B 7B 32 7D 5E 7D 3B 5E 00 .CSTR   "Code: ",":a {{2}^};^"   
+2B0A   CD 8E 09               CALL   printStr   
+2B0D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2B1C   21 02 00               LD   HL,2   
+2B1F   CD DC 08               CALL   prtdec   
+2B22   CD 8E 09               CALL   printStr   
+2B25   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2B32   E1                     POP   hl   
+2B33   E5                     PUSH   hl   
+2B34   CD DC 08               CALL   prtdec   
+2B37   E1                     POP   hl   
+2B38   CD 8E 09               CALL   printStr   
+2B3B   20 28 23 00            .CSTR   " (#"   
+2B3F   CD 24 09               CALL   prthex   
 2B42   CD 8E 09               CALL   printStr   
-2B45   20 28 23 00            .CSTR   " (#"   
-2B49   CD 24 09               CALL   prthex   
-2B4C   CD 8E 09               CALL   printStr   
-2B4F   29 0D 0A 00            .CSTR   ")\r\n"   
-2B53   76                     HALT      
-2B54   00                     .CSTR      
-2B55                EXPECTM_0_2215S43:      
-2B55   E1                     POP   HL   
-2B56                          ;*Macro unroll:  test "1 5 \\a {{$a}^} ;^", 5
-2B56   31 80 3C               LD   SP,STACK   
-2B59   CD 95 09               CALL   init   
-2B5C   CD 44 3B               CALL   execStr   
-2B5F   31 20 35 20 5C 61 20 7B 7B 24 61 7D 5E 7D 20 3B 5E 00 .CSTR   "1 5 \\a {{$a}^} ;^"   
-2B71                          ;*Macro unroll:  expect "1 5 \\a {{$a}^} ;^",5
-2B71   E1                     POP   HL   
-2B72   E5                     PUSH   HL   
-2B73   11 05 00               LD   DE,5   
-2B76   B7                     OR   A   
-2B77   ED 52                  SBC   HL,DE   
-2B79   7D                     LD   A,L   
-2B7A   B4                     OR   H   
-2B7B   28 5C                  JR   Z,expectM_0_2216S43   
-2B7D   CD 8E 09               CALL   printStr   
-2B80   43 6F 64 65 3A 20 31 20 35 20 5C 61 20 7B 7B 24 61 7D 5E 7D 20 3B 5E 00 .CSTR   "Code: ","1 5 \\a {{$a}^} ;^"   
-2B98   CD 8E 09               CALL   printStr   
-2B9B   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2BAA   21 05 00               LD   HL,5   
-2BAD   CD DC 08               CALL   prtdec   
-2BB0   CD 8E 09               CALL   printStr   
-2BB3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2BC0   E1                     POP   hl   
-2BC1   E5                     PUSH   hl   
-2BC2   CD DC 08               CALL   prtdec   
-2BC5   E1                     POP   hl   
-2BC6   CD 8E 09               CALL   printStr   
-2BC9   20 28 23 00            .CSTR   " (#"   
-2BCD   CD 24 09               CALL   prthex   
-2BD0   CD 8E 09               CALL   printStr   
-2BD3   29 0D 0A 00            .CSTR   ")\r\n"   
-2BD7   76                     HALT      
-2BD8   00                     .CSTR      
-2BD9                EXPECTM_0_2216S43:      
-2BD9   E1                     POP   HL   
-2BDA                          ;*Macro unroll:  test "1 5 \\ab {{$a}^} ;^", 1
-2BDA   31 80 3C               LD   SP,STACK   
-2BDD   CD 95 09               CALL   init   
-2BE0   CD 44 3B               CALL   execStr   
-2BE3   31 20 35 20 5C 61 62 20 7B 7B 24 61 7D 5E 7D 20 3B 5E 00 .CSTR   "1 5 \\ab {{$a}^} ;^"   
-2BF6                          ;*Macro unroll:  expect "1 5 \\ab {{$a}^} ;^",1
-2BF6   E1                     POP   HL   
-2BF7   E5                     PUSH   HL   
-2BF8   11 01 00               LD   DE,1   
-2BFB   B7                     OR   A   
-2BFC   ED 52                  SBC   HL,DE   
-2BFE   7D                     LD   A,L   
-2BFF   B4                     OR   H   
-2C00   28 5D                  JR   Z,expectM_0_2217S43   
-2C02   CD 8E 09               CALL   printStr   
-2C05   43 6F 64 65 3A 20 31 20 35 20 5C 61 62 20 7B 7B 24 61 7D 5E 7D 20 3B 5E 00 .CSTR   "Code: ","1 5 \\ab {{$a}^} ;^"   
-2C1E   CD 8E 09               CALL   printStr   
-2C21   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2C30   21 01 00               LD   HL,1   
-2C33   CD DC 08               CALL   prtdec   
-2C36   CD 8E 09               CALL   printStr   
-2C39   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2C46   E1                     POP   hl   
-2C47   E5                     PUSH   hl   
-2C48   CD DC 08               CALL   prtdec   
-2C4B   E1                     POP   hl   
-2C4C   CD 8E 09               CALL   printStr   
-2C4F   20 28 23 00            .CSTR   " (#"   
-2C53   CD 24 09               CALL   prthex   
-2C56   CD 8E 09               CALL   printStr   
-2C59   29 0D 0A 00            .CSTR   ")\r\n"   
-2C5D   76                     HALT      
-2C5E   00                     .CSTR      
-2C5F                EXPECTM_0_2217S43:      
-2C5F   E1                     POP   HL   
-2C60                          ;*Macro unroll:  test "1 5 \\a {{$a 2 +}^} ;^", 7
-2C60   31 80 3C               LD   SP,STACK   
-2C63   CD 95 09               CALL   init   
-2C66   CD 44 3B               CALL   execStr   
-2C69   31 20 35 20 5C 61 20 7B 7B 24 61 20 32 20 2B 7D 5E 7D 20 3B 5E 00 .CSTR   "1 5 \\a {{$a 2 +}^} ;^"   
-2C7F                          ;*Macro unroll:  expect "1 5 \\a {{$a 2 +}^} ;^",7
-2C7F   E1                     POP   HL   
-2C80   E5                     PUSH   HL   
-2C81   11 07 00               LD   DE,7   
-2C84   B7                     OR   A   
-2C85   ED 52                  SBC   HL,DE   
-2C87   7D                     LD   A,L   
-2C88   B4                     OR   H   
-2C89   28 60                  JR   Z,expectM_0_2218S43   
-2C8B   CD 8E 09               CALL   printStr   
-2C8E   43 6F 64 65 3A 20 31 20 35 20 5C 61 20 7B 7B 24 61 20 32 20 2B 7D 5E 7D 20 3B 5E 00 .CSTR   "Code: ","1 5 \\a {{$a 2 +}^} ;^"   
-2CAA   CD 8E 09               CALL   printStr   
-2CAD   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2CBC   21 07 00               LD   HL,7   
-2CBF   CD DC 08               CALL   prtdec   
-2CC2   CD 8E 09               CALL   printStr   
-2CC5   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2CD2   E1                     POP   hl   
-2CD3   E5                     PUSH   hl   
-2CD4   CD DC 08               CALL   prtdec   
-2CD7   E1                     POP   hl   
-2CD8   CD 8E 09               CALL   printStr   
-2CDB   20 28 23 00            .CSTR   " (#"   
-2CDF   CD 24 09               CALL   prthex   
-2CE2   CD 8E 09               CALL   printStr   
-2CE5   29 0D 0A 00            .CSTR   ")\r\n"   
-2CE9   76                     HALT      
-2CEA   00                     .CSTR      
-2CEB                EXPECTM_0_2218S43:      
-2CEB   E1                     POP   HL   
-2CEC                          ;*Macro unroll:  test "1 5 \\ab {{$a $b +}^} ;^", 6
-2CEC   31 80 3C               LD   SP,STACK   
-2CEF   CD 95 09               CALL   init   
-2CF2   CD 44 3B               CALL   execStr   
-2CF5   31 20 35 20 5C 61 62 20 7B 7B 24 61 20 24 62 20 2B 7D 5E 7D 20 3B 5E 00 .CSTR   "1 5 \\ab {{$a $b +}^} ;^"   
-2D0D                          ;*Macro unroll:  expect "1 5 \\ab {{$a $b +}^} ;^",6
-2D0D   E1                     POP   HL   
-2D0E   E5                     PUSH   HL   
-2D0F   11 06 00               LD   DE,6   
-2D12   B7                     OR   A   
-2D13   ED 52                  SBC   HL,DE   
-2D15   7D                     LD   A,L   
-2D16   B4                     OR   H   
-2D17   28 62                  JR   Z,expectM_0_2219S43   
-2D19   CD 8E 09               CALL   printStr   
-2D1C   43 6F 64 65 3A 20 31 20 35 20 5C 61 62 20 7B 7B 24 61 20 24 62 20 2B 7D 5E 7D 20 3B 5E 00 .CSTR   "Code: ","1 5 \\ab {{$a $b +}^} ;^"   
-2D3A   CD 8E 09               CALL   printStr   
-2D3D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2D4C   21 06 00               LD   HL,6   
-2D4F   CD DC 08               CALL   prtdec   
-2D52   CD 8E 09               CALL   printStr   
-2D55   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2D62   E1                     POP   hl   
-2D63   E5                     PUSH   hl   
-2D64   CD DC 08               CALL   prtdec   
-2D67   E1                     POP   hl   
-2D68   CD 8E 09               CALL   printStr   
-2D6B   20 28 23 00            .CSTR   " (#"   
-2D6F   CD 24 09               CALL   prthex   
-2D72   CD 8E 09               CALL   printStr   
-2D75   29 0D 0A 00            .CSTR   ")\r\n"   
-2D79   76                     HALT      
-2D7A   00                     .CSTR      
-2D7B                EXPECTM_0_2219S43:      
-2D7B   E1                     POP   HL   
-2D7C                          ;*Macro unroll:  test "\\a {2} ; x= 1 x^", 2
-2D7C   31 80 3C               LD   SP,STACK   
-2D7F   CD 95 09               CALL   init   
-2D82   CD 44 3B               CALL   execStr   
-2D85   5C 61 20 7B 32 7D 20 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "\\a {2} ; x= 1 x^"   
-2D96                          ;*Macro unroll:  expect "\\a {2} ; x= 1 x^",2
-2D96   E1                     POP   HL   
-2D97   E5                     PUSH   HL   
-2D98   11 02 00               LD   DE,2   
-2D9B   B7                     OR   A   
-2D9C   ED 52                  SBC   HL,DE   
-2D9E   7D                     LD   A,L   
-2D9F   B4                     OR   H   
-2DA0   28 5B                  JR   Z,expectM_0_2220S43   
-2DA2   CD 8E 09               CALL   printStr   
-2DA5   43 6F 64 65 3A 20 5C 61 20 7B 32 7D 20 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "Code: ","\\a {2} ; x= 1 x^"   
-2DBC   CD 8E 09               CALL   printStr   
-2DBF   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2DCE   21 02 00               LD   HL,2   
-2DD1   CD DC 08               CALL   prtdec   
-2DD4   CD 8E 09               CALL   printStr   
-2DD7   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2DE4   E1                     POP   hl   
-2DE5   E5                     PUSH   hl   
-2DE6   CD DC 08               CALL   prtdec   
-2DE9   E1                     POP   hl   
-2DEA   CD 8E 09               CALL   printStr   
-2DED   20 28 23 00            .CSTR   " (#"   
-2DF1   CD 24 09               CALL   prthex   
-2DF4   CD 8E 09               CALL   printStr   
-2DF7   29 0D 0A 00            .CSTR   ")\r\n"   
-2DFB   76                     HALT      
-2DFC   00                     .CSTR      
-2DFD                EXPECTM_0_2220S43:      
-2DFD   E1                     POP   HL   
-2DFE                          ;*Macro unroll:  test "\\a {$a} ; x= 0 1 x^", 1
-2DFE   31 80 3C               LD   SP,STACK   
-2E01   CD 95 09               CALL   init   
-2E04   CD 44 3B               CALL   execStr   
-2E07   5C 61 20 7B 24 61 7D 20 3B 20 78 3D 20 30 20 31 20 78 5E 00 .CSTR   "\\a {$a} ; x= 0 1 x^"   
-2E1B                          ;*Macro unroll:  expect "\\a {$a} ; x= 0 1 x^",1
-2E1B   E1                     POP   HL   
-2E1C   E5                     PUSH   HL   
-2E1D   11 01 00               LD   DE,1   
-2E20   B7                     OR   A   
-2E21   ED 52                  SBC   HL,DE   
-2E23   7D                     LD   A,L   
-2E24   B4                     OR   H   
-2E25   28 5E                  JR   Z,expectM_0_2221S43   
-2E27   CD 8E 09               CALL   printStr   
-2E2A   43 6F 64 65 3A 20 5C 61 20 7B 24 61 7D 20 3B 20 78 3D 20 30 20 31 20 78 5E 00 .CSTR   "Code: ","\\a {$a} ; x= 0 1 x^"   
-2E44   CD 8E 09               CALL   printStr   
-2E47   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2E56   21 01 00               LD   HL,1   
-2E59   CD DC 08               CALL   prtdec   
+2B45   29 0D 0A 00            .CSTR   ")\r\n"   
+2B49   76                     HALT      
+2B4A   00                     .CSTR      
+2B4B                EXPECTM_0_2215S43:      
+2B4B   E1                     POP   HL   
+2B4C                          ;*Macro unroll:  test "1 5 :a {{$a}^};^", 5
+2B4C   31 80 3C               LD   SP,STACK   
+2B4F   CD 95 09               CALL   init   
+2B52   CD 10 3B               CALL   execStr   
+2B55   31 20 35 20 3A 61 20 7B 7B 24 61 7D 5E 7D 3B 5E 00 .CSTR   "1 5 :a {{$a}^};^"   
+2B66                          ;*Macro unroll:  expect "1 5 :a {{$a}^};^",5
+2B66   E1                     POP   HL   
+2B67   E5                     PUSH   HL   
+2B68   11 05 00               LD   DE,5   
+2B6B   B7                     OR   A   
+2B6C   ED 52                  SBC   HL,DE   
+2B6E   7D                     LD   A,L   
+2B6F   B4                     OR   H   
+2B70   28 5B                  JR   Z,expectM_0_2216S43   
+2B72   CD 8E 09               CALL   printStr   
+2B75   43 6F 64 65 3A 20 31 20 35 20 3A 61 20 7B 7B 24 61 7D 5E 7D 3B 5E 00 .CSTR   "Code: ","1 5 :a {{$a}^};^"   
+2B8C   CD 8E 09               CALL   printStr   
+2B8F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2B9E   21 05 00               LD   HL,5   
+2BA1   CD DC 08               CALL   prtdec   
+2BA4   CD 8E 09               CALL   printStr   
+2BA7   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2BB4   E1                     POP   hl   
+2BB5   E5                     PUSH   hl   
+2BB6   CD DC 08               CALL   prtdec   
+2BB9   E1                     POP   hl   
+2BBA   CD 8E 09               CALL   printStr   
+2BBD   20 28 23 00            .CSTR   " (#"   
+2BC1   CD 24 09               CALL   prthex   
+2BC4   CD 8E 09               CALL   printStr   
+2BC7   29 0D 0A 00            .CSTR   ")\r\n"   
+2BCB   76                     HALT      
+2BCC   00                     .CSTR      
+2BCD                EXPECTM_0_2216S43:      
+2BCD   E1                     POP   HL   
+2BCE                          ;*Macro unroll:  test "1 5 :ab {{$a}^};^", 1
+2BCE   31 80 3C               LD   SP,STACK   
+2BD1   CD 95 09               CALL   init   
+2BD4   CD 10 3B               CALL   execStr   
+2BD7   31 20 35 20 3A 61 62 20 7B 7B 24 61 7D 5E 7D 3B 5E 00 .CSTR   "1 5 :ab {{$a}^};^"   
+2BE9                          ;*Macro unroll:  expect "1 5 :ab {{$a}^};^",1
+2BE9   E1                     POP   HL   
+2BEA   E5                     PUSH   HL   
+2BEB   11 01 00               LD   DE,1   
+2BEE   B7                     OR   A   
+2BEF   ED 52                  SBC   HL,DE   
+2BF1   7D                     LD   A,L   
+2BF2   B4                     OR   H   
+2BF3   28 5C                  JR   Z,expectM_0_2217S43   
+2BF5   CD 8E 09               CALL   printStr   
+2BF8   43 6F 64 65 3A 20 31 20 35 20 3A 61 62 20 7B 7B 24 61 7D 5E 7D 3B 5E 00 .CSTR   "Code: ","1 5 :ab {{$a}^};^"   
+2C10   CD 8E 09               CALL   printStr   
+2C13   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2C22   21 01 00               LD   HL,1   
+2C25   CD DC 08               CALL   prtdec   
+2C28   CD 8E 09               CALL   printStr   
+2C2B   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2C38   E1                     POP   hl   
+2C39   E5                     PUSH   hl   
+2C3A   CD DC 08               CALL   prtdec   
+2C3D   E1                     POP   hl   
+2C3E   CD 8E 09               CALL   printStr   
+2C41   20 28 23 00            .CSTR   " (#"   
+2C45   CD 24 09               CALL   prthex   
+2C48   CD 8E 09               CALL   printStr   
+2C4B   29 0D 0A 00            .CSTR   ")\r\n"   
+2C4F   76                     HALT      
+2C50   00                     .CSTR      
+2C51                EXPECTM_0_2217S43:      
+2C51   E1                     POP   HL   
+2C52                          ;*Macro unroll:  test "1 5 :a {{$a 2 +}^};^", 7
+2C52   31 80 3C               LD   SP,STACK   
+2C55   CD 95 09               CALL   init   
+2C58   CD 10 3B               CALL   execStr   
+2C5B   31 20 35 20 3A 61 20 7B 7B 24 61 20 32 20 2B 7D 5E 7D 3B 5E 00 .CSTR   "1 5 :a {{$a 2 +}^};^"   
+2C70                          ;*Macro unroll:  expect "1 5 :a {{$a 2 +}^};^",7
+2C70   E1                     POP   HL   
+2C71   E5                     PUSH   HL   
+2C72   11 07 00               LD   DE,7   
+2C75   B7                     OR   A   
+2C76   ED 52                  SBC   HL,DE   
+2C78   7D                     LD   A,L   
+2C79   B4                     OR   H   
+2C7A   28 5F                  JR   Z,expectM_0_2218S43   
+2C7C   CD 8E 09               CALL   printStr   
+2C7F   43 6F 64 65 3A 20 31 20 35 20 3A 61 20 7B 7B 24 61 20 32 20 2B 7D 5E 7D 3B 5E 00 .CSTR   "Code: ","1 5 :a {{$a 2 +}^};^"   
+2C9A   CD 8E 09               CALL   printStr   
+2C9D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2CAC   21 07 00               LD   HL,7   
+2CAF   CD DC 08               CALL   prtdec   
+2CB2   CD 8E 09               CALL   printStr   
+2CB5   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2CC2   E1                     POP   hl   
+2CC3   E5                     PUSH   hl   
+2CC4   CD DC 08               CALL   prtdec   
+2CC7   E1                     POP   hl   
+2CC8   CD 8E 09               CALL   printStr   
+2CCB   20 28 23 00            .CSTR   " (#"   
+2CCF   CD 24 09               CALL   prthex   
+2CD2   CD 8E 09               CALL   printStr   
+2CD5   29 0D 0A 00            .CSTR   ")\r\n"   
+2CD9   76                     HALT      
+2CDA   00                     .CSTR      
+2CDB                EXPECTM_0_2218S43:      
+2CDB   E1                     POP   HL   
+2CDC                          ;*Macro unroll:  test "1 5 :ab {{$a $b +}^};^", 6
+2CDC   31 80 3C               LD   SP,STACK   
+2CDF   CD 95 09               CALL   init   
+2CE2   CD 10 3B               CALL   execStr   
+2CE5   31 20 35 20 3A 61 62 20 7B 7B 24 61 20 24 62 20 2B 7D 5E 7D 3B 5E 00 .CSTR   "1 5 :ab {{$a $b +}^};^"   
+2CFC                          ;*Macro unroll:  expect "1 5 :ab {{$a $b +}^};^",6
+2CFC   E1                     POP   HL   
+2CFD   E5                     PUSH   HL   
+2CFE   11 06 00               LD   DE,6   
+2D01   B7                     OR   A   
+2D02   ED 52                  SBC   HL,DE   
+2D04   7D                     LD   A,L   
+2D05   B4                     OR   H   
+2D06   28 61                  JR   Z,expectM_0_2219S43   
+2D08   CD 8E 09               CALL   printStr   
+2D0B   43 6F 64 65 3A 20 31 20 35 20 3A 61 62 20 7B 7B 24 61 20 24 62 20 2B 7D 5E 7D 3B 5E 00 .CSTR   "Code: ","1 5 :ab {{$a $b +}^};^"   
+2D28   CD 8E 09               CALL   printStr   
+2D2B   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2D3A   21 06 00               LD   HL,6   
+2D3D   CD DC 08               CALL   prtdec   
+2D40   CD 8E 09               CALL   printStr   
+2D43   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2D50   E1                     POP   hl   
+2D51   E5                     PUSH   hl   
+2D52   CD DC 08               CALL   prtdec   
+2D55   E1                     POP   hl   
+2D56   CD 8E 09               CALL   printStr   
+2D59   20 28 23 00            .CSTR   " (#"   
+2D5D   CD 24 09               CALL   prthex   
+2D60   CD 8E 09               CALL   printStr   
+2D63   29 0D 0A 00            .CSTR   ")\r\n"   
+2D67   76                     HALT      
+2D68   00                     .CSTR      
+2D69                EXPECTM_0_2219S43:      
+2D69   E1                     POP   HL   
+2D6A                          ;*Macro unroll:  test ":a {2}; x= 1 x^", 2
+2D6A   31 80 3C               LD   SP,STACK   
+2D6D   CD 95 09               CALL   init   
+2D70   CD 10 3B               CALL   execStr   
+2D73   3A 61 20 7B 32 7D 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   ":a {2}; x= 1 x^"   
+2D83                          ;*Macro unroll:  expect ":a {2}; x= 1 x^",2
+2D83   E1                     POP   HL   
+2D84   E5                     PUSH   HL   
+2D85   11 02 00               LD   DE,2   
+2D88   B7                     OR   A   
+2D89   ED 52                  SBC   HL,DE   
+2D8B   7D                     LD   A,L   
+2D8C   B4                     OR   H   
+2D8D   28 5A                  JR   Z,expectM_0_2220S43   
+2D8F   CD 8E 09               CALL   printStr   
+2D92   43 6F 64 65 3A 20 3A 61 20 7B 32 7D 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "Code: ",":a {2}; x= 1 x^"   
+2DA8   CD 8E 09               CALL   printStr   
+2DAB   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2DBA   21 02 00               LD   HL,2   
+2DBD   CD DC 08               CALL   prtdec   
+2DC0   CD 8E 09               CALL   printStr   
+2DC3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2DD0   E1                     POP   hl   
+2DD1   E5                     PUSH   hl   
+2DD2   CD DC 08               CALL   prtdec   
+2DD5   E1                     POP   hl   
+2DD6   CD 8E 09               CALL   printStr   
+2DD9   20 28 23 00            .CSTR   " (#"   
+2DDD   CD 24 09               CALL   prthex   
+2DE0   CD 8E 09               CALL   printStr   
+2DE3   29 0D 0A 00            .CSTR   ")\r\n"   
+2DE7   76                     HALT      
+2DE8   00                     .CSTR      
+2DE9                EXPECTM_0_2220S43:      
+2DE9   E1                     POP   HL   
+2DEA                          ;*Macro unroll:  test ":a {$a}; x= 0 1 x^", 1
+2DEA   31 80 3C               LD   SP,STACK   
+2DED   CD 95 09               CALL   init   
+2DF0   CD 10 3B               CALL   execStr   
+2DF3   3A 61 20 7B 24 61 7D 3B 20 78 3D 20 30 20 31 20 78 5E 00 .CSTR   ":a {$a}; x= 0 1 x^"   
+2E06                          ;*Macro unroll:  expect ":a {$a}; x= 0 1 x^",1
+2E06   E1                     POP   HL   
+2E07   E5                     PUSH   HL   
+2E08   11 01 00               LD   DE,1   
+2E0B   B7                     OR   A   
+2E0C   ED 52                  SBC   HL,DE   
+2E0E   7D                     LD   A,L   
+2E0F   B4                     OR   H   
+2E10   28 5D                  JR   Z,expectM_0_2221S43   
+2E12   CD 8E 09               CALL   printStr   
+2E15   43 6F 64 65 3A 20 3A 61 20 7B 24 61 7D 3B 20 78 3D 20 30 20 31 20 78 5E 00 .CSTR   "Code: ",":a {$a}; x= 0 1 x^"   
+2E2E   CD 8E 09               CALL   printStr   
+2E31   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2E40   21 01 00               LD   HL,1   
+2E43   CD DC 08               CALL   prtdec   
+2E46   CD 8E 09               CALL   printStr   
+2E49   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2E56   E1                     POP   hl   
+2E57   E5                     PUSH   hl   
+2E58   CD DC 08               CALL   prtdec   
+2E5B   E1                     POP   hl   
 2E5C   CD 8E 09               CALL   printStr   
-2E5F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2E6C   E1                     POP   hl   
-2E6D   E5                     PUSH   hl   
-2E6E   CD DC 08               CALL   prtdec   
-2E71   E1                     POP   hl   
-2E72   CD 8E 09               CALL   printStr   
-2E75   20 28 23 00            .CSTR   " (#"   
-2E79   CD 24 09               CALL   prthex   
-2E7C   CD 8E 09               CALL   printStr   
-2E7F   29 0D 0A 00            .CSTR   ")\r\n"   
-2E83   76                     HALT      
-2E84   00                     .CSTR      
-2E85                EXPECTM_0_2221S43:      
-2E85   E1                     POP   HL   
-2E86                          ;*Macro unroll:  test "\\ab {$b} ; x= 1 2 x^", 2
-2E86   31 80 3C               LD   SP,STACK   
-2E89   CD 95 09               CALL   init   
-2E8C   CD 44 3B               CALL   execStr   
-2E8F   5C 61 62 20 7B 24 62 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "\\ab {$b} ; x= 1 2 x^"   
-2EA4                          ;*Macro unroll:  expect "\\ab {$b} ; x= 1 2 x^",2
-2EA4   E1                     POP   HL   
-2EA5   E5                     PUSH   HL   
-2EA6   11 02 00               LD   DE,2   
-2EA9   B7                     OR   A   
-2EAA   ED 52                  SBC   HL,DE   
-2EAC   7D                     LD   A,L   
-2EAD   B4                     OR   H   
-2EAE   28 5F                  JR   Z,expectM_0_2222S43   
-2EB0   CD 8E 09               CALL   printStr   
-2EB3   43 6F 64 65 3A 20 5C 61 62 20 7B 24 62 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ","\\ab {$b} ; x= 1 2 x^"   
+2E5F   20 28 23 00            .CSTR   " (#"   
+2E63   CD 24 09               CALL   prthex   
+2E66   CD 8E 09               CALL   printStr   
+2E69   29 0D 0A 00            .CSTR   ")\r\n"   
+2E6D   76                     HALT      
+2E6E   00                     .CSTR      
+2E6F                EXPECTM_0_2221S43:      
+2E6F   E1                     POP   HL   
+2E70                          ;*Macro unroll:  test ":ab {$b}; x= 1 2 x^", 2
+2E70   31 80 3C               LD   SP,STACK   
+2E73   CD 95 09               CALL   init   
+2E76   CD 10 3B               CALL   execStr   
+2E79   3A 61 62 20 7B 24 62 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   ":ab {$b}; x= 1 2 x^"   
+2E8D                          ;*Macro unroll:  expect ":ab {$b}; x= 1 2 x^",2
+2E8D   E1                     POP   HL   
+2E8E   E5                     PUSH   HL   
+2E8F   11 02 00               LD   DE,2   
+2E92   B7                     OR   A   
+2E93   ED 52                  SBC   HL,DE   
+2E95   7D                     LD   A,L   
+2E96   B4                     OR   H   
+2E97   28 5E                  JR   Z,expectM_0_2222S43   
+2E99   CD 8E 09               CALL   printStr   
+2E9C   43 6F 64 65 3A 20 3A 61 62 20 7B 24 62 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ",":ab {$b}; x= 1 2 x^"   
+2EB6   CD 8E 09               CALL   printStr   
+2EB9   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2EC8   21 02 00               LD   HL,2   
+2ECB   CD DC 08               CALL   prtdec   
 2ECE   CD 8E 09               CALL   printStr   
-2ED1   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2EE0   21 02 00               LD   HL,2   
-2EE3   CD DC 08               CALL   prtdec   
-2EE6   CD 8E 09               CALL   printStr   
-2EE9   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2EF6   E1                     POP   hl   
-2EF7   E5                     PUSH   hl   
-2EF8   CD DC 08               CALL   prtdec   
-2EFB   E1                     POP   hl   
-2EFC   CD 8E 09               CALL   printStr   
-2EFF   20 28 23 00            .CSTR   " (#"   
-2F03   CD 24 09               CALL   prthex   
-2F06   CD 8E 09               CALL   printStr   
-2F09   29 0D 0A 00            .CSTR   ")\r\n"   
-2F0D   76                     HALT      
-2F0E   00                     .CSTR      
-2F0F                EXPECTM_0_2222S43:      
-2F0F   E1                     POP   HL   
-2F10                          ;*Macro unroll:  test "\\a:b {$a} ; x= 1 2 x^", 2
-2F10   31 80 3C               LD   SP,STACK   
-2F13   CD 95 09               CALL   init   
-2F16   CD 44 3B               CALL   execStr   
-2F19   5C 61 3A 62 20 7B 24 61 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "\\a:b {$a} ; x= 1 2 x^"   
-2F2F                          ;*Macro unroll:  expect "\\a:b {$a} ; x= 1 2 x^",2
-2F2F   E1                     POP   HL   
-2F30   E5                     PUSH   HL   
-2F31   11 02 00               LD   DE,2   
-2F34   B7                     OR   A   
-2F35   ED 52                  SBC   HL,DE   
-2F37   7D                     LD   A,L   
-2F38   B4                     OR   H   
-2F39   28 60                  JR   Z,expectM_0_2223S43   
-2F3B   CD 8E 09               CALL   printStr   
-2F3E   43 6F 64 65 3A 20 5C 61 3A 62 20 7B 24 61 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ","\\a:b {$a} ; x= 1 2 x^"   
-2F5A   CD 8E 09               CALL   printStr   
-2F5D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2F6C   21 02 00               LD   HL,2   
-2F6F   CD DC 08               CALL   prtdec   
-2F72   CD 8E 09               CALL   printStr   
-2F75   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-2F82   E1                     POP   hl   
-2F83   E5                     PUSH   hl   
-2F84   CD DC 08               CALL   prtdec   
-2F87   E1                     POP   hl   
-2F88   CD 8E 09               CALL   printStr   
-2F8B   20 28 23 00            .CSTR   " (#"   
-2F8F   CD 24 09               CALL   prthex   
-2F92   CD 8E 09               CALL   printStr   
-2F95   29 0D 0A 00            .CSTR   ")\r\n"   
-2F99   76                     HALT      
-2F9A   00                     .CSTR      
-2F9B                EXPECTM_0_2223S43:      
-2F9B   E1                     POP   HL   
-2F9C                          ;*Macro unroll:  test "\\ab {$b} ; x= 1 2 x^", 2
-2F9C   31 80 3C               LD   SP,STACK   
-2F9F   CD 95 09               CALL   init   
-2FA2   CD 44 3B               CALL   execStr   
-2FA5   5C 61 62 20 7B 24 62 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "\\ab {$b} ; x= 1 2 x^"   
-2FBA                          ;*Macro unroll:  expect "\\ab {$b} ; x= 1 2 x^",2
-2FBA   E1                     POP   HL   
-2FBB   E5                     PUSH   HL   
-2FBC   11 02 00               LD   DE,2   
-2FBF   B7                     OR   A   
-2FC0   ED 52                  SBC   HL,DE   
-2FC2   7D                     LD   A,L   
-2FC3   B4                     OR   H   
-2FC4   28 5F                  JR   Z,expectM_0_2224S43   
-2FC6   CD 8E 09               CALL   printStr   
-2FC9   43 6F 64 65 3A 20 5C 61 62 20 7B 24 62 7D 20 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ","\\ab {$b} ; x= 1 2 x^"   
-2FE4   CD 8E 09               CALL   printStr   
-2FE7   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-2FF6   21 02 00               LD   HL,2   
-2FF9   CD DC 08               CALL   prtdec   
-2FFC   CD 8E 09               CALL   printStr   
-2FFF   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-300C   E1                     POP   hl   
-300D   E5                     PUSH   hl   
-300E   CD DC 08               CALL   prtdec   
-3011   E1                     POP   hl   
-3012   CD 8E 09               CALL   printStr   
-3015   20 28 23 00            .CSTR   " (#"   
-3019   CD 24 09               CALL   prthex   
-301C   CD 8E 09               CALL   printStr   
-301F   29 0D 0A 00            .CSTR   ")\r\n"   
-3023   76                     HALT      
-3024   00                     .CSTR      
-3025                EXPECTM_0_2224S43:      
-3025   E1                     POP   HL   
-3026                          ;*Macro unroll:  test "\\ab {$b $a} ; x= 10 15 x^ -", 5
-3026   31 80 3C               LD   SP,STACK   
-3029   CD 95 09               CALL   init   
-302C   CD 44 3B               CALL   execStr   
-302F   5C 61 62 20 7B 24 62 20 24 61 7D 20 3B 20 78 3D 20 31 30 20 31 35 20 78 5E 20 2D 00 .CSTR   "\\ab {$b $a} ; x= 10 15 x^ -"   
-304B                          ;*Macro unroll:  expect "\\ab {$b $a} ; x= 10 15 x^ -",5
-304B   E1                     POP   HL   
-304C   E5                     PUSH   HL   
-304D   11 05 00               LD   DE,5   
-3050   B7                     OR   A   
-3051   ED 52                  SBC   HL,DE   
-3053   7D                     LD   A,L   
-3054   B4                     OR   H   
-3055   28 66                  JR   Z,expectM_0_2225S43   
-3057   CD 8E 09               CALL   printStr   
-305A   43 6F 64 65 3A 20 5C 61 62 20 7B 24 62 20 24 61 7D 20 3B 20 78 3D 20 31 30 20 31 35 20 78 5E 20 2D 00 .CSTR   "Code: ","\\ab {$b $a} ; x= 10 15 x^ -"   
-307C   CD 8E 09               CALL   printStr   
-307F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-308E   21 05 00               LD   HL,5   
-3091   CD DC 08               CALL   prtdec   
-3094   CD 8E 09               CALL   printStr   
-3097   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-30A4   E1                     POP   hl   
-30A5   E5                     PUSH   hl   
-30A6   CD DC 08               CALL   prtdec   
-30A9   E1                     POP   hl   
-30AA   CD 8E 09               CALL   printStr   
-30AD   20 28 23 00            .CSTR   " (#"   
-30B1   CD 24 09               CALL   prthex   
-30B4   CD 8E 09               CALL   printStr   
-30B7   29 0D 0A 00            .CSTR   ")\r\n"   
-30BB   76                     HALT      
-30BC   00                     .CSTR      
-30BD                EXPECTM_0_2225S43:      
-30BD   E1                     POP   HL   
-30BE                          ;*Macro unroll:  test "\\a:b {2} ; x= 1 x^", 2
-30BE   31 80 3C               LD   SP,STACK   
-30C1   CD 95 09               CALL   init   
-30C4   CD 44 3B               CALL   execStr   
-30C7   5C 61 3A 62 20 7B 32 7D 20 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "\\a:b {2} ; x= 1 x^"   
-30DA                          ;*Macro unroll:  expect "\\a:b {2} ; x= 1 x^",2
-30DA   E1                     POP   HL   
-30DB   E5                     PUSH   HL   
-30DC   11 02 00               LD   DE,2   
-30DF   B7                     OR   A   
-30E0   ED 52                  SBC   HL,DE   
-30E2   7D                     LD   A,L   
-30E3   B4                     OR   H   
-30E4   28 5D                  JR   Z,expectM_0_2226S43   
-30E6   CD 8E 09               CALL   printStr   
-30E9   43 6F 64 65 3A 20 5C 61 3A 62 20 7B 32 7D 20 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "Code: ","\\a:b {2} ; x= 1 x^"   
-3102   CD 8E 09               CALL   printStr   
-3105   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3114   21 02 00               LD   HL,2   
-3117   CD DC 08               CALL   prtdec   
+2ED1   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2EDE   E1                     POP   hl   
+2EDF   E5                     PUSH   hl   
+2EE0   CD DC 08               CALL   prtdec   
+2EE3   E1                     POP   hl   
+2EE4   CD 8E 09               CALL   printStr   
+2EE7   20 28 23 00            .CSTR   " (#"   
+2EEB   CD 24 09               CALL   prthex   
+2EEE   CD 8E 09               CALL   printStr   
+2EF1   29 0D 0A 00            .CSTR   ")\r\n"   
+2EF5   76                     HALT      
+2EF6   00                     .CSTR      
+2EF7                EXPECTM_0_2222S43:      
+2EF7   E1                     POP   HL   
+2EF8                          ;*Macro unroll:  test ":a:b {$a}; x= 1 2 x^", 2
+2EF8   31 80 3C               LD   SP,STACK   
+2EFB   CD 95 09               CALL   init   
+2EFE   CD 10 3B               CALL   execStr   
+2F01   3A 61 3A 62 20 7B 24 61 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   ":a:b {$a}; x= 1 2 x^"   
+2F16                          ;*Macro unroll:  expect ":a:b {$a}; x= 1 2 x^",2
+2F16   E1                     POP   HL   
+2F17   E5                     PUSH   HL   
+2F18   11 02 00               LD   DE,2   
+2F1B   B7                     OR   A   
+2F1C   ED 52                  SBC   HL,DE   
+2F1E   7D                     LD   A,L   
+2F1F   B4                     OR   H   
+2F20   28 5F                  JR   Z,expectM_0_2223S43   
+2F22   CD 8E 09               CALL   printStr   
+2F25   43 6F 64 65 3A 20 3A 61 3A 62 20 7B 24 61 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ",":a:b {$a}; x= 1 2 x^"   
+2F40   CD 8E 09               CALL   printStr   
+2F43   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2F52   21 02 00               LD   HL,2   
+2F55   CD DC 08               CALL   prtdec   
+2F58   CD 8E 09               CALL   printStr   
+2F5B   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2F68   E1                     POP   hl   
+2F69   E5                     PUSH   hl   
+2F6A   CD DC 08               CALL   prtdec   
+2F6D   E1                     POP   hl   
+2F6E   CD 8E 09               CALL   printStr   
+2F71   20 28 23 00            .CSTR   " (#"   
+2F75   CD 24 09               CALL   prthex   
+2F78   CD 8E 09               CALL   printStr   
+2F7B   29 0D 0A 00            .CSTR   ")\r\n"   
+2F7F   76                     HALT      
+2F80   00                     .CSTR      
+2F81                EXPECTM_0_2223S43:      
+2F81   E1                     POP   HL   
+2F82                          ;*Macro unroll:  test ":ab {$b}; x= 1 2 x^", 2
+2F82   31 80 3C               LD   SP,STACK   
+2F85   CD 95 09               CALL   init   
+2F88   CD 10 3B               CALL   execStr   
+2F8B   3A 61 62 20 7B 24 62 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   ":ab {$b}; x= 1 2 x^"   
+2F9F                          ;*Macro unroll:  expect ":ab {$b}; x= 1 2 x^",2
+2F9F   E1                     POP   HL   
+2FA0   E5                     PUSH   HL   
+2FA1   11 02 00               LD   DE,2   
+2FA4   B7                     OR   A   
+2FA5   ED 52                  SBC   HL,DE   
+2FA7   7D                     LD   A,L   
+2FA8   B4                     OR   H   
+2FA9   28 5E                  JR   Z,expectM_0_2224S43   
+2FAB   CD 8E 09               CALL   printStr   
+2FAE   43 6F 64 65 3A 20 3A 61 62 20 7B 24 62 7D 3B 20 78 3D 20 31 20 32 20 78 5E 00 .CSTR   "Code: ",":ab {$b}; x= 1 2 x^"   
+2FC8   CD 8E 09               CALL   printStr   
+2FCB   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+2FDA   21 02 00               LD   HL,2   
+2FDD   CD DC 08               CALL   prtdec   
+2FE0   CD 8E 09               CALL   printStr   
+2FE3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+2FF0   E1                     POP   hl   
+2FF1   E5                     PUSH   hl   
+2FF2   CD DC 08               CALL   prtdec   
+2FF5   E1                     POP   hl   
+2FF6   CD 8E 09               CALL   printStr   
+2FF9   20 28 23 00            .CSTR   " (#"   
+2FFD   CD 24 09               CALL   prthex   
+3000   CD 8E 09               CALL   printStr   
+3003   29 0D 0A 00            .CSTR   ")\r\n"   
+3007   76                     HALT      
+3008   00                     .CSTR      
+3009                EXPECTM_0_2224S43:      
+3009   E1                     POP   HL   
+300A                          ;*Macro unroll:  test ":ab {$b $a}; x= 10 15 x^ -", 5
+300A   31 80 3C               LD   SP,STACK   
+300D   CD 95 09               CALL   init   
+3010   CD 10 3B               CALL   execStr   
+3013   3A 61 62 20 7B 24 62 20 24 61 7D 3B 20 78 3D 20 31 30 20 31 35 20 78 5E 20 2D 00 .CSTR   ":ab {$b $a}; x= 10 15 x^ -"   
+302E                          ;*Macro unroll:  expect ":ab {$b $a}; x= 10 15 x^ -",5
+302E   E1                     POP   HL   
+302F   E5                     PUSH   HL   
+3030   11 05 00               LD   DE,5   
+3033   B7                     OR   A   
+3034   ED 52                  SBC   HL,DE   
+3036   7D                     LD   A,L   
+3037   B4                     OR   H   
+3038   28 65                  JR   Z,expectM_0_2225S43   
+303A   CD 8E 09               CALL   printStr   
+303D   43 6F 64 65 3A 20 3A 61 62 20 7B 24 62 20 24 61 7D 3B 20 78 3D 20 31 30 20 31 35 20 78 5E 20 2D 00 .CSTR   "Code: ",":ab {$b $a}; x= 10 15 x^ -"   
+305E   CD 8E 09               CALL   printStr   
+3061   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3070   21 05 00               LD   HL,5   
+3073   CD DC 08               CALL   prtdec   
+3076   CD 8E 09               CALL   printStr   
+3079   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3086   E1                     POP   hl   
+3087   E5                     PUSH   hl   
+3088   CD DC 08               CALL   prtdec   
+308B   E1                     POP   hl   
+308C   CD 8E 09               CALL   printStr   
+308F   20 28 23 00            .CSTR   " (#"   
+3093   CD 24 09               CALL   prthex   
+3096   CD 8E 09               CALL   printStr   
+3099   29 0D 0A 00            .CSTR   ")\r\n"   
+309D   76                     HALT      
+309E   00                     .CSTR      
+309F                EXPECTM_0_2225S43:      
+309F   E1                     POP   HL   
+30A0                          ;*Macro unroll:  test ":a:b {2}; x= 1 x^", 2
+30A0   31 80 3C               LD   SP,STACK   
+30A3   CD 95 09               CALL   init   
+30A6   CD 10 3B               CALL   execStr   
+30A9   3A 61 3A 62 20 7B 32 7D 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   ":a:b {2}; x= 1 x^"   
+30BB                          ;*Macro unroll:  expect ":a:b {2}; x= 1 x^",2
+30BB   E1                     POP   HL   
+30BC   E5                     PUSH   HL   
+30BD   11 02 00               LD   DE,2   
+30C0   B7                     OR   A   
+30C1   ED 52                  SBC   HL,DE   
+30C3   7D                     LD   A,L   
+30C4   B4                     OR   H   
+30C5   28 5C                  JR   Z,expectM_0_2226S43   
+30C7   CD 8E 09               CALL   printStr   
+30CA   43 6F 64 65 3A 20 3A 61 3A 62 20 7B 32 7D 3B 20 78 3D 20 31 20 78 5E 00 .CSTR   "Code: ",":a:b {2}; x= 1 x^"   
+30E2   CD 8E 09               CALL   printStr   
+30E5   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+30F4   21 02 00               LD   HL,2   
+30F7   CD DC 08               CALL   prtdec   
+30FA   CD 8E 09               CALL   printStr   
+30FD   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+310A   E1                     POP   hl   
+310B   E5                     PUSH   hl   
+310C   CD DC 08               CALL   prtdec   
+310F   E1                     POP   hl   
+3110   CD 8E 09               CALL   printStr   
+3113   20 28 23 00            .CSTR   " (#"   
+3117   CD 24 09               CALL   prthex   
 311A   CD 8E 09               CALL   printStr   
-311D   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-312A   E1                     POP   hl   
-312B   E5                     PUSH   hl   
-312C   CD DC 08               CALL   prtdec   
-312F   E1                     POP   hl   
-3130   CD 8E 09               CALL   printStr   
-3133   20 28 23 00            .CSTR   " (#"   
-3137   CD 24 09               CALL   prthex   
-313A   CD 8E 09               CALL   printStr   
-313D   29 0D 0A 00            .CSTR   ")\r\n"   
-3141   76                     HALT      
-3142   00                     .CSTR      
-3143                EXPECTM_0_2226S43:      
-3143   E1                     POP   HL   
-3144                          ;*Macro unroll:  test "\\:b {100 $b= $b} ; x= x^", 100
-3144   31 80 3C               LD   SP,STACK   
-3147   CD 95 09               CALL   init   
-314A   CD 44 3B               CALL   execStr   
-314D   5C 3A 62 20 7B 31 30 30 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 78 5E 00 .CSTR   "\\:b {100 $b= $b} ; x= x^"   
-3166                          ;*Macro unroll:  expect "\\:b {100 $b= $b} ; x= x^",100
-3166   E1                     POP   HL   
-3167   E5                     PUSH   HL   
-3168   11 64 00               LD   DE,100   
-316B   B7                     OR   A   
-316C   ED 52                  SBC   HL,DE   
-316E   7D                     LD   A,L   
-316F   B4                     OR   H   
-3170   28 63                  JR   Z,expectM_0_2227S43   
+311D   29 0D 0A 00            .CSTR   ")\r\n"   
+3121   76                     HALT      
+3122   00                     .CSTR      
+3123                EXPECTM_0_2226S43:      
+3123   E1                     POP   HL   
+3124                          ;*Macro unroll:  test "::b {100 $b= $b}; x= x^", 100
+3124   31 80 3C               LD   SP,STACK   
+3127   CD 95 09               CALL   init   
+312A   CD 10 3B               CALL   execStr   
+312D   3A 3A 62 20 7B 31 30 30 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 78 5E 00 .CSTR   "::b {100 $b= $b}; x= x^"   
+3145                          ;*Macro unroll:  expect "::b {100 $b= $b}; x= x^",100
+3145   E1                     POP   HL   
+3146   E5                     PUSH   HL   
+3147   11 64 00               LD   DE,100   
+314A   B7                     OR   A   
+314B   ED 52                  SBC   HL,DE   
+314D   7D                     LD   A,L   
+314E   B4                     OR   H   
+314F   28 62                  JR   Z,expectM_0_2227S43   
+3151   CD 8E 09               CALL   printStr   
+3154   43 6F 64 65 3A 20 3A 3A 62 20 7B 31 30 30 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 78 5E 00 .CSTR   "Code: ","::b {100 $b= $b}; x= x^"   
 3172   CD 8E 09               CALL   printStr   
-3175   43 6F 64 65 3A 20 5C 3A 62 20 7B 31 30 30 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 78 5E 00 .CSTR   "Code: ","\\:b {100 $b= $b} ; x= x^"   
-3194   CD 8E 09               CALL   printStr   
-3197   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-31A6   21 64 00               LD   HL,100   
-31A9   CD DC 08               CALL   prtdec   
-31AC   CD 8E 09               CALL   printStr   
-31AF   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-31BC   E1                     POP   hl   
-31BD   E5                     PUSH   hl   
-31BE   CD DC 08               CALL   prtdec   
-31C1   E1                     POP   hl   
-31C2   CD 8E 09               CALL   printStr   
-31C5   20 28 23 00            .CSTR   " (#"   
-31C9   CD 24 09               CALL   prthex   
-31CC   CD 8E 09               CALL   printStr   
-31CF   29 0D 0A 00            .CSTR   ")\r\n"   
-31D3   76                     HALT      
-31D4   00                     .CSTR      
-31D5                EXPECTM_0_2227S43:      
-31D5   E1                     POP   HL   
-31D6                          ;*Macro unroll:  test "\\a:b {1 $b= $b} ; x= 2 x^", 1
-31D6   31 80 3C               LD   SP,STACK   
-31D9   CD 95 09               CALL   init   
-31DC   CD 44 3B               CALL   execStr   
-31DF   5C 61 3A 62 20 7B 31 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "\\a:b {1 $b= $b} ; x= 2 x^"   
-31F9                          ;*Macro unroll:  expect "\\a:b {1 $b= $b} ; x= 2 x^",1
-31F9   E1                     POP   HL   
-31FA   E5                     PUSH   HL   
-31FB   11 01 00               LD   DE,1   
-31FE   B7                     OR   A   
-31FF   ED 52                  SBC   HL,DE   
-3201   7D                     LD   A,L   
-3202   B4                     OR   H   
-3203   28 64                  JR   Z,expectM_0_2228S43   
-3205   CD 8E 09               CALL   printStr   
-3208   43 6F 64 65 3A 20 5C 61 3A 62 20 7B 31 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "Code: ","\\a:b {1 $b= $b} ; x= 2 x^"   
-3228   CD 8E 09               CALL   printStr   
-322B   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-323A   21 01 00               LD   HL,1   
-323D   CD DC 08               CALL   prtdec   
-3240   CD 8E 09               CALL   printStr   
-3243   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3250   E1                     POP   hl   
-3251   E5                     PUSH   hl   
-3252   CD DC 08               CALL   prtdec   
-3255   E1                     POP   hl   
-3256   CD 8E 09               CALL   printStr   
-3259   20 28 23 00            .CSTR   " (#"   
-325D   CD 24 09               CALL   prthex   
-3260   CD 8E 09               CALL   printStr   
-3263   29 0D 0A 00            .CSTR   ")\r\n"   
-3267   76                     HALT      
-3268   00                     .CSTR      
-3269                EXPECTM_0_2228S43:      
+3175   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3184   21 64 00               LD   HL,100   
+3187   CD DC 08               CALL   prtdec   
+318A   CD 8E 09               CALL   printStr   
+318D   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+319A   E1                     POP   hl   
+319B   E5                     PUSH   hl   
+319C   CD DC 08               CALL   prtdec   
+319F   E1                     POP   hl   
+31A0   CD 8E 09               CALL   printStr   
+31A3   20 28 23 00            .CSTR   " (#"   
+31A7   CD 24 09               CALL   prthex   
+31AA   CD 8E 09               CALL   printStr   
+31AD   29 0D 0A 00            .CSTR   ")\r\n"   
+31B1   76                     HALT      
+31B2   00                     .CSTR      
+31B3                EXPECTM_0_2227S43:      
+31B3   E1                     POP   HL   
+31B4                          ;*Macro unroll:  test ":a:b {1 $b= $b}; x= 2 x^", 1
+31B4   31 80 3C               LD   SP,STACK   
+31B7   CD 95 09               CALL   init   
+31BA   CD 10 3B               CALL   execStr   
+31BD   3A 61 3A 62 20 7B 31 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   ":a:b {1 $b= $b}; x= 2 x^"   
+31D6                          ;*Macro unroll:  expect ":a:b {1 $b= $b}; x= 2 x^",1
+31D6   E1                     POP   HL   
+31D7   E5                     PUSH   HL   
+31D8   11 01 00               LD   DE,1   
+31DB   B7                     OR   A   
+31DC   ED 52                  SBC   HL,DE   
+31DE   7D                     LD   A,L   
+31DF   B4                     OR   H   
+31E0   28 63                  JR   Z,expectM_0_2228S43   
+31E2   CD 8E 09               CALL   printStr   
+31E5   43 6F 64 65 3A 20 3A 61 3A 62 20 7B 31 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "Code: ",":a:b {1 $b= $b}; x= 2 x^"   
+3204   CD 8E 09               CALL   printStr   
+3207   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3216   21 01 00               LD   HL,1   
+3219   CD DC 08               CALL   prtdec   
+321C   CD 8E 09               CALL   printStr   
+321F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+322C   E1                     POP   hl   
+322D   E5                     PUSH   hl   
+322E   CD DC 08               CALL   prtdec   
+3231   E1                     POP   hl   
+3232   CD 8E 09               CALL   printStr   
+3235   20 28 23 00            .CSTR   " (#"   
+3239   CD 24 09               CALL   prthex   
+323C   CD 8E 09               CALL   printStr   
+323F   29 0D 0A 00            .CSTR   ")\r\n"   
+3243   76                     HALT      
+3244   00                     .CSTR      
+3245                EXPECTM_0_2228S43:      
+3245   E1                     POP   HL   
+3246                          ;*Macro unroll:  test ":a:b {$a $b= $b}; x= 2 x^", 2
+3246   31 80 3C               LD   SP,STACK   
+3249   CD 95 09               CALL   init   
+324C   CD 10 3B               CALL   execStr   
+324F   3A 61 3A 62 20 7B 24 61 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   ":a:b {$a $b= $b}; x= 2 x^"   
+3269                          ;*Macro unroll:  expect ":a:b {$a $b= $b}; x= 2 x^",2
 3269   E1                     POP   HL   
-326A                          ;*Macro unroll:  test "\\a:b {$a $b= $b} ; x= 2 x^", 2
-326A   31 80 3C               LD   SP,STACK   
-326D   CD 95 09               CALL   init   
-3270   CD 44 3B               CALL   execStr   
-3273   5C 61 3A 62 20 7B 24 61 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "\\a:b {$a $b= $b} ; x= 2 x^"   
-328E                          ;*Macro unroll:  expect "\\a:b {$a $b= $b} ; x= 2 x^",2
-328E   E1                     POP   HL   
-328F   E5                     PUSH   HL   
-3290   11 02 00               LD   DE,2   
-3293   B7                     OR   A   
-3294   ED 52                  SBC   HL,DE   
-3296   7D                     LD   A,L   
-3297   B4                     OR   H   
-3298   28 65                  JR   Z,expectM_0_2229S43   
-329A   CD 8E 09               CALL   printStr   
-329D   43 6F 64 65 3A 20 5C 61 3A 62 20 7B 24 61 20 24 62 3D 20 24 62 7D 20 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "Code: ","\\a:b {$a $b= $b} ; x= 2 x^"   
-32BE   CD 8E 09               CALL   printStr   
-32C1   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-32D0   21 02 00               LD   HL,2   
-32D3   CD DC 08               CALL   prtdec   
-32D6   CD 8E 09               CALL   printStr   
-32D9   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-32E6   E1                     POP   hl   
-32E7   E5                     PUSH   hl   
-32E8   CD DC 08               CALL   prtdec   
-32EB   E1                     POP   hl   
-32EC   CD 8E 09               CALL   printStr   
-32EF   20 28 23 00            .CSTR   " (#"   
-32F3   CD 24 09               CALL   prthex   
-32F6   CD 8E 09               CALL   printStr   
-32F9   29 0D 0A 00            .CSTR   ")\r\n"   
-32FD   76                     HALT      
-32FE   00                     .CSTR      
-32FF                EXPECTM_0_2229S43:      
-32FF   E1                     POP   HL   
-3300                          ;*Macro unroll:  test "1 10 20 \\ab {/t {$a} {$b} ??} ;^ +", 11
-3300   31 80 3C               LD   SP,STACK   
-3303   CD 95 09               CALL   init   
-3306   CD 44 3B               CALL   execStr   
-3309   31 20 31 30 20 32 30 20 5C 61 62 20 7B 2F 74 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 20 3B 5E 20 2B 00 .CSTR   "1 10 20 \\ab {/t {$a} {$b} ??} ;^ +"   
-332C                          ;*Macro unroll:  expect "1 10 20 \\ab {/t {$a} {$b} ??} ;^ +",11
-332C   E1                     POP   HL   
-332D   E5                     PUSH   HL   
-332E   11 0B 00               LD   DE,11   
-3331   B7                     OR   A   
-3332   ED 52                  SBC   HL,DE   
-3334   7D                     LD   A,L   
-3335   B4                     OR   H   
-3336   28 6D                  JR   Z,expectM_0_2230S43   
-3338   CD 8E 09               CALL   printStr   
-333B   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 5C 61 62 20 7B 2F 74 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 20 3B 5E 20 2B 00 .CSTR   "Code: ","1 10 20 \\ab {/t {$a} {$b} ??} ;^ +"   
-3364   CD 8E 09               CALL   printStr   
-3367   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3376   21 0B 00               LD   HL,11   
-3379   CD DC 08               CALL   prtdec   
-337C   CD 8E 09               CALL   printStr   
-337F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-338C   E1                     POP   hl   
-338D   E5                     PUSH   hl   
-338E   CD DC 08               CALL   prtdec   
-3391   E1                     POP   hl   
-3392   CD 8E 09               CALL   printStr   
-3395   20 28 23 00            .CSTR   " (#"   
-3399   CD 24 09               CALL   prthex   
-339C   CD 8E 09               CALL   printStr   
-339F   29 0D 0A 00            .CSTR   ")\r\n"   
-33A3   76                     HALT      
-33A4   00                     .CSTR      
-33A5                EXPECTM_0_2230S43:      
-33A5   E1                     POP   HL   
-33A6                          ;*Macro unroll:  test "1 10 20 \\ab {/f {$a} {$b} ??} ;^ +", 21
-33A6   31 80 3C               LD   SP,STACK   
-33A9   CD 95 09               CALL   init   
-33AC   CD 44 3B               CALL   execStr   
-33AF   31 20 31 30 20 32 30 20 5C 61 62 20 7B 2F 66 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 20 3B 5E 20 2B 00 .CSTR   "1 10 20 \\ab {/f {$a} {$b} ??} ;^ +"   
-33D2                          ;*Macro unroll:  expect "1 10 20 \\ab {/f {$a} {$b} ??} ;^ +",21
-33D2   E1                     POP   HL   
-33D3   E5                     PUSH   HL   
-33D4   11 15 00               LD   DE,21   
-33D7   B7                     OR   A   
-33D8   ED 52                  SBC   HL,DE   
-33DA   7D                     LD   A,L   
-33DB   B4                     OR   H   
-33DC   28 6D                  JR   Z,expectM_0_2231S43   
-33DE   CD 8E 09               CALL   printStr   
-33E1   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 5C 61 62 20 7B 2F 66 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 20 3B 5E 20 2B 00 .CSTR   "Code: ","1 10 20 \\ab {/f {$a} {$b} ??} ;^ +"   
-340A   CD 8E 09               CALL   printStr   
-340D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-341C   21 15 00               LD   HL,21   
-341F   CD DC 08               CALL   prtdec   
-3422   CD 8E 09               CALL   printStr   
-3425   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3432   E1                     POP   hl   
-3433   E5                     PUSH   hl   
-3434   CD DC 08               CALL   prtdec   
-3437   E1                     POP   hl   
-3438   CD 8E 09               CALL   printStr   
-343B   20 28 23 00            .CSTR   " (#"   
-343F   CD 24 09               CALL   prthex   
-3442   CD 8E 09               CALL   printStr   
-3445   29 0D 0A 00            .CSTR   ")\r\n"   
-3449   76                     HALT      
-344A   00                     .CSTR      
-344B                EXPECTM_0_2231S43:      
-344B   E1                     POP   HL   
-344C                          ;*Macro unroll:  test "[10 20 30] 1%", 20
-344C   31 80 3C               LD   SP,STACK   
-344F   CD 95 09               CALL   init   
-3452   CD 44 3B               CALL   execStr   
-3455   5B 31 30 20 32 30 20 33 30 5D 20 31 25 00 .CSTR   "[10 20 30] 1%"   
-3463                          ;*Macro unroll:  expect "[10 20 30] 1%",20
-3463   E1                     POP   HL   
-3464   E5                     PUSH   HL   
-3465   11 14 00               LD   DE,20   
-3468   B7                     OR   A   
-3469   ED 52                  SBC   HL,DE   
-346B   7D                     LD   A,L   
-346C   B4                     OR   H   
-346D   28 58                  JR   Z,expectM_0_2232S43   
-346F   CD 8E 09               CALL   printStr   
-3472   43 6F 64 65 3A 20 5B 31 30 20 32 30 20 33 30 5D 20 31 25 00 .CSTR   "Code: ","[10 20 30] 1%"   
-3486   CD 8E 09               CALL   printStr   
-3489   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3498   21 14 00               LD   HL,20   
-349B   CD DC 08               CALL   prtdec   
-349E   CD 8E 09               CALL   printStr   
-34A1   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-34AE   E1                     POP   hl   
-34AF   E5                     PUSH   hl   
-34B0   CD DC 08               CALL   prtdec   
-34B3   E1                     POP   hl   
-34B4   CD 8E 09               CALL   printStr   
-34B7   20 28 23 00            .CSTR   " (#"   
-34BB   CD 24 09               CALL   prthex   
-34BE   CD 8E 09               CALL   printStr   
-34C1   29 0D 0A 00            .CSTR   ")\r\n"   
-34C5   76                     HALT      
-34C6   00                     .CSTR      
-34C7                EXPECTM_0_2232S43:      
-34C7   E1                     POP   HL   
-34C8                          ;*Macro unroll:  test "/c [1 2 3] 1%", 2
-34C8   31 80 3C               LD   SP,STACK   
-34CB   CD 95 09               CALL   init   
-34CE   CD 44 3B               CALL   execStr   
-34D1   2F 63 20 5B 31 20 32 20 33 5D 20 31 25 00 .CSTR   "/c [1 2 3] 1%"   
-34DF                          ;*Macro unroll:  expect "/c [1 2 3] 1%",2
-34DF   E1                     POP   HL   
-34E0   E5                     PUSH   HL   
-34E1   11 02 00               LD   DE,2   
-34E4   B7                     OR   A   
-34E5   ED 52                  SBC   HL,DE   
-34E7   7D                     LD   A,L   
-34E8   B4                     OR   H   
-34E9   28 58                  JR   Z,expectM_0_2233S43   
-34EB   CD 8E 09               CALL   printStr   
-34EE   43 6F 64 65 3A 20 2F 63 20 5B 31 20 32 20 33 5D 20 31 25 00 .CSTR   "Code: ","/c [1 2 3] 1%"   
-3502   CD 8E 09               CALL   printStr   
-3505   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3514   21 02 00               LD   HL,2   
-3517   CD DC 08               CALL   prtdec   
-351A   CD 8E 09               CALL   printStr   
-351D   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-352A   E1                     POP   hl   
-352B   E5                     PUSH   hl   
-352C   CD DC 08               CALL   prtdec   
-352F   E1                     POP   hl   
-3530   CD 8E 09               CALL   printStr   
-3533   20 28 23 00            .CSTR   " (#"   
-3537   CD 24 09               CALL   prthex   
-353A   CD 8E 09               CALL   printStr   
-353D   29 0D 0A 00            .CSTR   ")\r\n"   
-3541   76                     HALT      
-3542   00                     .CSTR      
-3543                EXPECTM_0_2233S43:      
-3543   E1                     POP   HL   
-3544                          ;*Macro unroll:  test "/c ['A' 'B' 'C'] 1%", 66
-3544   31 80 3C               LD   SP,STACK   
-3547   CD 95 09               CALL   init   
-354A   CD 44 3B               CALL   execStr   
-354D   2F 63 20 5B 27 41 27 20 27 42 27 20 27 43 27 5D 20 31 25 00 .CSTR   "/c ['A' 'B' 'C'] 1%"   
-3561                          ;*Macro unroll:  expect "/c ['A' 'B' 'C'] 1%",66
-3561   E1                     POP   HL   
-3562   E5                     PUSH   HL   
-3563   11 42 00               LD   DE,66   
-3566   B7                     OR   A   
-3567   ED 52                  SBC   HL,DE   
-3569   7D                     LD   A,L   
-356A   B4                     OR   H   
-356B   28 5E                  JR   Z,expectM_0_2234S43   
-356D   CD 8E 09               CALL   printStr   
-3570   43 6F 64 65 3A 20 2F 63 20 5B 27 41 27 20 27 42 27 20 27 43 27 5D 20 31 25 00 .CSTR   "Code: ","/c ['A' 'B' 'C'] 1%"   
-358A   CD 8E 09               CALL   printStr   
-358D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-359C   21 42 00               LD   HL,66   
-359F   CD DC 08               CALL   prtdec   
-35A2   CD 8E 09               CALL   printStr   
-35A5   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-35B2   E1                     POP   hl   
-35B3   E5                     PUSH   hl   
-35B4   CD DC 08               CALL   prtdec   
-35B7   E1                     POP   hl   
-35B8   CD 8E 09               CALL   printStr   
-35BB   20 28 23 00            .CSTR   " (#"   
-35BF   CD 24 09               CALL   prthex   
-35C2   CD 8E 09               CALL   printStr   
-35C5   29 0D 0A 00            .CSTR   ")\r\n"   
-35C9   76                     HALT      
-35CA   00                     .CSTR      
-35CB                EXPECTM_0_2234S43:      
-35CB   E1                     POP   HL   
-35CC                          ;*Macro unroll:  test "[{10} {20} {30}] 0%^ ", 10
-35CC   31 80 3C               LD   SP,STACK   
-35CF   CD 95 09               CALL   init   
-35D2   CD 44 3B               CALL   execStr   
-35D5   5B 7B 31 30 7D 20 7B 32 30 7D 20 7B 33 30 7D 5D 20 30 25 5E 20 00 .CSTR   "[{10} {20} {30}] 0%^ "   
-35EB                          ;*Macro unroll:  expect "[{10} {20} {30}] 0%^ ",10
-35EB   E1                     POP   HL   
-35EC   E5                     PUSH   HL   
-35ED   11 0A 00               LD   DE,10   
-35F0   B7                     OR   A   
-35F1   ED 52                  SBC   HL,DE   
-35F3   7D                     LD   A,L   
-35F4   B4                     OR   H   
-35F5   28 60                  JR   Z,expectM_0_2235S43   
-35F7   CD 8E 09               CALL   printStr   
-35FA   43 6F 64 65 3A 20 5B 7B 31 30 7D 20 7B 32 30 7D 20 7B 33 30 7D 5D 20 30 25 5E 20 00 .CSTR   "Code: ","[{10} {20} {30}] 0%^ "   
-3616   CD 8E 09               CALL   printStr   
-3619   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3628   21 0A 00               LD   HL,10   
-362B   CD DC 08               CALL   prtdec   
-362E   CD 8E 09               CALL   printStr   
-3631   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-363E   E1                     POP   hl   
-363F   E5                     PUSH   hl   
-3640   CD DC 08               CALL   prtdec   
-3643   E1                     POP   hl   
-3644   CD 8E 09               CALL   printStr   
-3647   20 28 23 00            .CSTR   " (#"   
-364B   CD 24 09               CALL   prthex   
-364E   CD 8E 09               CALL   printStr   
-3651   29 0D 0A 00            .CSTR   ")\r\n"   
-3655   76                     HALT      
-3656   00                     .CSTR      
-3657                EXPECTM_0_2235S43:      
+326A   E5                     PUSH   HL   
+326B   11 02 00               LD   DE,2   
+326E   B7                     OR   A   
+326F   ED 52                  SBC   HL,DE   
+3271   7D                     LD   A,L   
+3272   B4                     OR   H   
+3273   28 64                  JR   Z,expectM_0_2229S43   
+3275   CD 8E 09               CALL   printStr   
+3278   43 6F 64 65 3A 20 3A 61 3A 62 20 7B 24 61 20 24 62 3D 20 24 62 7D 3B 20 78 3D 20 32 20 78 5E 00 .CSTR   "Code: ",":a:b {$a $b= $b}; x= 2 x^"   
+3298   CD 8E 09               CALL   printStr   
+329B   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+32AA   21 02 00               LD   HL,2   
+32AD   CD DC 08               CALL   prtdec   
+32B0   CD 8E 09               CALL   printStr   
+32B3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+32C0   E1                     POP   hl   
+32C1   E5                     PUSH   hl   
+32C2   CD DC 08               CALL   prtdec   
+32C5   E1                     POP   hl   
+32C6   CD 8E 09               CALL   printStr   
+32C9   20 28 23 00            .CSTR   " (#"   
+32CD   CD 24 09               CALL   prthex   
+32D0   CD 8E 09               CALL   printStr   
+32D3   29 0D 0A 00            .CSTR   ")\r\n"   
+32D7   76                     HALT      
+32D8   00                     .CSTR      
+32D9                EXPECTM_0_2229S43:      
+32D9   E1                     POP   HL   
+32DA                          ;*Macro unroll:  test "1 10 20 :ab {/t {$a} {$b} ??};^ +", 11
+32DA   31 80 3C               LD   SP,STACK   
+32DD   CD 95 09               CALL   init   
+32E0   CD 10 3B               CALL   execStr   
+32E3   31 20 31 30 20 32 30 20 3A 61 62 20 7B 2F 74 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 3B 5E 20 2B 00 .CSTR   "1 10 20 :ab {/t {$a} {$b} ??};^ +"   
+3305                          ;*Macro unroll:  expect "1 10 20 :ab {/t {$a} {$b} ??};^ +",11
+3305   E1                     POP   HL   
+3306   E5                     PUSH   HL   
+3307   11 0B 00               LD   DE,11   
+330A   B7                     OR   A   
+330B   ED 52                  SBC   HL,DE   
+330D   7D                     LD   A,L   
+330E   B4                     OR   H   
+330F   28 6C                  JR   Z,expectM_0_2230S43   
+3311   CD 8E 09               CALL   printStr   
+3314   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 3A 61 62 20 7B 2F 74 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 3B 5E 20 2B 00 .CSTR   "Code: ","1 10 20 :ab {/t {$a} {$b} ??};^ +"   
+333C   CD 8E 09               CALL   printStr   
+333F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+334E   21 0B 00               LD   HL,11   
+3351   CD DC 08               CALL   prtdec   
+3354   CD 8E 09               CALL   printStr   
+3357   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3364   E1                     POP   hl   
+3365   E5                     PUSH   hl   
+3366   CD DC 08               CALL   prtdec   
+3369   E1                     POP   hl   
+336A   CD 8E 09               CALL   printStr   
+336D   20 28 23 00            .CSTR   " (#"   
+3371   CD 24 09               CALL   prthex   
+3374   CD 8E 09               CALL   printStr   
+3377   29 0D 0A 00            .CSTR   ")\r\n"   
+337B   76                     HALT      
+337C   00                     .CSTR      
+337D                EXPECTM_0_2230S43:      
+337D   E1                     POP   HL   
+337E                          ;*Macro unroll:  test "1 10 20 :ab {/f {$a} {$b} ??};^ +", 21
+337E   31 80 3C               LD   SP,STACK   
+3381   CD 95 09               CALL   init   
+3384   CD 10 3B               CALL   execStr   
+3387   31 20 31 30 20 32 30 20 3A 61 62 20 7B 2F 66 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 3B 5E 20 2B 00 .CSTR   "1 10 20 :ab {/f {$a} {$b} ??};^ +"   
+33A9                          ;*Macro unroll:  expect "1 10 20 :ab {/f {$a} {$b} ??};^ +",21
+33A9   E1                     POP   HL   
+33AA   E5                     PUSH   HL   
+33AB   11 15 00               LD   DE,21   
+33AE   B7                     OR   A   
+33AF   ED 52                  SBC   HL,DE   
+33B1   7D                     LD   A,L   
+33B2   B4                     OR   H   
+33B3   28 6C                  JR   Z,expectM_0_2231S43   
+33B5   CD 8E 09               CALL   printStr   
+33B8   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 3A 61 62 20 7B 2F 66 20 7B 24 61 7D 20 7B 24 62 7D 20 3F 3F 7D 3B 5E 20 2B 00 .CSTR   "Code: ","1 10 20 :ab {/f {$a} {$b} ??};^ +"   
+33E0   CD 8E 09               CALL   printStr   
+33E3   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+33F2   21 15 00               LD   HL,21   
+33F5   CD DC 08               CALL   prtdec   
+33F8   CD 8E 09               CALL   printStr   
+33FB   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3408   E1                     POP   hl   
+3409   E5                     PUSH   hl   
+340A   CD DC 08               CALL   prtdec   
+340D   E1                     POP   hl   
+340E   CD 8E 09               CALL   printStr   
+3411   20 28 23 00            .CSTR   " (#"   
+3415   CD 24 09               CALL   prthex   
+3418   CD 8E 09               CALL   printStr   
+341B   29 0D 0A 00            .CSTR   ")\r\n"   
+341F   76                     HALT      
+3420   00                     .CSTR      
+3421                EXPECTM_0_2231S43:      
+3421   E1                     POP   HL   
+3422                          ;*Macro unroll:  test "[10 20 30] 1%", 20
+3422   31 80 3C               LD   SP,STACK   
+3425   CD 95 09               CALL   init   
+3428   CD 10 3B               CALL   execStr   
+342B   5B 31 30 20 32 30 20 33 30 5D 20 31 25 00 .CSTR   "[10 20 30] 1%"   
+3439                          ;*Macro unroll:  expect "[10 20 30] 1%",20
+3439   E1                     POP   HL   
+343A   E5                     PUSH   HL   
+343B   11 14 00               LD   DE,20   
+343E   B7                     OR   A   
+343F   ED 52                  SBC   HL,DE   
+3441   7D                     LD   A,L   
+3442   B4                     OR   H   
+3443   28 58                  JR   Z,expectM_0_2232S43   
+3445   CD 8E 09               CALL   printStr   
+3448   43 6F 64 65 3A 20 5B 31 30 20 32 30 20 33 30 5D 20 31 25 00 .CSTR   "Code: ","[10 20 30] 1%"   
+345C   CD 8E 09               CALL   printStr   
+345F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+346E   21 14 00               LD   HL,20   
+3471   CD DC 08               CALL   prtdec   
+3474   CD 8E 09               CALL   printStr   
+3477   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3484   E1                     POP   hl   
+3485   E5                     PUSH   hl   
+3486   CD DC 08               CALL   prtdec   
+3489   E1                     POP   hl   
+348A   CD 8E 09               CALL   printStr   
+348D   20 28 23 00            .CSTR   " (#"   
+3491   CD 24 09               CALL   prthex   
+3494   CD 8E 09               CALL   printStr   
+3497   29 0D 0A 00            .CSTR   ")\r\n"   
+349B   76                     HALT      
+349C   00                     .CSTR      
+349D                EXPECTM_0_2232S43:      
+349D   E1                     POP   HL   
+349E                          ;*Macro unroll:  test "/c [1 2 3] 1%", 2
+349E   31 80 3C               LD   SP,STACK   
+34A1   CD 95 09               CALL   init   
+34A4   CD 10 3B               CALL   execStr   
+34A7   2F 63 20 5B 31 20 32 20 33 5D 20 31 25 00 .CSTR   "/c [1 2 3] 1%"   
+34B5                          ;*Macro unroll:  expect "/c [1 2 3] 1%",2
+34B5   E1                     POP   HL   
+34B6   E5                     PUSH   HL   
+34B7   11 02 00               LD   DE,2   
+34BA   B7                     OR   A   
+34BB   ED 52                  SBC   HL,DE   
+34BD   7D                     LD   A,L   
+34BE   B4                     OR   H   
+34BF   28 58                  JR   Z,expectM_0_2233S43   
+34C1   CD 8E 09               CALL   printStr   
+34C4   43 6F 64 65 3A 20 2F 63 20 5B 31 20 32 20 33 5D 20 31 25 00 .CSTR   "Code: ","/c [1 2 3] 1%"   
+34D8   CD 8E 09               CALL   printStr   
+34DB   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+34EA   21 02 00               LD   HL,2   
+34ED   CD DC 08               CALL   prtdec   
+34F0   CD 8E 09               CALL   printStr   
+34F3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3500   E1                     POP   hl   
+3501   E5                     PUSH   hl   
+3502   CD DC 08               CALL   prtdec   
+3505   E1                     POP   hl   
+3506   CD 8E 09               CALL   printStr   
+3509   20 28 23 00            .CSTR   " (#"   
+350D   CD 24 09               CALL   prthex   
+3510   CD 8E 09               CALL   printStr   
+3513   29 0D 0A 00            .CSTR   ")\r\n"   
+3517   76                     HALT      
+3518   00                     .CSTR      
+3519                EXPECTM_0_2233S43:      
+3519   E1                     POP   HL   
+351A                          ;*Macro unroll:  test "/c ['A' 'B' 'C'] 1%", 66
+351A   31 80 3C               LD   SP,STACK   
+351D   CD 95 09               CALL   init   
+3520   CD 10 3B               CALL   execStr   
+3523   2F 63 20 5B 27 41 27 20 27 42 27 20 27 43 27 5D 20 31 25 00 .CSTR   "/c ['A' 'B' 'C'] 1%"   
+3537                          ;*Macro unroll:  expect "/c ['A' 'B' 'C'] 1%",66
+3537   E1                     POP   HL   
+3538   E5                     PUSH   HL   
+3539   11 42 00               LD   DE,66   
+353C   B7                     OR   A   
+353D   ED 52                  SBC   HL,DE   
+353F   7D                     LD   A,L   
+3540   B4                     OR   H   
+3541   28 5E                  JR   Z,expectM_0_2234S43   
+3543   CD 8E 09               CALL   printStr   
+3546   43 6F 64 65 3A 20 2F 63 20 5B 27 41 27 20 27 42 27 20 27 43 27 5D 20 31 25 00 .CSTR   "Code: ","/c ['A' 'B' 'C'] 1%"   
+3560   CD 8E 09               CALL   printStr   
+3563   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3572   21 42 00               LD   HL,66   
+3575   CD DC 08               CALL   prtdec   
+3578   CD 8E 09               CALL   printStr   
+357B   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3588   E1                     POP   hl   
+3589   E5                     PUSH   hl   
+358A   CD DC 08               CALL   prtdec   
+358D   E1                     POP   hl   
+358E   CD 8E 09               CALL   printStr   
+3591   20 28 23 00            .CSTR   " (#"   
+3595   CD 24 09               CALL   prthex   
+3598   CD 8E 09               CALL   printStr   
+359B   29 0D 0A 00            .CSTR   ")\r\n"   
+359F   76                     HALT      
+35A0   00                     .CSTR      
+35A1                EXPECTM_0_2234S43:      
+35A1   E1                     POP   HL   
+35A2                          ;*Macro unroll:  test "[{10} {20} {30}] 0%^ ", 10
+35A2   31 80 3C               LD   SP,STACK   
+35A5   CD 95 09               CALL   init   
+35A8   CD 10 3B               CALL   execStr   
+35AB   5B 7B 31 30 7D 20 7B 32 30 7D 20 7B 33 30 7D 5D 20 30 25 5E 20 00 .CSTR   "[{10} {20} {30}] 0%^ "   
+35C1                          ;*Macro unroll:  expect "[{10} {20} {30}] 0%^ ",10
+35C1   E1                     POP   HL   
+35C2   E5                     PUSH   HL   
+35C3   11 0A 00               LD   DE,10   
+35C6   B7                     OR   A   
+35C7   ED 52                  SBC   HL,DE   
+35C9   7D                     LD   A,L   
+35CA   B4                     OR   H   
+35CB   28 60                  JR   Z,expectM_0_2235S43   
+35CD   CD 8E 09               CALL   printStr   
+35D0   43 6F 64 65 3A 20 5B 7B 31 30 7D 20 7B 32 30 7D 20 7B 33 30 7D 5D 20 30 25 5E 20 00 .CSTR   "Code: ","[{10} {20} {30}] 0%^ "   
+35EC   CD 8E 09               CALL   printStr   
+35EF   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+35FE   21 0A 00               LD   HL,10   
+3601   CD DC 08               CALL   prtdec   
+3604   CD 8E 09               CALL   printStr   
+3607   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3614   E1                     POP   hl   
+3615   E5                     PUSH   hl   
+3616   CD DC 08               CALL   prtdec   
+3619   E1                     POP   hl   
+361A   CD 8E 09               CALL   printStr   
+361D   20 28 23 00            .CSTR   " (#"   
+3621   CD 24 09               CALL   prthex   
+3624   CD 8E 09               CALL   printStr   
+3627   29 0D 0A 00            .CSTR   ")\r\n"   
+362B   76                     HALT      
+362C   00                     .CSTR      
+362D                EXPECTM_0_2235S43:      
+362D   E1                     POP   HL   
+362E                          ;*Macro unroll:  test "10 20 :ab { [{$a} {$b}] 0%^ };^", 10
+362E   31 80 3C               LD   SP,STACK   
+3631   CD 95 09               CALL   init   
+3634   CD 10 3B               CALL   execStr   
+3637   31 30 20 32 30 20 3A 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 30 25 5E 20 7D 3B 5E 00 .CSTR   "10 20 :ab { [{$a} {$b}] 0%^ };^"   
+3657                          ;*Macro unroll:  expect "10 20 :ab { [{$a} {$b}] 0%^ };^",10
 3657   E1                     POP   HL   
-3658                          ;*Macro unroll:  test "10 20 \\ab { [{$a} {$b}] 0%^ } ;^", 10
-3658   31 80 3C               LD   SP,STACK   
-365B   CD 95 09               CALL   init   
-365E   CD 44 3B               CALL   execStr   
-3661   31 30 20 32 30 20 5C 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 30 25 5E 20 7D 20 3B 5E 00 .CSTR   "10 20 \\ab { [{$a} {$b}] 0%^ } ;^"   
-3682                          ;*Macro unroll:  expect "10 20 \\ab { [{$a} {$b}] 0%^ } ;^",10
-3682   E1                     POP   HL   
-3683   E5                     PUSH   HL   
-3684   11 0A 00               LD   DE,10   
-3687   B7                     OR   A   
-3688   ED 52                  SBC   HL,DE   
-368A   7D                     LD   A,L   
-368B   B4                     OR   H   
-368C   28 6B                  JR   Z,expectM_0_2236S43   
-368E   CD 8E 09               CALL   printStr   
-3691   43 6F 64 65 3A 20 31 30 20 32 30 20 5C 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 30 25 5E 20 7D 20 3B 5E 00 .CSTR   "Code: ","10 20 \\ab { [{$a} {$b}] 0%^ } ;^"   
-36B8   CD 8E 09               CALL   printStr   
-36BB   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-36CA   21 0A 00               LD   HL,10   
-36CD   CD DC 08               CALL   prtdec   
-36D0   CD 8E 09               CALL   printStr   
-36D3   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-36E0   E1                     POP   hl   
-36E1   E5                     PUSH   hl   
-36E2   CD DC 08               CALL   prtdec   
-36E5   E1                     POP   hl   
-36E6   CD 8E 09               CALL   printStr   
-36E9   20 28 23 00            .CSTR   " (#"   
-36ED   CD 24 09               CALL   prthex   
-36F0   CD 8E 09               CALL   printStr   
-36F3   29 0D 0A 00            .CSTR   ")\r\n"   
-36F7   76                     HALT      
-36F8   00                     .CSTR      
-36F9                EXPECTM_0_2236S43:      
-36F9   E1                     POP   HL   
-36FA                          ;*Macro unroll:  test "0 10 20 \\iab { [{$a} {$b}] $i%^ } ;^", 10
-36FA   31 80 3C               LD   SP,STACK   
-36FD   CD 95 09               CALL   init   
-3700   CD 44 3B               CALL   execStr   
-3703   30 20 31 30 20 32 30 20 5C 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 20 3B 5E 00 .CSTR   "0 10 20 \\iab { [{$a} {$b}] $i%^ } ;^"   
-3728                          ;*Macro unroll:  expect "0 10 20 \\iab { [{$a} {$b}] $i%^ } ;^",10
-3728   E1                     POP   HL   
-3729   E5                     PUSH   HL   
-372A   11 0A 00               LD   DE,10   
-372D   B7                     OR   A   
-372E   ED 52                  SBC   HL,DE   
-3730   7D                     LD   A,L   
-3731   B4                     OR   H   
-3732   28 6F                  JR   Z,expectM_0_2237S43   
+3658   E5                     PUSH   HL   
+3659   11 0A 00               LD   DE,10   
+365C   B7                     OR   A   
+365D   ED 52                  SBC   HL,DE   
+365F   7D                     LD   A,L   
+3660   B4                     OR   H   
+3661   28 6A                  JR   Z,expectM_0_2236S43   
+3663   CD 8E 09               CALL   printStr   
+3666   43 6F 64 65 3A 20 31 30 20 32 30 20 3A 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 30 25 5E 20 7D 3B 5E 00 .CSTR   "Code: ","10 20 :ab { [{$a} {$b}] 0%^ };^"   
+368C   CD 8E 09               CALL   printStr   
+368F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+369E   21 0A 00               LD   HL,10   
+36A1   CD DC 08               CALL   prtdec   
+36A4   CD 8E 09               CALL   printStr   
+36A7   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+36B4   E1                     POP   hl   
+36B5   E5                     PUSH   hl   
+36B6   CD DC 08               CALL   prtdec   
+36B9   E1                     POP   hl   
+36BA   CD 8E 09               CALL   printStr   
+36BD   20 28 23 00            .CSTR   " (#"   
+36C1   CD 24 09               CALL   prthex   
+36C4   CD 8E 09               CALL   printStr   
+36C7   29 0D 0A 00            .CSTR   ")\r\n"   
+36CB   76                     HALT      
+36CC   00                     .CSTR      
+36CD                EXPECTM_0_2236S43:      
+36CD   E1                     POP   HL   
+36CE                          ;*Macro unroll:  test "0 10 20 :iab { [{$a} {$b}] $i%^ };^", 10
+36CE   31 80 3C               LD   SP,STACK   
+36D1   CD 95 09               CALL   init   
+36D4   CD 10 3B               CALL   execStr   
+36D7   30 20 31 30 20 32 30 20 3A 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 3B 5E 00 .CSTR   "0 10 20 :iab { [{$a} {$b}] $i%^ };^"   
+36FB                          ;*Macro unroll:  expect "0 10 20 :iab { [{$a} {$b}] $i%^ };^",10
+36FB   E1                     POP   HL   
+36FC   E5                     PUSH   HL   
+36FD   11 0A 00               LD   DE,10   
+3700   B7                     OR   A   
+3701   ED 52                  SBC   HL,DE   
+3703   7D                     LD   A,L   
+3704   B4                     OR   H   
+3705   28 6E                  JR   Z,expectM_0_2237S43   
+3707   CD 8E 09               CALL   printStr   
+370A   43 6F 64 65 3A 20 30 20 31 30 20 32 30 20 3A 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 3B 5E 00 .CSTR   "Code: ","0 10 20 :iab { [{$a} {$b}] $i%^ };^"   
 3734   CD 8E 09               CALL   printStr   
-3737   43 6F 64 65 3A 20 30 20 31 30 20 32 30 20 5C 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 20 3B 5E 00 .CSTR   "Code: ","0 10 20 \\iab { [{$a} {$b}] $i%^ } ;^"   
+3737   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3746   21 0A 00               LD   HL,10   
+3749   CD DC 08               CALL   prtdec   
+374C   CD 8E 09               CALL   printStr   
+374F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+375C   E1                     POP   hl   
+375D   E5                     PUSH   hl   
+375E   CD DC 08               CALL   prtdec   
+3761   E1                     POP   hl   
 3762   CD 8E 09               CALL   printStr   
-3765   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3774   21 0A 00               LD   HL,10   
-3777   CD DC 08               CALL   prtdec   
-377A   CD 8E 09               CALL   printStr   
-377D   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-378A   E1                     POP   hl   
-378B   E5                     PUSH   hl   
-378C   CD DC 08               CALL   prtdec   
-378F   E1                     POP   hl   
-3790   CD 8E 09               CALL   printStr   
-3793   20 28 23 00            .CSTR   " (#"   
-3797   CD 24 09               CALL   prthex   
-379A   CD 8E 09               CALL   printStr   
-379D   29 0D 0A 00            .CSTR   ")\r\n"   
-37A1   76                     HALT      
-37A2   00                     .CSTR      
-37A3                EXPECTM_0_2237S43:      
+3765   20 28 23 00            .CSTR   " (#"   
+3769   CD 24 09               CALL   prthex   
+376C   CD 8E 09               CALL   printStr   
+376F   29 0D 0A 00            .CSTR   ")\r\n"   
+3773   76                     HALT      
+3774   00                     .CSTR      
+3775                EXPECTM_0_2237S43:      
+3775   E1                     POP   HL   
+3776                          ;*Macro unroll:  test "1 10 20 :iab { [{$a} {$b}] $i%^ };^", 20
+3776   31 80 3C               LD   SP,STACK   
+3779   CD 95 09               CALL   init   
+377C   CD 10 3B               CALL   execStr   
+377F   31 20 31 30 20 32 30 20 3A 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 3B 5E 00 .CSTR   "1 10 20 :iab { [{$a} {$b}] $i%^ };^"   
+37A3                          ;*Macro unroll:  expect "1 10 20 :iab { [{$a} {$b}] $i%^ };^",20
 37A3   E1                     POP   HL   
-37A4                          ;*Macro unroll:  test "1 10 20 \\iab { [{$a} {$b}] $i%^ } ;^", 20
-37A4   31 80 3C               LD   SP,STACK   
-37A7   CD 95 09               CALL   init   
-37AA   CD 44 3B               CALL   execStr   
-37AD   31 20 31 30 20 32 30 20 5C 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 20 3B 5E 00 .CSTR   "1 10 20 \\iab { [{$a} {$b}] $i%^ } ;^"   
-37D2                          ;*Macro unroll:  expect "1 10 20 \\iab { [{$a} {$b}] $i%^ } ;^",20
-37D2   E1                     POP   HL   
-37D3   E5                     PUSH   HL   
-37D4   11 14 00               LD   DE,20   
-37D7   B7                     OR   A   
-37D8   ED 52                  SBC   HL,DE   
-37DA   7D                     LD   A,L   
-37DB   B4                     OR   H   
-37DC   28 6F                  JR   Z,expectM_0_2238S43   
-37DE   CD 8E 09               CALL   printStr   
-37E1   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 5C 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 20 3B 5E 00 .CSTR   "Code: ","1 10 20 \\iab { [{$a} {$b}] $i%^ } ;^"   
-380C   CD 8E 09               CALL   printStr   
-380F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-381E   21 14 00               LD   HL,20   
-3821   CD DC 08               CALL   prtdec   
-3824   CD 8E 09               CALL   printStr   
-3827   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3834   E1                     POP   hl   
-3835   E5                     PUSH   hl   
-3836   CD DC 08               CALL   prtdec   
-3839   E1                     POP   hl   
-383A   CD 8E 09               CALL   printStr   
-383D   20 28 23 00            .CSTR   " (#"   
-3841   CD 24 09               CALL   prthex   
-3844   CD 8E 09               CALL   printStr   
-3847   29 0D 0A 00            .CSTR   ")\r\n"   
-384B   76                     HALT      
-384C   00                     .CSTR      
-384D                EXPECTM_0_2238S43:      
-384D   E1                     POP   HL   
-384E                          ;*Macro unroll:  test "5 [4] \\a {$a} ; /p ^", 4
-384E   31 80 3C               LD   SP,STACK   
-3851   CD 95 09               CALL   init   
-3854   CD 44 3B               CALL   execStr   
-3857   35 20 5B 34 5D 20 5C 61 20 7B 24 61 7D 20 3B 20 2F 70 20 5E 00 .CSTR   "5 [4] \\a {$a} ; /p ^"   
-386C                          ;*Macro unroll:  expect "5 [4] \\a {$a} ; /p ^",4
-386C   E1                     POP   HL   
-386D   E5                     PUSH   HL   
-386E   11 04 00               LD   DE,4   
-3871   B7                     OR   A   
-3872   ED 52                  SBC   HL,DE   
-3874   7D                     LD   A,L   
-3875   B4                     OR   H   
-3876   28 5F                  JR   Z,expectM_0_2239S43   
-3878   CD 8E 09               CALL   printStr   
-387B   43 6F 64 65 3A 20 35 20 5B 34 5D 20 5C 61 20 7B 24 61 7D 20 3B 20 2F 70 20 5E 00 .CSTR   "Code: ","5 [4] \\a {$a} ; /p ^"   
-3896   CD 8E 09               CALL   printStr   
-3899   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-38A8   21 04 00               LD   HL,4   
-38AB   CD DC 08               CALL   prtdec   
-38AE   CD 8E 09               CALL   printStr   
-38B1   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-38BE   E1                     POP   hl   
-38BF   E5                     PUSH   hl   
-38C0   CD DC 08               CALL   prtdec   
-38C3   E1                     POP   hl   
-38C4   CD 8E 09               CALL   printStr   
-38C7   20 28 23 00            .CSTR   " (#"   
-38CB   CD 24 09               CALL   prthex   
-38CE   CD 8E 09               CALL   printStr   
-38D1   29 0D 0A 00            .CSTR   ")\r\n"   
-38D5   76                     HALT      
-38D6   00                     .CSTR      
-38D7                EXPECTM_0_2239S43:      
-38D7   E1                     POP   HL   
-38D8                          ;*Macro unroll:  test "5 [4] \\ab {$a $b +} ; /p ^", 9
-38D8   31 80 3C               LD   SP,STACK   
-38DB   CD 95 09               CALL   init   
-38DE   CD 44 3B               CALL   execStr   
-38E1   35 20 5B 34 5D 20 5C 61 62 20 7B 24 61 20 24 62 20 2B 7D 20 3B 20 2F 70 20 5E 00 .CSTR   "5 [4] \\ab {$a $b +} ; /p ^"   
-38FC                          ;*Macro unroll:  expect "5 [4] \\ab {$a $b +} ; /p ^",9
-38FC   E1                     POP   HL   
-38FD   E5                     PUSH   HL   
-38FE   11 09 00               LD   DE,9   
-3901   B7                     OR   A   
-3902   ED 52                  SBC   HL,DE   
-3904   7D                     LD   A,L   
-3905   B4                     OR   H   
-3906   28 65                  JR   Z,expectM_0_2240S43   
-3908   CD 8E 09               CALL   printStr   
-390B   43 6F 64 65 3A 20 35 20 5B 34 5D 20 5C 61 62 20 7B 24 61 20 24 62 20 2B 7D 20 3B 20 2F 70 20 5E 00 .CSTR   "Code: ","5 [4] \\ab {$a $b +} ; /p ^"   
-392C   CD 8E 09               CALL   printStr   
-392F   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-393E   21 09 00               LD   HL,9   
-3941   CD DC 08               CALL   prtdec   
-3944   CD 8E 09               CALL   printStr   
-3947   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3954   E1                     POP   hl   
-3955   E5                     PUSH   hl   
-3956   CD DC 08               CALL   prtdec   
-3959   E1                     POP   hl   
-395A   CD 8E 09               CALL   printStr   
-395D   20 28 23 00            .CSTR   " (#"   
-3961   CD 24 09               CALL   prthex   
-3964   CD 8E 09               CALL   printStr   
-3967   29 0D 0A 00            .CSTR   ")\r\n"   
-396B   76                     HALT      
-396C   00                     .CSTR      
-396D                EXPECTM_0_2240S43:      
-396D   E1                     POP   HL   
-396E                          ;*Macro unroll:  test "3i= ( i/b i i-- )^ + +", 6
-396E   31 80 3C               LD   SP,STACK   
-3971   CD 95 09               CALL   init   
-3974   CD 44 3B               CALL   execStr   
-3977   33 69 3D 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 2B 20 2B 00 .CSTR   "3i= ( i/b i i-- )^ + +"   
-398E                          ;*Macro unroll:  expect "3i= ( i/b i i-- )^ + +",6
-398E   E1                     POP   HL   
-398F   E5                     PUSH   HL   
-3990   11 06 00               LD   DE,6   
-3993   B7                     OR   A   
-3994   ED 52                  SBC   HL,DE   
-3996   7D                     LD   A,L   
-3997   B4                     OR   H   
-3998   28 61                  JR   Z,expectM_0_2241S43   
-399A   CD 8E 09               CALL   printStr   
-399D   43 6F 64 65 3A 20 33 69 3D 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 2B 20 2B 00 .CSTR   "Code: ","3i= ( i/b i i-- )^ + +"   
-39BA   CD 8E 09               CALL   printStr   
-39BD   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-39CC   21 06 00               LD   HL,6   
-39CF   CD DC 08               CALL   prtdec   
-39D2   CD 8E 09               CALL   printStr   
-39D5   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-39E2   E1                     POP   hl   
-39E3   E5                     PUSH   hl   
-39E4   CD DC 08               CALL   prtdec   
-39E7   E1                     POP   hl   
-39E8   CD 8E 09               CALL   printStr   
-39EB   20 28 23 00            .CSTR   " (#"   
-39EF   CD 24 09               CALL   prthex   
-39F2   CD 8E 09               CALL   printStr   
-39F5   29 0D 0A 00            .CSTR   ")\r\n"   
-39F9   76                     HALT      
-39FA   00                     .CSTR      
-39FB                EXPECTM_0_2241S43:      
-39FB   E1                     POP   HL   
-39FC                          ;*Macro unroll:  test "3i= [ ( i/b i i-- )^ ] 1%", 2
-39FC   31 80 3C               LD   SP,STACK   
-39FF   CD 95 09               CALL   init   
-3A02   CD 44 3B               CALL   execStr   
-3A05   33 69 3D 20 5B 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 5D 20 31 25 00 .CSTR   "3i= [ ( i/b i i-- )^ ] 1%"   
-3A1F                          ;*Macro unroll:  expect "3i= [ ( i/b i i-- )^ ] 1%",2
-3A1F   E1                     POP   HL   
-3A20   E5                     PUSH   HL   
-3A21   11 02 00               LD   DE,2   
-3A24   B7                     OR   A   
-3A25   ED 52                  SBC   HL,DE   
-3A27   7D                     LD   A,L   
-3A28   B4                     OR   H   
-3A29   28 64                  JR   Z,expectM_0_2242S43   
-3A2B   CD 8E 09               CALL   printStr   
-3A2E   43 6F 64 65 3A 20 33 69 3D 20 5B 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 5D 20 31 25 00 .CSTR   "Code: ","3i= [ ( i/b i i-- )^ ] 1%"   
-3A4E   CD 8E 09               CALL   printStr   
-3A51   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3A60   21 02 00               LD   HL,2   
-3A63   CD DC 08               CALL   prtdec   
-3A66   CD 8E 09               CALL   printStr   
-3A69   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3A76   E1                     POP   hl   
-3A77   E5                     PUSH   hl   
-3A78   CD DC 08               CALL   prtdec   
-3A7B   E1                     POP   hl   
-3A7C   CD 8E 09               CALL   printStr   
-3A7F   20 28 23 00            .CSTR   " (#"   
-3A83   CD 24 09               CALL   prthex   
-3A86   CD 8E 09               CALL   printStr   
-3A89   29 0D 0A 00            .CSTR   ")\r\n"   
-3A8D   76                     HALT      
-3A8E   00                     .CSTR      
-3A8F                EXPECTM_0_2242S43:      
-3A8F   E1                     POP   HL   
-3A90                          ;*Macro unroll:  test "0 j= 4 i= ( i/b i j+= i i-- )^ j ", 10
-3A90   31 80 3C               LD   SP,STACK   
-3A93   CD 95 09               CALL   init   
-3A96   CD 44 3B               CALL   execStr   
-3A99   30 20 6A 3D 20 34 20 69 3D 20 28 20 69 2F 62 20 69 20 6A 2B 3D 20 69 20 69 2D 2D 20 29 5E 20 6A 20 00 .CSTR   "0 j= 4 i= ( i/b i j+= i i-- )^ j "   
-3ABB                          ;*Macro unroll:  expect "0 j= 4 i= ( i/b i j+= i i-- )^ j ",10
-3ABB   E1                     POP   HL   
-3ABC   E5                     PUSH   HL   
-3ABD   11 0A 00               LD   DE,10   
-3AC0   B7                     OR   A   
-3AC1   ED 52                  SBC   HL,DE   
-3AC3   7D                     LD   A,L   
-3AC4   B4                     OR   H   
-3AC5   28 6C                  JR   Z,expectM_0_2243S43   
-3AC7   CD 8E 09               CALL   printStr   
-3ACA   43 6F 64 65 3A 20 30 20 6A 3D 20 34 20 69 3D 20 28 20 69 2F 62 20 69 20 6A 2B 3D 20 69 20 69 2D 2D 20 29 5E 20 6A 20 00 .CSTR   "Code: ","0 j= 4 i= ( i/b i j+= i i-- )^ j "   
-3AF2   CD 8E 09               CALL   printStr   
-3AF5   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
-3B04   21 0A 00               LD   HL,10   
-3B07   CD DC 08               CALL   prtdec   
-3B0A   CD 8E 09               CALL   printStr   
-3B0D   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
-3B1A   E1                     POP   hl   
-3B1B   E5                     PUSH   hl   
-3B1C   CD DC 08               CALL   prtdec   
-3B1F   E1                     POP   hl   
-3B20   CD 8E 09               CALL   printStr   
-3B23   20 28 23 00            .CSTR   " (#"   
-3B27   CD 24 09               CALL   prthex   
-3B2A   CD 8E 09               CALL   printStr   
-3B2D   29 0D 0A 00            .CSTR   ")\r\n"   
-3B31   76                     HALT      
-3B32   00                     .CSTR      
-3B33                EXPECTM_0_2243S43:      
-3B33   E1                     POP   HL   
-3B34                             ; 
-3B34   CD 8E 09               CALL   printStr   
-3B37   44 6F 6E 65 21 00      .CSTR   "Done!"   
-3B3D   76                     HALT      
-3B3E                          ALIGN   2   
-3B3E                PRINTER:      
-3B3E   E1                     POP   hl   
-3B3F   CD DC 08               CALL   prtdec   
-3B42   DD E9                  JP   (ix)   
-3B44                             ; executes a null teminated string (null executes exit_)
-3B44                             ; the string should be immedaitely following the call
-3B44                EXECSTR:      ; create a root stack frame
-3B44   C1                     POP   bc   ; bc = code*
-3B45   0B                     DEC   bc   ; dec to prepare for next routine
-3B46   11 00 00               LD   de,0   
-3B49   D5                     PUSH   de   ; push fake IP
-3B4A   D5                     PUSH   de   ; push null arg_list*
-3B4B   D5                     PUSH   de   ; push null first_arg*
-3B4C   D5                     PUSH   de   ; push fake BP
-3B4D   DD E9                  JP   (ix)   
-3B4F                          ALIGN   $100   
+37A4   E5                     PUSH   HL   
+37A5   11 14 00               LD   DE,20   
+37A8   B7                     OR   A   
+37A9   ED 52                  SBC   HL,DE   
+37AB   7D                     LD   A,L   
+37AC   B4                     OR   H   
+37AD   28 6E                  JR   Z,expectM_0_2238S43   
+37AF   CD 8E 09               CALL   printStr   
+37B2   43 6F 64 65 3A 20 31 20 31 30 20 32 30 20 3A 69 61 62 20 7B 20 5B 7B 24 61 7D 20 7B 24 62 7D 5D 20 24 69 25 5E 20 7D 3B 5E 00 .CSTR   "Code: ","1 10 20 :iab { [{$a} {$b}] $i%^ };^"   
+37DC   CD 8E 09               CALL   printStr   
+37DF   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+37EE   21 14 00               LD   HL,20   
+37F1   CD DC 08               CALL   prtdec   
+37F4   CD 8E 09               CALL   printStr   
+37F7   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3804   E1                     POP   hl   
+3805   E5                     PUSH   hl   
+3806   CD DC 08               CALL   prtdec   
+3809   E1                     POP   hl   
+380A   CD 8E 09               CALL   printStr   
+380D   20 28 23 00            .CSTR   " (#"   
+3811   CD 24 09               CALL   prthex   
+3814   CD 8E 09               CALL   printStr   
+3817   29 0D 0A 00            .CSTR   ")\r\n"   
+381B   76                     HALT      
+381C   00                     .CSTR      
+381D                EXPECTM_0_2238S43:      
+381D   E1                     POP   HL   
+381E                          ;*Macro unroll:  test "5 [4] :a {$a}; /p ^", 4
+381E   31 80 3C               LD   SP,STACK   
+3821   CD 95 09               CALL   init   
+3824   CD 10 3B               CALL   execStr   
+3827   35 20 5B 34 5D 20 3A 61 20 7B 24 61 7D 3B 20 2F 70 20 5E 00 .CSTR   "5 [4] :a {$a}; /p ^"   
+383B                          ;*Macro unroll:  expect "5 [4] :a {$a}; /p ^",4
+383B   E1                     POP   HL   
+383C   E5                     PUSH   HL   
+383D   11 04 00               LD   DE,4   
+3840   B7                     OR   A   
+3841   ED 52                  SBC   HL,DE   
+3843   7D                     LD   A,L   
+3844   B4                     OR   H   
+3845   28 5E                  JR   Z,expectM_0_2239S43   
+3847   CD 8E 09               CALL   printStr   
+384A   43 6F 64 65 3A 20 35 20 5B 34 5D 20 3A 61 20 7B 24 61 7D 3B 20 2F 70 20 5E 00 .CSTR   "Code: ","5 [4] :a {$a}; /p ^"   
+3864   CD 8E 09               CALL   printStr   
+3867   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3876   21 04 00               LD   HL,4   
+3879   CD DC 08               CALL   prtdec   
+387C   CD 8E 09               CALL   printStr   
+387F   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+388C   E1                     POP   hl   
+388D   E5                     PUSH   hl   
+388E   CD DC 08               CALL   prtdec   
+3891   E1                     POP   hl   
+3892   CD 8E 09               CALL   printStr   
+3895   20 28 23 00            .CSTR   " (#"   
+3899   CD 24 09               CALL   prthex   
+389C   CD 8E 09               CALL   printStr   
+389F   29 0D 0A 00            .CSTR   ")\r\n"   
+38A3   76                     HALT      
+38A4   00                     .CSTR      
+38A5                EXPECTM_0_2239S43:      
+38A5   E1                     POP   HL   
+38A6                          ;*Macro unroll:  test "5 [4] :ab {$a $b +}; /p ^", 9
+38A6   31 80 3C               LD   SP,STACK   
+38A9   CD 95 09               CALL   init   
+38AC   CD 10 3B               CALL   execStr   
+38AF   35 20 5B 34 5D 20 3A 61 62 20 7B 24 61 20 24 62 20 2B 7D 3B 20 2F 70 20 5E 00 .CSTR   "5 [4] :ab {$a $b +}; /p ^"   
+38C9                          ;*Macro unroll:  expect "5 [4] :ab {$a $b +}; /p ^",9
+38C9   E1                     POP   HL   
+38CA   E5                     PUSH   HL   
+38CB   11 09 00               LD   DE,9   
+38CE   B7                     OR   A   
+38CF   ED 52                  SBC   HL,DE   
+38D1   7D                     LD   A,L   
+38D2   B4                     OR   H   
+38D3   28 64                  JR   Z,expectM_0_2240S43   
+38D5   CD 8E 09               CALL   printStr   
+38D8   43 6F 64 65 3A 20 35 20 5B 34 5D 20 3A 61 62 20 7B 24 61 20 24 62 20 2B 7D 3B 20 2F 70 20 5E 00 .CSTR   "Code: ","5 [4] :ab {$a $b +}; /p ^"   
+38F8   CD 8E 09               CALL   printStr   
+38FB   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+390A   21 09 00               LD   HL,9   
+390D   CD DC 08               CALL   prtdec   
+3910   CD 8E 09               CALL   printStr   
+3913   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3920   E1                     POP   hl   
+3921   E5                     PUSH   hl   
+3922   CD DC 08               CALL   prtdec   
+3925   E1                     POP   hl   
+3926   CD 8E 09               CALL   printStr   
+3929   20 28 23 00            .CSTR   " (#"   
+392D   CD 24 09               CALL   prthex   
+3930   CD 8E 09               CALL   printStr   
+3933   29 0D 0A 00            .CSTR   ")\r\n"   
+3937   76                     HALT      
+3938   00                     .CSTR      
+3939                EXPECTM_0_2240S43:      
+3939   E1                     POP   HL   
+393A                          ;*Macro unroll:  test "3i= ( i/b i i-- )^ + +", 6
+393A   31 80 3C               LD   SP,STACK   
+393D   CD 95 09               CALL   init   
+3940   CD 10 3B               CALL   execStr   
+3943   33 69 3D 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 2B 20 2B 00 .CSTR   "3i= ( i/b i i-- )^ + +"   
+395A                          ;*Macro unroll:  expect "3i= ( i/b i i-- )^ + +",6
+395A   E1                     POP   HL   
+395B   E5                     PUSH   HL   
+395C   11 06 00               LD   DE,6   
+395F   B7                     OR   A   
+3960   ED 52                  SBC   HL,DE   
+3962   7D                     LD   A,L   
+3963   B4                     OR   H   
+3964   28 61                  JR   Z,expectM_0_2241S43   
+3966   CD 8E 09               CALL   printStr   
+3969   43 6F 64 65 3A 20 33 69 3D 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 2B 20 2B 00 .CSTR   "Code: ","3i= ( i/b i i-- )^ + +"   
+3986   CD 8E 09               CALL   printStr   
+3989   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3998   21 06 00               LD   HL,6   
+399B   CD DC 08               CALL   prtdec   
+399E   CD 8E 09               CALL   printStr   
+39A1   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+39AE   E1                     POP   hl   
+39AF   E5                     PUSH   hl   
+39B0   CD DC 08               CALL   prtdec   
+39B3   E1                     POP   hl   
+39B4   CD 8E 09               CALL   printStr   
+39B7   20 28 23 00            .CSTR   " (#"   
+39BB   CD 24 09               CALL   prthex   
+39BE   CD 8E 09               CALL   printStr   
+39C1   29 0D 0A 00            .CSTR   ")\r\n"   
+39C5   76                     HALT      
+39C6   00                     .CSTR      
+39C7                EXPECTM_0_2241S43:      
+39C7   E1                     POP   HL   
+39C8                          ;*Macro unroll:  test "3i= [ ( i/b i i-- )^ ] 1%", 2
+39C8   31 80 3C               LD   SP,STACK   
+39CB   CD 95 09               CALL   init   
+39CE   CD 10 3B               CALL   execStr   
+39D1   33 69 3D 20 5B 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 5D 20 31 25 00 .CSTR   "3i= [ ( i/b i i-- )^ ] 1%"   
+39EB                          ;*Macro unroll:  expect "3i= [ ( i/b i i-- )^ ] 1%",2
+39EB   E1                     POP   HL   
+39EC   E5                     PUSH   HL   
+39ED   11 02 00               LD   DE,2   
+39F0   B7                     OR   A   
+39F1   ED 52                  SBC   HL,DE   
+39F3   7D                     LD   A,L   
+39F4   B4                     OR   H   
+39F5   28 64                  JR   Z,expectM_0_2242S43   
+39F7   CD 8E 09               CALL   printStr   
+39FA   43 6F 64 65 3A 20 33 69 3D 20 5B 20 28 20 69 2F 62 20 69 20 69 2D 2D 20 29 5E 20 5D 20 31 25 00 .CSTR   "Code: ","3i= [ ( i/b i i-- )^ ] 1%"   
+3A1A   CD 8E 09               CALL   printStr   
+3A1D   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3A2C   21 02 00               LD   HL,2   
+3A2F   CD DC 08               CALL   prtdec   
+3A32   CD 8E 09               CALL   printStr   
+3A35   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3A42   E1                     POP   hl   
+3A43   E5                     PUSH   hl   
+3A44   CD DC 08               CALL   prtdec   
+3A47   E1                     POP   hl   
+3A48   CD 8E 09               CALL   printStr   
+3A4B   20 28 23 00            .CSTR   " (#"   
+3A4F   CD 24 09               CALL   prthex   
+3A52   CD 8E 09               CALL   printStr   
+3A55   29 0D 0A 00            .CSTR   ")\r\n"   
+3A59   76                     HALT      
+3A5A   00                     .CSTR      
+3A5B                EXPECTM_0_2242S43:      
+3A5B   E1                     POP   HL   
+3A5C                          ;*Macro unroll:  test "0 j= 4 i= ( i/b i j+= i i-- )^ j ", 10
+3A5C   31 80 3C               LD   SP,STACK   
+3A5F   CD 95 09               CALL   init   
+3A62   CD 10 3B               CALL   execStr   
+3A65   30 20 6A 3D 20 34 20 69 3D 20 28 20 69 2F 62 20 69 20 6A 2B 3D 20 69 20 69 2D 2D 20 29 5E 20 6A 20 00 .CSTR   "0 j= 4 i= ( i/b i j+= i i-- )^ j "   
+3A87                          ;*Macro unroll:  expect "0 j= 4 i= ( i/b i j+= i i-- )^ j ",10
+3A87   E1                     POP   HL   
+3A88   E5                     PUSH   HL   
+3A89   11 0A 00               LD   DE,10   
+3A8C   B7                     OR   A   
+3A8D   ED 52                  SBC   HL,DE   
+3A8F   7D                     LD   A,L   
+3A90   B4                     OR   H   
+3A91   28 6C                  JR   Z,expectM_0_2243S43   
+3A93   CD 8E 09               CALL   printStr   
+3A96   43 6F 64 65 3A 20 30 20 6A 3D 20 34 20 69 3D 20 28 20 69 2F 62 20 69 20 6A 2B 3D 20 69 20 69 2D 2D 20 29 5E 20 6A 20 00 .CSTR   "Code: ","0 j= 4 i= ( i/b i j+= i i-- )^ j "   
+3ABE   CD 8E 09               CALL   printStr   
+3AC1   0D 0A 0D 0A 45 78 70 65 63 74 65 64 3A 20 00 .CSTR   "\r\n\r\nExpected: "   
+3AD0   21 0A 00               LD   HL,10   
+3AD3   CD DC 08               CALL   prtdec   
+3AD6   CD 8E 09               CALL   printStr   
+3AD9   0D 0A 0D 0A 41 63 74 75 61 6C 3A 20 00 .CSTR   "\r\n\r\nActual: "   
+3AE6   E1                     POP   hl   
+3AE7   E5                     PUSH   hl   
+3AE8   CD DC 08               CALL   prtdec   
+3AEB   E1                     POP   hl   
+3AEC   CD 8E 09               CALL   printStr   
+3AEF   20 28 23 00            .CSTR   " (#"   
+3AF3   CD 24 09               CALL   prthex   
+3AF6   CD 8E 09               CALL   printStr   
+3AF9   29 0D 0A 00            .CSTR   ")\r\n"   
+3AFD   76                     HALT      
+3AFE   00                     .CSTR      
+3AFF                EXPECTM_0_2243S43:      
+3AFF   E1                     POP   HL   
+3B00                             ; 
+3B00   CD 8E 09               CALL   printStr   
+3B03   44 6F 6E 65 21 00      .CSTR   "Done!"   
+3B09   76                     HALT      
+3B0A                          ALIGN   2   
+3B0A                PRINTER:      
+3B0A   E1                     POP   hl   
+3B0B   CD DC 08               CALL   prtdec   
+3B0E   DD E9                  JP   (ix)   
+3B10                             ; executes a null teminated string (null executes exit_)
+3B10                             ; the string should be immedaitely following the call
+3B10                EXECSTR:      ; create a root stack frame
+3B10   C1                     POP   bc   ; bc = code*
+3B11   0B                     DEC   bc   ; dec to prepare for next routine
+3B12   11 00 00               LD   de,0   
+3B15   D5                     PUSH   de   ; push fake IP
+3B16   D5                     PUSH   de   ; push null arg_list*
+3B17   D5                     PUSH   de   ; push null first_arg*
+3B18   D5                     PUSH   de   ; push fake BP
+3B19   DD E9                  JP   (ix)   
+3B1B                          ALIGN   $100   
 3C00                             ; .org RAMSTART
 3C00                          DS   DSIZE   
 3C80                STACK:       
@@ -6034,8 +6034,8 @@ ASSIGN0:            048F DEFINED AT LINE 530 IN monty.asm
 ASSIGNX:            0490 DEFINED AT LINE 532 IN monty.asm
 ASSIGN1:            049C DEFINED AT LINE 540 IN monty.asm
                     > USED AT LINE 537 IN monty.asm
-BACKSLASH:          049E DEFINED AT LINE 547 IN monty.asm
-                    > USED AT LINE 230 IN monty.asm
+COLON:              049E DEFINED AT LINE 547 IN monty.asm
+                    > USED AT LINE 244 IN monty.asm
 ARGLIST:            049E DEFINED AT LINE 548 IN monty.asm
 ARGLIST1:           04A8 DEFINED AT LINE 555 IN monty.asm
                     > USED AT LINE 576 IN monty.asm
@@ -6095,8 +6095,8 @@ CHAR2:              05A1 DEFINED AT LINE 727 IN monty.asm
                     > USED AT LINE 724 IN monty.asm
 CHAR3:              05A4 DEFINED AT LINE 730 IN monty.asm
                     > USED AT LINE 722 IN monty.asm
-COLON:              05A7 DEFINED AT LINE 734 IN monty.asm
-                    > USED AT LINE 244 IN monty.asm
+BACKSLASH:          05A7 DEFINED AT LINE 734 IN monty.asm
+                    > USED AT LINE 230 IN monty.asm
 COMMA:              05A9 DEFINED AT LINE 739 IN monty.asm
                     > USED AT LINE 265 IN monty.asm
 DISCARD:            05A9 DEFINED AT LINE 740 IN monty.asm
@@ -7425,74 +7425,74 @@ EXPECTM_0_2209S43:  288D DEFINED AT LINE 34
                     > USED AT LINE 10
 EXPECTM_0_2210S43:  28FD DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2211S43:  296F DEFINED AT LINE 34
+EXPECTM_0_2211S43:  296D DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2212S43:  29E3 DEFINED AT LINE 34
+EXPECTM_0_2212S43:  29DF DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2213S43:  2A5D DEFINED AT LINE 34
+EXPECTM_0_2213S43:  2A57 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2214S43:  2ADB DEFINED AT LINE 34
+EXPECTM_0_2214S43:  2AD3 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2215S43:  2B55 DEFINED AT LINE 34
+EXPECTM_0_2215S43:  2B4B DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2216S43:  2BD9 DEFINED AT LINE 34
+EXPECTM_0_2216S43:  2BCD DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2217S43:  2C5F DEFINED AT LINE 34
+EXPECTM_0_2217S43:  2C51 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2218S43:  2CEB DEFINED AT LINE 34
+EXPECTM_0_2218S43:  2CDB DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2219S43:  2D7B DEFINED AT LINE 34
+EXPECTM_0_2219S43:  2D69 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2220S43:  2DFD DEFINED AT LINE 34
+EXPECTM_0_2220S43:  2DE9 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2221S43:  2E85 DEFINED AT LINE 34
+EXPECTM_0_2221S43:  2E6F DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2222S43:  2F0F DEFINED AT LINE 34
+EXPECTM_0_2222S43:  2EF7 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2223S43:  2F9B DEFINED AT LINE 34
+EXPECTM_0_2223S43:  2F81 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2224S43:  3025 DEFINED AT LINE 34
+EXPECTM_0_2224S43:  3009 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2225S43:  30BD DEFINED AT LINE 34
+EXPECTM_0_2225S43:  309F DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2226S43:  3143 DEFINED AT LINE 34
+EXPECTM_0_2226S43:  3123 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2227S43:  31D5 DEFINED AT LINE 34
+EXPECTM_0_2227S43:  31B3 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2228S43:  3269 DEFINED AT LINE 34
+EXPECTM_0_2228S43:  3245 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2229S43:  32FF DEFINED AT LINE 34
+EXPECTM_0_2229S43:  32D9 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2230S43:  33A5 DEFINED AT LINE 34
+EXPECTM_0_2230S43:  337D DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2231S43:  344B DEFINED AT LINE 34
+EXPECTM_0_2231S43:  3421 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2232S43:  34C7 DEFINED AT LINE 34
+EXPECTM_0_2232S43:  349D DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2233S43:  3543 DEFINED AT LINE 34
+EXPECTM_0_2233S43:  3519 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2234S43:  35CB DEFINED AT LINE 34
+EXPECTM_0_2234S43:  35A1 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2235S43:  3657 DEFINED AT LINE 34
+EXPECTM_0_2235S43:  362D DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2236S43:  36F9 DEFINED AT LINE 34
+EXPECTM_0_2236S43:  36CD DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2237S43:  37A3 DEFINED AT LINE 34
+EXPECTM_0_2237S43:  3775 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2238S43:  384D DEFINED AT LINE 34
+EXPECTM_0_2238S43:  381D DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2239S43:  38D7 DEFINED AT LINE 34
+EXPECTM_0_2239S43:  38A5 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2240S43:  396D DEFINED AT LINE 34
+EXPECTM_0_2240S43:  3939 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2241S43:  39FB DEFINED AT LINE 34
+EXPECTM_0_2241S43:  39C7 DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2242S43:  3A8F DEFINED AT LINE 34
+EXPECTM_0_2242S43:  3A5B DEFINED AT LINE 34
                     > USED AT LINE 10
-EXPECTM_0_2243S43:  3B33 DEFINED AT LINE 34
+EXPECTM_0_2243S43:  3AFF DEFINED AT LINE 34
                     > USED AT LINE 10
-PRINTER:            3B3E DEFINED AT LINE 134
-EXECSTR:            3B44 DEFINED AT LINE 141
+PRINTER:            3B0A DEFINED AT LINE 134
+EXECSTR:            3B10 DEFINED AT LINE 141
                     > USED AT LINE 41
                     > USED AT LINE 41
                     > USED AT LINE 41

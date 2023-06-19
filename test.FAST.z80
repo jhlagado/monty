@@ -85,41 +85,41 @@ testsStart:
     test "5 /t {10} ? +", 15
     test "1 /f {10} {20} ?? +", 21
     test "1 /t {10} {20} ?? +", 11
-    test "\\ -2%", $0000
-    test "\\a -1%", $0001
-    test "\\a: -1%", $0001
-    test "\\a:b -1%", $0102
-    test "\\:b -1%", $0101
-    test "\\ {2} ;^", 2
-    test "\\a {2} ;^", 2
-    test "5 \\a {$a} ;^", 5
-    test "5 \\a:b {$a} ;^", 5
-    test "\\a {{2}^} ;^", 2
-    test "1 5 \\a {{$a}^} ;^", 5
-    test "1 5 \\ab {{$a}^} ;^", 1
-    test "1 5 \\a {{$a 2 +}^} ;^", 7
-    test "1 5 \\ab {{$a $b +}^} ;^", 6
-    test "\\a {2} ; x= 1 x^", 2
-    test "\\a {$a} ; x= 0 1 x^", 1
-    test "\\ab {$b} ; x= 1 2 x^", 2
-    test "\\a:b {$a} ; x= 1 2 x^", 2
-    test "\\ab {$b} ; x= 1 2 x^", 2
-    test "\\ab {$b $a} ; x= 10 15 x^ -", 5
-    test "\\a:b {2} ; x= 1 x^", 2
-    test "\\:b {100 $b= $b} ; x= x^", 100
-    test "\\a:b {1 $b= $b} ; x= 2 x^", 1
-    test "\\a:b {$a $b= $b} ; x= 2 x^", 2
-    test "1 10 20 \\ab {/t {$a} {$b} ??} ;^ +", 11
-    test "1 10 20 \\ab {/f {$a} {$b} ??} ;^ +", 21
+    test ": -2%", $0000
+    test ":a -1%", $0001
+    test ":a: -1%", $0001
+    test ":a:b -1%", $0102
+    test "::b -1%", $0101
+    test ": {2};^", 2
+    test ":a {2};^", 2
+    test "5 :a {$a};^", 5
+    test "5 :a:b {$a};^", 5
+    test ":a {{2}^};^", 2
+    test "1 5 :a {{$a}^};^", 5
+    test "1 5 :ab {{$a}^};^", 1
+    test "1 5 :a {{$a 2 +}^};^", 7
+    test "1 5 :ab {{$a $b +}^};^", 6
+    test ":a {2}; x= 1 x^", 2
+    test ":a {$a}; x= 0 1 x^", 1
+    test ":ab {$b}; x= 1 2 x^", 2
+    test ":a:b {$a}; x= 1 2 x^", 2
+    test ":ab {$b}; x= 1 2 x^", 2
+    test ":ab {$b $a}; x= 10 15 x^ -", 5
+    test ":a:b {2}; x= 1 x^", 2
+    test "::b {100 $b= $b}; x= x^", 100
+    test ":a:b {1 $b= $b}; x= 2 x^", 1
+    test ":a:b {$a $b= $b}; x= 2 x^", 2
+    test "1 10 20 :ab {/t {$a} {$b} ??};^ +", 11
+    test "1 10 20 :ab {/f {$a} {$b} ??};^ +", 21
     test "[10 20 30] 1%", 20
     test "/c [1 2 3] 1%", 2
     test "/c ['A' 'B' 'C'] 1%", 66
     test "[{10} {20} {30}] 0%^ ", 10
-    test "10 20 \\ab { [{$a} {$b}] 0%^ } ;^", 10
-    test "0 10 20 \\iab { [{$a} {$b}] $i%^ } ;^", 10
-    test "1 10 20 \\iab { [{$a} {$b}] $i%^ } ;^", 20
-    test "5 [4] \\a {$a} ; /p ^", 4
-    test "5 [4] \\ab {$a $b +} ; /p ^", 9
+    test "10 20 :ab { [{$a} {$b}] 0%^ };^", 10
+    test "0 10 20 :iab { [{$a} {$b}] $i%^ };^", 10
+    test "1 10 20 :iab { [{$a} {$b}] $i%^ };^", 20
+    test "5 [4] :a {$a}; /p ^", 4
+    test "5 [4] :ab {$a $b +}; /p ^", 9
     test "3i= ( i/b i i-- )^ + +", 6
     test "3i= [ ( i/b i i-- )^ ] 1%", 2
     test "0 j= 4 i= ( i/b i j+= i i-- )^ j ", 10
