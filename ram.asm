@@ -24,22 +24,29 @@ PUTCVEC:    ds 2                ;
 
 sysVars:
 
-; initialised sys variables
+; initialised sys variables (preserved)
 
 vDataWidth: ds 2                ; 
 vTIBPtr:    ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
 
-; uninitialised sys variables
+; uninitialised sys variables (preserved)
 
-vBlockEnd   ds 2                ; 
 vPointer    ds 2                ; 
-vHashStr:   ds 2                ; 
-vLastDef:   ds 2                ; 
 vRemain:    ds 2                ; 
+
+vSavedIP:   ds 2                ;
+vSavedSP:   ds 2                ;
+vSavedBP:   ds 2                ;
+vChecksum:  ds 2                ;
+
+; uninitialised sys variables (unpreserved)
+
 vTemp1:     ds 2                ; 
 vTemp2:     ds 2                ; 
+vLastDef:   ds 2                ; 
+vHashStr:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
 
 .align $100

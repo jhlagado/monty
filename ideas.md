@@ -1,8 +1,6 @@
 # Ideas
 
 reset
-"," should check BP, not go negative into stack frame
-/h should return the heap* system variable for getting and setting 
 
 ### print
 
@@ -71,4 +69,6 @@ replace ";" with "," for discard (still makes sense in C)
 replace /f with ;
 replace (ab:c) with \ab:c
 replace {: :} with ( )
+/h should return the heap* system variable for getting and setting 
+"," should check BP, not go negative into stack frame
 

@@ -14,7 +14,7 @@
 .align $100
 testsStart:
 
-
+    ; test "2 3 *", 6
     ; call printStr
     ; .cstr "Done!"
     ; HALT

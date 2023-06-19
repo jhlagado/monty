@@ -39,7 +39,7 @@ z80_RST8    EQU     $CF
 ;  :
 ; locn                              -- last local             
 ; IP                                -- IP (saved interpreter ptr, return)
-; dollar_list*                         -- dollar_list*
+; arg_list*                         -- arg_list*
 ; first_arg*                        -- first_arg*           
 ; BP                                -- BP (saved base ptr)           <-- iy
 ; res0                              -- 0th result
@@ -107,7 +107,7 @@ ctrlCodes:
     DB lsb(EMPTY)               ; ^^ 30 RS
     DB lsb(EMPTY)               ; ^_ 31 US
 
-opcodes:                        ; still available ~ \  
+opcodes:                        ; still available ~ `  
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
     DB lsb(dblquote_)           ; "
@@ -172,7 +172,7 @@ opcodes:                        ; still available ~ \
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(underscore_)         ; _
-    DB lsb(backtick_)           ; `     used for testing string   	    
+    DB lsb(nop_)                ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -202,7 +202,7 @@ opcodes:                        ; still available ~ \
     DB lsb(lbrace_)             ; {
     DB lsb(pipe_)               ; |  
     DB lsb(rbrace_)             ; }  
-    DB lsb(tilde_)              ; ~    
+    DB lsb(nop_)              ; ~    
     DB lsb(nop_)                ; DEL	
 
 
@@ -215,35 +215,31 @@ page4:
 plus_:                           ; add the top 2 members of the stack
     jp plus
 at_:
-    jp addr
+    jp at
 amper_:
-    jp and
+    jp amper
 dollar_:
-    jp arg
-tilde_:    
-    jp tilde
+    jp dollar
 lbrack_:
-    jp arrBegin
+    jp lbrack
 rbrack_:
-    jp arrEnd
+    jp rbrack
 percent_:        
     jp arrIndex 
 backslash_:
     jp backslash
 lbrace_:
-    jp block
+    jp lbrace
 rbrace_:
-    jp blockEnd
+    jp rbrace
 tick_:
-    jp char
-commamper_:
-    jp command
+    jp tick
 semicolon_:
     jp semicolon
 dot_:  
     jp dot
 underscore_:
-    jp remain
+    jp underscore
 colon_:
     jp colon
 upcase_:
@@ -251,26 +247,24 @@ upcase_:
 lowcase_:
     jp lowcase
 question_:
-    jp if
+    jp question
 star_:    
-    jp mul 
-backtick_:    
-    jp string 
+    jp star 
 bang_:				            ; logical invert, any non zero value 
     ld hl,0                     ; is considered true
     jr eq1    
 num_:    
     jp  num
 hash_:    
-    jp hexnum
+    jp hash
 pipe_: 		 
-    jp or
+    jp pipe
 caret_: 		 
     jp caret
 comma_: 		 
     jp comma
 dblquote_:
-    jp string
+    jp dblquote
 minus_:
     jp minus
 eq_:    
@@ -309,7 +303,7 @@ lt1:
     dec bc
     jp lessthan
 slash_:
-    jp div
+    jp slash
 nop_:  
     jp (ix)
 rparen_:
@@ -320,6 +314,7 @@ rparen_:
 ;*******************************************************************
 
 plus:
+add:
     inc bc
     ld a,(bc)
     cp "+"                      ; ++ increment variable
@@ -341,13 +336,17 @@ add3:
     dec bc
     jp (ix)    
 
+; @ addr
 ; -- ptr
+at:
 addr:
     ld hl,(vPointer)
     push hl
     ld hl,vPointer
     ld (vPointer),hl
     jp (ix)
+
+amper:
 and:
     pop de                      ; Bitwise and the top 2 elements of the stack
     pop hl     
@@ -360,6 +359,7 @@ and1:
     ld h,a        
     jp add3
     
+pipe:
 or:
     pop de                      ; Bitwise or the top 2 elements of the stack
     pop hl
@@ -389,14 +389,15 @@ invert:				            ; Bitwise INVert the top member of the stack
 ; $a .. $z
 ; -- value
 ; returns value of arg
+dollar:
 arg:
-    ld e,(iy+4)                 ; hl = dollar_list* 
+    ld e,(iy+4)                 ; hl = arg_list* 
     ld d,(iy+5)
     ex de,hl                    
-    ld a,l                      ; dollar_list* == null, skip
+    ld a,l                      ; arg_list* == null, skip
     or h
     jr z,arg0a
-    dec hl                      ; a = num_args, hl = dollar_list*
+    dec hl                      ; a = num_args, hl = arg_list*
     dec hl
     ld a,(hl)                    
     inc hl
@@ -415,7 +416,7 @@ arg0:
     dec de
     cp (hl)
     jr z,arg1
-    inc hl                      ; hl = next dollar_list*            
+    inc hl                      ; hl = next arg_list*            
     djnz arg0
     pop bc                      ; no match, restore IP
 arg0a:
@@ -432,13 +433,11 @@ arg1a:
     push de                     ; push arg
     jp (ix)
 
-tilde:
-    jp (ix)
-
+lbrack:
 arrBegin:
     ld de,0                     ; create stack frame
     push de                     ; push null for IP
-    ld e,(iy+4)                 ; push dollar_list* from parent stack frame
+    ld e,(iy+4)                 ; push arg_list* from parent stack frame
     ld d,(iy+5)                 ; 
     push de                     ; 
     ld e,(iy+2)                 ; push first_arg* from parent stack frame
@@ -449,6 +448,7 @@ arrBegin:
     add iy,sp
     jp (ix)
 
+rbrack:
 arrEnd:
     ld d,iyh                    ; de = BP
     ld e,iyl
@@ -488,7 +488,7 @@ arrEnd2:
     ex de,hl                    ; iy = de = old BP, hl = end of array
     ld iyh,d
     ld iyl,e
-    pop de                      ; pop dollar_list (discard)
+    pop de                      ; pop arg_list (discard)
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-2]
@@ -540,56 +540,57 @@ assignx:
 assign1:	  
     jp (ix)  
 
-; dollar_list - parses input (ab:c)
+; arg_list - parses input (ab:c)
 ; names after the : represent uninitialised locals
 ; return values are the state of the stack after the block ends
 
 backslash:
-dollar_list:
+arglist:
     ld de,0                     ; d = count locals, e = count args ()
     ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
     inc hl
-    push hl                     ; save start of dollar_list
+    push hl                     ; save start of arg_list
     inc bc                      ; point to next char
-dollar_list1:
+arglist1:
     ld a,(bc)
     cp ":"                      ; ":" switches from args to locals
-    jr nz,dollar_list1a
+    jr nz,arglist1a
     inc d                       ; non zero value local count acts as flag
-    jr dollar_list3
-dollar_list1a:
-    cp "A"                      ; < "A" terminates dollar_list
-    jr c,dollar_list4
-    cp "z"+1                    ; > "z" terminates dollar_list
-    jr nc,dollar_list4
-dollar_list2:
+    jr arglist3
+arglist1a:
+    cp "A"                      ; < "A" terminates arg_list
+    jr c,arglist4
+    cp "z"+1                    ; > "z" terminates arg_list
+    jr nc,arglist4
+arglist2:
     ld (hl),a
     inc hl                      
     inc e                       ; increase arg count
     xor a
     or d
-    jr z,dollar_list3
+    jr z,arglist3
     inc d                       ; if d > 0 increase local count
-dollar_list3:
+arglist3:
     inc bc                      ; point to next char
-    jr dollar_list1
-dollar_list4:
+    jr arglist1
+arglist4:
     xor a
     or d
-    jr z,dollar_list5
+    jr z,arglist5
     dec d                       ; remove initial inc
-dollar_list5:
+arglist5:
     inc hl
     ld (vHeapPtr),hl            ; bump heap* to after end of string
-    pop hl                      ; hl = start of dollar_list
-    push hl                     ; return start of dollar_list    
+    pop hl                      ; hl = start of arg_list
+    push hl                     ; return start of arg_list    
     dec hl                      ; write number of locals at start - 1                                      
     ld (hl),d
     dec hl                      ; write number of args + locals at start - 2
     ld (hl),e
     jp (ix)  
 
+lbrace:
 block:
     push bc                     ; return pointer to first { of block    
     inc bc
@@ -656,6 +657,7 @@ block6:
     dec bc                      ; balanced, exit
     jp (ix)  
 
+rbrace:
 blockEnd:
     exx                         ; de' = oldBP bc' = oldIP
     ld e,(iy+0)                  
@@ -710,6 +712,7 @@ blockEnd3:
     pop iy
     jp (ix)    
 
+tick:
 char:
     ld hl,0                     ; if '' is empty or null
 char1:
@@ -730,12 +733,23 @@ char3:
 
 colon:
     jp (ix)
+
+; , discard stack item
+; x y -- x
 comma:
-    ; TODO: limit this to SP >= BP
+discard:
+    ld d,iyh                    ; limit this to SP <= BP
+    ld e,iyl
+    ex de,hl
+    or a
+    sbc hl,sp
+    bit 7,h
+    jr nz,discard1
     pop hl
+discard1:
     jp (ix)
 
-div:
+slash:
     inc bc
     ld a,(bc)
     cp $5C
@@ -873,12 +887,12 @@ goBlock1:
     ld a,0
     jr z,goFunc8
     push bc                     ; push IP
-    ld c,(iy+4)                 ; push dollar_list* (parent)
+    ld c,(iy+4)                 ; push arg_list* (parent)
     ld b,(iy+5)                 
     ld l,(iy+2)                 ; push first_arg* (parent)
     ld h,(iy+3)                 
 goBlock2:
-    push bc                     ; dollar_list*
+    push bc                     ; arg_list*
     push hl                     ; first_arg*
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
@@ -924,19 +938,19 @@ goFunc3:
     ld d,(hl)
     inc hl
     ld (vTemp1),de              ; save block*
-    ld e,(hl)                   ; de = dollar_list*
+    ld e,(hl)                   ; de = arg_list*
     inc hl
     ld d,(hl)
     inc hl
-    ex de,hl                    ; hl = dollar_list*
+    ex de,hl                    ; hl = arg_list*
     ld de,(vTemp1)              ; restore de = block*
-    ld a,l                      ; if dollar_list* == null a = 0
+    ld a,l                      ; if arg_list* == null a = 0
     or h
     jr nz,goFunc4          
     xor a                       ; a = num_args (zero), num locals (zero)
     jr goFunc8                  
 goFunc4:                        ; allocate locals 
-    dec hl                      ; a = num_locals*, de = hblock* hl = dollar_list*
+    dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
     jr goFunc6
 goFunc5:                        ; loop
@@ -961,6 +975,7 @@ goFunc8:
     add hl,sp
     jr goBlock2
 
+hash:
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
 hexnum1:
@@ -1002,6 +1017,7 @@ ident1:
 
 ; if
 ; condition then -- value
+question:
 if:
     inc bc
     ld a,(bc)
@@ -1024,7 +1040,7 @@ ifte1:
     ex de,hl                    ; condition = false, de = then  
     jp go1
 
-
+star:
 mul:        
     pop  de                     ; get first value
     pop  hl
@@ -1084,6 +1100,7 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
+underscore:
 remain:
     ld hl,(vRemain)
     push hl
@@ -1094,7 +1111,7 @@ rparen:
     ld b,(iy+9)
     jp (ix)
 
-; dollar_list* block* -- ptr
+; arg_list* block* -- ptr
 semicolon:
     pop de                      ; de = block* hl = heap*
     ld hl,(vHeapPtr)
@@ -1108,7 +1125,7 @@ semicolon:
     ld (hl),d
     inc hl
     pop de                      ; de = block*
-    ld (hl),e                   ; compile dollar_list*
+    ld (hl),e                   ; compile arg_list*
     inc hl
     ld (hl),d
     inc hl
@@ -1155,6 +1172,7 @@ shiftRight2:
 ; string
 ; -- ptr                        ; points to start of string chars, 
                                 ; length is stored at start - 2 bytes 
+dblquote:
 string:     
     ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
@@ -1227,6 +1245,8 @@ command:
     jp z,partial
     cp "f"                      ; \f false
     jp z,false1
+    cp "h"                      ; \h heap pointer
+    jp z,heapPtr
     cp "i"                      ; \i input
     jp z,input
     cp "k"                      ; \k key
@@ -1307,6 +1327,12 @@ chars1:
     ld (vDataWidth),hl
     jp (ix)
 
+heapPtr:
+    ld hl,(vHeapPtr)
+    push hl
+    ld hl,vHeapPtr
+    ld (vPointer),hl
+    jp (ix)
 
 ; Z80 port input
 ; port -- value 
