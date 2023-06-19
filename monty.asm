@@ -107,7 +107,7 @@ ctrlCodes:
     DB lsb(EMPTY)               ; ^^ 30 RS
     DB lsb(EMPTY)               ; ^_ 31 US
 
-opcodes:                        ; still available , ;  
+opcodes:                        ; still available ~ \  
     DB lsb(nop_)                ; SP  
     DB lsb(not_)                ; !  
     DB lsb(string_)             ; "
@@ -120,7 +120,7 @@ opcodes:                        ; still available , ;
     DB lsb(nop_)                ; )
     DB lsb(mul_)                ; *  
     DB lsb(plus_)               ; +
-    DB lsb(nop_)                ; , 
+    DB lsb(comma_)              ; , 
     DB lsb(minus_)              ; -
     DB lsb(dot_)                ; .
     DB lsb(div_)                ; /	
@@ -202,7 +202,7 @@ opcodes:                        ; still available , ;
     DB lsb(block_)              ; {
     DB lsb(or_)                 ; |  
     DB lsb(blockEnd_)           ; }  
-    DB lsb(inv_)                ; ~    
+    DB lsb(nop_)                ; ~    
     DB lsb(nop_)                ; DEL	
 
 
@@ -236,9 +236,8 @@ char_:
     jp char
 command_:
     jp command
-semicolon_:  
-    pop hl
-    jp (ix)
+semicolon_:
+    jp semicolon
 dot_:  
     jp dot
 remain_:
@@ -251,9 +250,6 @@ identL_:
     jp identL
 if_:
     jp if
-inv_:				            ; Bitwise INVert the top member of the stack
-    ld de, $FFFF                ; by xoring with $FFFF
-    jp xor1    
 mul_:    
     jp mul 
 not_:				            ; logical invert, any non zero value 
@@ -267,6 +263,9 @@ or_:
     jp or
 caret_: 		 
     jp caret
+comma_: 		 
+    pop hl
+    jp (ix)
 string_:
     jp string
 minus_:
@@ -379,6 +378,9 @@ xor1:
     ld h,a        
     push hl        
     jp (ix)    
+invert:				            ; Bitwise INVert the top member of the stack
+    ld de, $FFFF                ; by xoring with $FFFF
+    jp xor1    
 
 ; $a .. $z
 ; -- value
@@ -716,6 +718,9 @@ char3:
     push hl
     jp (ix)  
 
+comma:
+    jp (ix)
+
 div:
     inc bc
     ld a,(bc)
@@ -1005,6 +1010,7 @@ ifte1:
     ex de,hl                    ; condition = false, de = then  
     jp go1
 
+
 mul:        
     pop  de                     ; get first value
     pop  hl
@@ -1067,6 +1073,29 @@ num3:
 remain:
     ld hl,(vRemain)
     push hl
+    jp (ix)
+
+; arg_list* block* -- ptr
+semicolon:
+    pop de                              ; de = block* hl = heap*
+    ld hl,(vHeapPtr)
+    xor a
+    ld (hl),a                           ; compile null partial_array*
+    inc hl
+    ld (hl),a
+    inc hl
+    ld (hl),e                           ; compile block*
+    inc hl
+    ld (hl),d
+    inc hl
+    pop de                              ; de = block*
+    ld (hl),e                           ; compile arg_list*
+    inc hl
+    ld (hl),d
+    inc hl
+    ld de,(vHeapPtr)                    ; return func*
+    push de
+    ld (vHeapPtr),hl                    ; heap* += 4
     jp (ix)
 
 ; shiftLeft  
@@ -1178,9 +1207,7 @@ command:
     jp z,chars
     cp "p"                      ; \p partial
     jp z,partial
-    cp "f"                      ; \f func
-    jp z,func
-    cp "F"                      ; \F false
+    cp "f"                      ; \f false
     jp z,false1
     cp "i"                      ; \i input
     jp z,input
@@ -1190,12 +1217,12 @@ command:
     jp z,numbers
     cp "o"                      ; \o output
     jp z,output
-    cp "d"                      ; \d do
-    jp z,do
     cp "s"                      ; \s select
     jp z,select    
-    cp "T"                      ; \T true
+    cp "t"                      ; \t true
     jp z,true1
+    cp "v"                      ; \v invert
+    jp z,invert
     cp "x"                      ; \x xor
     jp z,xor
 error1:
@@ -1271,44 +1298,12 @@ break1:
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
 
-; do
-; rblock* --                    ; a rblock is a block ending with :} 
-do:
-    ; dec bc                      ; rewind IP to before \r
-    ; dec bc
-    ; pop hl
-    ; push hl
-    ; push hl
-    jp go    
-
 chars:
     ld hl,1
 chars1:
     ld (vDataWidth),hl
     jp (ix)
 
-; arg_list* block* -- ptr
-func:
-    pop de                              ; de = block* hl = heap*
-    ld hl,(vHeapPtr)
-    xor a
-    ld (hl),a                           ; compile null partial_array*
-    inc hl
-    ld (hl),a
-    inc hl
-    ld (hl),e                           ; compile block*
-    inc hl
-    ld (hl),d
-    inc hl
-    pop de                              ; de = block*
-    ld (hl),e                           ; compile arg_list*
-    inc hl
-    ld (hl),d
-    inc hl
-    ld de,(vHeapPtr)                    ; return func*
-    push de
-    ld (vHeapPtr),hl                    ; heap* += 4
-    jp (ix)
 
 ; Z80 port input
 ; port -- value 
