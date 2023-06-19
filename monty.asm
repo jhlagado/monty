@@ -818,13 +818,6 @@ false1:
     push hl
     jp (ix) 
 
-colon:
-    inc bc
-    ld a,(bc)
-    cp "}"
-    jp z,loopEnd
-    dec bc
-    
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
@@ -841,6 +834,14 @@ go2:
     cp "{"
     jp nz,goFunc
 goBlock:
+    inc de
+    ld a,(de)
+    dec de
+    cp ":"
+    jr nz,goBlockX1
+    inc de
+    push de
+goBlockX1:    
     ld (vTemp1),de              ; save de
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
     ld d,iyh                    
@@ -1191,15 +1192,13 @@ command:
     jp z,output
     cp "d"                      ; \d do
     jp z,do
-    cp "r"                      ; \r redo
-    jp z,redo
     cp "s"                      ; \s select
-    jp z,select
+    jp z,select    
     cp "T"                      ; \T true
     jp z,true1
     cp "x"                      ; \x xor
     jp z,xor
-
+error1:
     ld hl,1                     ; error 1: unknown command
     jp error
 
@@ -1242,39 +1241,18 @@ comment:
     dec bc
     jp (ix) 
 
-; redo
-; -- 
-redo:
-    pop hl
-    ld a,l
-    or h
-    jr z,redo1
-redo0:
-    ld c,(iy+8)                    ; get block* just under stack frame
-    ld b,(iy+9)
-redo1:    
-    jp (ix)
+colon:
+    inc bc
+    ld a,(bc)
+    cp "}"
+    jp z,loopEnd
+    dec bc
+    jp error1
 
 loopEnd:
-    jp redo0
-    ; ld e,iyl                    ; get block* just under stack frame
-    ; ld d,iyh
-    ; ld hl,8
-    ; add hl,de
-    ; ld e,(hl)                   ; return block* after other returns
-    ; inc hl
-    ; ld d,(hl)
-    ; inc hl
-    ; ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ; ld (iy+3),h                 ; first_arg* = address of block*
-    ; push de
-    ; ld l,(iy+6)                 ; hl = oldIP
-    ; ld h,(iy+7)
-    ; dec hl                      ; rewind return IP to jus before \r
-    ; dec hl
-    ; ld (iy+6),l                  
-    ; ld (iy+7),h
-    ; jp blockEnd
+    ld c,(iy+8)                    ; get block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
 
 break:
     pop hl
@@ -1298,9 +1276,9 @@ break1:
 do:
     ; dec bc                      ; rewind IP to before \r
     ; dec bc
-    pop hl
-    push hl
-    push hl
+    ; pop hl
+    ; push hl
+    ; push hl
     jp go    
 
 chars:

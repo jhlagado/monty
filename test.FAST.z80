@@ -14,8 +14,6 @@
 .align $100
 testsStart:
 
-    ; test "3i= { i/b i-- :}/d + +", 6
-
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -121,9 +119,9 @@ testsStart:
     test "1 10 20 (iab) {$i [{$a} {$b}] /s} /f^", 20
     test "5 [4] (a) {$a} /f /p ^", 4
     test "5 [4] (ab) {$a $b +} /f /p ^", 9
-    test "3i= { i/b i-- :}/d + +", 6
-    test "3i= [ { i/b i-- :}/d ] 1%", 2
-    test "0 j= 4 i= { i/b i j+= i--; :}/d j ", 10
+    test "3i= {: i/b i-- :}/d + +", 6
+    test "3i= [ {: i/b i-- :}/d ] 1%", 2
+    test "0 j= 4 i= {: i/b i j+= i--; :}/d j ", 10
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
