@@ -168,7 +168,7 @@ opcodes:                        ; still available , ;
     DB lsb(identU_)             ; Y     
     DB lsb(identU_)             ; Z    
     DB lsb(arrBegin_)           ; [
-    DB lsb(command_)            ; \
+    DB lsb(nop_)                ; \
     DB lsb(arrEnd_)             ; ]
     DB lsb(xor_)                ; ^
     DB lsb(remain_)             ; _
@@ -713,6 +713,13 @@ char3:
     jp (ix)  
 
 div:
+    inc bc
+    ld a,(bc)
+    cp $5C
+    jp z,comment
+    cp "A"
+    jp nc,command
+    dec bc
     pop de
     pop hl
     push bc                     ; preserve the IP    
@@ -849,16 +856,16 @@ goBlock1:
     
 goFunc:				            ; execute function
     ex de,hl                    ; hl = func*
-    ld e,(hl)                   ; de = closure*
+    ld e,(hl)                   ; de = partial_array*
     inc hl
     ld d,(hl)
     inc hl
-    ld a,e                      ; if closure* == null skip
+    ld a,e                      ; if partial_array* == null skip
     or d
     jr z,goFunc3
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
-    ex de,hl                    ; hl = closure*
+    ex de,hl                    ; hl = partial_array*
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
@@ -867,7 +874,7 @@ goFunc:				            ; execute function
     inc hl
     jr goFunc2
 goFunc1:
-    ld e,(hl)                   ; de = closure item
+    ld e,(hl)                   ; de = partial item
     inc hl
     ld d,(hl)
     inc hl
@@ -1145,18 +1152,16 @@ sub1:
 
 ;*******************************************************************
 ; commands
+; a contains command letter
+; bc points to command letter
 ;*******************************************************************
 command:
-    inc bc
-    ld a,(bc)
-    cp $5C                      ; \\ comment
-    jp z,comment
     cp "a"                      ; \a absolute
     jp z,abs1
     cp "b"                      ; \b bytes
     jp z,bytes
-    cp "c"                      ; \c closure
-    jp z,closure
+    cp "p"                      ; \p partial
+    jp z,partial
     cp "f"                      ; \f func
     jp z,func
     cp "F"                      ; \F false
@@ -1196,19 +1201,19 @@ abs1:
     push hl
     jp (ix)
 
-; closure
+; partial
 ; array* func* -- func1*
-closure:
+partial:
     pop hl                              ; h1 = func*
-    ld de,(vHeapPtr)                    ; de = heap* = closure*
+    ld de,(vHeapPtr)                    ; de = heap* = partial_array*
     ld (vTemp1),bc                      ; save IP
     ld bc,6                             ; bc = count
     ldir                                ; clone func
     ld bc,(vTemp1)                      ; restore IP
-    ld hl,(vHeapPtr)                    ; hl = heap* = closure*
+    ld hl,(vHeapPtr)                    ; hl = heap* = partial_array*
     ld (vHeapPtr),de                    ; heap* += 6
     pop de                              ; de = array*    
-    push hl                             ; return closure*
+    push hl                             ; return partial_array*
     ld (hl),e                           ; compile array*
     inc hl
     ld (hl),d
@@ -1295,7 +1300,7 @@ func:
     pop de                              ; de = block* hl = heap*
     ld hl,(vHeapPtr)
     xor a
-    ld (hl),a                           ; compile null closure*
+    ld (hl),a                           ; compile null partial_array*
     inc hl
     ld (hl),a
     inc hl
