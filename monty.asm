@@ -39,7 +39,7 @@ z80_RST8    EQU     $CF
 ;  :
 ; locn                              -- last local             
 ; IP                                -- IP (saved interpreter ptr, return)
-; arg_list*                         -- arg_list*
+; dollar_list*                         -- dollar_list*
 ; first_arg*                        -- first_arg*           
 ; BP                                -- BP (saved base ptr)           <-- iy
 ; res0                              -- 0th result
@@ -109,21 +109,21 @@ ctrlCodes:
 
 opcodes:                        ; still available ~ \  
     DB lsb(nop_)                ; SP  
-    DB lsb(not_)                ; !  
-    DB lsb(string_)             ; "
-    DB lsb(hexnum_)             ; #
-    DB lsb(arg_)                ; $  
-    DB lsb(arrIndex_)           ; %  
-    DB lsb(and_)                ; &
-    DB lsb(char_)               ; '
-    DB lsb(arg_list_)           ; (    
-    DB lsb(nop_)                ; )
-    DB lsb(mul_)                ; *  
+    DB lsb(bang_)               ; !  
+    DB lsb(dblquote_)           ; "
+    DB lsb(hash_)               ; #
+    DB lsb(dollar_)             ; $  
+    DB lsb(percent_)            ; %  
+    DB lsb(amper_)              ; &
+    DB lsb(tick_)               ; '
+    DB lsb(lparen_)             ; (    
+    DB lsb(rparen_)             ; )
+    DB lsb(star_)               ; *  
     DB lsb(plus_)               ; +
     DB lsb(comma_)              ; , 
     DB lsb(minus_)              ; -
     DB lsb(dot_)                ; .
-    DB lsb(div_)                ; /	
+    DB lsb(slash_)              ; /	
     DB lsb(num_)                ; 0     
     DB lsb(num_)                ; 1    
     DB lsb(num_)                ; 2    
@@ -139,70 +139,70 @@ opcodes:                        ; still available ~ \
     DB lsb(lt_)                 ; <
     DB lsb(eq_)                 ; =  
     DB lsb(gt_)                 ; >  
-    DB lsb(if_)                 ; ?    
-    DB lsb(addr_)               ; @  
-    DB lsb(identU_)             ; A     
-    DB lsb(identU_)             ; B     
-    DB lsb(identU_)             ; C     
-    DB lsb(identU_)             ; D     
-    DB lsb(identU_)             ; E     
-    DB lsb(identU_)             ; F     
-    DB lsb(identU_)             ; G     
-    DB lsb(identU_)             ; h     
-    DB lsb(identU_)             ; I     
-    DB lsb(identU_)             ; J     
-    DB lsb(identU_)             ; K     
-    DB lsb(identU_)             ; L     
-    DB lsb(identU_)             ; M     
-    DB lsb(identU_)             ; N     
-    DB lsb(identU_)             ; O     
-    DB lsb(identU_)             ; p     
-    DB lsb(identU_)             ; Q     
-    DB lsb(identU_)             ; R     
-    DB lsb(identU_)             ; S     
-    DB lsb(identU_)             ; T     
-    DB lsb(identU_)             ; U     
-    DB lsb(identU_)             ; V     
-    DB lsb(identU_)             ; W     
-    DB lsb(identU_)             ; X     
-    DB lsb(identU_)             ; Y     
-    DB lsb(identU_)             ; Z    
-    DB lsb(arrBegin_)           ; [
-    DB lsb(nop_)                ; \
-    DB lsb(arrEnd_)             ; ]
+    DB lsb(question_)           ; ?    
+    DB lsb(at_)                 ; @  
+    DB lsb(upcase_)             ; A     
+    DB lsb(upcase_)             ; B     
+    DB lsb(upcase_)             ; C     
+    DB lsb(upcase_)             ; D     
+    DB lsb(upcase_)             ; E     
+    DB lsb(upcase_)             ; F     
+    DB lsb(upcase_)             ; G     
+    DB lsb(upcase_)             ; h     
+    DB lsb(upcase_)             ; I     
+    DB lsb(upcase_)             ; J     
+    DB lsb(upcase_)             ; K     
+    DB lsb(upcase_)             ; L     
+    DB lsb(upcase_)             ; M     
+    DB lsb(upcase_)             ; N     
+    DB lsb(upcase_)             ; O     
+    DB lsb(upcase_)             ; p     
+    DB lsb(upcase_)             ; Q     
+    DB lsb(upcase_)             ; R     
+    DB lsb(upcase_)             ; S     
+    DB lsb(upcase_)             ; T     
+    DB lsb(upcase_)             ; U     
+    DB lsb(upcase_)             ; V     
+    DB lsb(upcase_)             ; W     
+    DB lsb(upcase_)             ; X     
+    DB lsb(upcase_)             ; Y     
+    DB lsb(upcase_)             ; Z    
+    DB lsb(lbrack_)             ; [
+    DB lsb(backslash_)          ; \
+    DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
-    DB lsb(remain_)             ; _
-    DB lsb(string_)             ; `     used for testing string   	    
-    DB lsb(identL_)             ; a     
-    DB lsb(identL_)             ; b  
-    DB lsb(identL_)             ; c  
-    DB lsb(identL_)             ; d  
-    DB lsb(identL_)             ; e  
-    DB lsb(identL_)             ; f  
-    DB lsb(identL_)             ; g  
-    DB lsb(identL_)             ; h  
-    DB lsb(identL_)             ; i  
-    DB lsb(identL_)             ; j  
-    DB lsb(identL_)             ; k  
-    DB lsb(identL_)             ; l  
-    DB lsb(identL_)             ; m  
-    DB lsb(identL_)             ; n  
-    DB lsb(identL_)             ; o  
-    DB lsb(identL_)             ; p  
-    DB lsb(identL_)             ; q  
-    DB lsb(identL_)             ; r  
-    DB lsb(identL_)             ; s  
-    DB lsb(identL_)             ; t  
-    DB lsb(identL_)             ; u  
-    DB lsb(identL_)             ; v  
-    DB lsb(identL_)             ; w  
-    DB lsb(identL_)             ; x  
-    DB lsb(identL_)             ; y  
-    DB lsb(identL_)             ; z  
-    DB lsb(block_)              ; {
-    DB lsb(or_)                 ; |  
-    DB lsb(blockEnd_)           ; }  
-    DB lsb(nop_)                ; ~    
+    DB lsb(underscore_)         ; _
+    DB lsb(backtick_)           ; `     used for testing string   	    
+    DB lsb(lowcase_)            ; a     
+    DB lsb(lowcase_)            ; b  
+    DB lsb(lowcase_)            ; c  
+    DB lsb(lowcase_)            ; d  
+    DB lsb(lowcase_)            ; e  
+    DB lsb(lowcase_)            ; f  
+    DB lsb(lowcase_)            ; g  
+    DB lsb(lowcase_)            ; h  
+    DB lsb(lowcase_)            ; i  
+    DB lsb(lowcase_)            ; j  
+    DB lsb(lowcase_)            ; k  
+    DB lsb(lowcase_)            ; l  
+    DB lsb(lowcase_)            ; m  
+    DB lsb(lowcase_)            ; n  
+    DB lsb(lowcase_)            ; o  
+    DB lsb(lowcase_)            ; p  
+    DB lsb(lowcase_)            ; q  
+    DB lsb(lowcase_)            ; r  
+    DB lsb(lowcase_)            ; s  
+    DB lsb(lowcase_)            ; t  
+    DB lsb(lowcase_)            ; u  
+    DB lsb(lowcase_)            ; v  
+    DB lsb(lowcase_)            ; w  
+    DB lsb(lowcase_)            ; x  
+    DB lsb(lowcase_)            ; y  
+    DB lsb(lowcase_)            ; z  
+    DB lsb(lbrace_)             ; {
+    DB lsb(pipe_)               ; |  
+    DB lsb(rbrace_)             ; }  
+    DB lsb(tilde_)              ; ~    
     DB lsb(nop_)                ; DEL	
 
 
@@ -214,59 +214,62 @@ page4:
 
 plus_:                           ; add the top 2 members of the stack
     jp plus
-addr_:
+at_:
     jp addr
-and_:
+amper_:
     jp and
-arg_:
+dollar_:
     jp arg
-arg_list_:    
-    jp arg_list
-arrBegin_:
+tilde_:    
+    jp tilde
+lbrack_:
     jp arrBegin
-arrEnd_:
+rbrack_:
     jp arrEnd
-arrIndex_:        
+percent_:        
     jp arrIndex 
-block_:
+backslash_:
+    jp backslash
+lbrace_:
     jp block
-blockEnd_:
+rbrace_:
     jp blockEnd
-char_:
+tick_:
     jp char
-command_:
+commamper_:
     jp command
 semicolon_:
     jp semicolon
 dot_:  
     jp dot
-remain_:
+underscore_:
     jp remain
 colon_:
     jp colon
-identU_:
-    jp identU
-identL_:
-    jp identL
-if_:
+upcase_:
+    jp upcase
+lowcase_:
+    jp lowcase
+question_:
     jp if
-mul_:    
+star_:    
     jp mul 
-not_:				            ; logical invert, any non zero value 
+backtick_:    
+    jp string 
+bang_:				            ; logical invert, any non zero value 
     ld hl,0                     ; is considered true
     jr eq1    
 num_:    
     jp  num
-hexnum_:    
+hash_:    
     jp hexnum
-or_: 		 
+pipe_: 		 
     jp or
 caret_: 		 
     jp caret
 comma_: 		 
-    pop hl
-    jp (ix)
-string_:
+    jp comma
+dblquote_:
     jp string
 minus_:
     jp minus
@@ -291,7 +294,8 @@ gt_:
     pop de
     pop hl
     jr lt1
-
+lparen_:
+    jp lparen
 lt_:
     inc bc
     ld a,(bc)
@@ -304,11 +308,12 @@ lt1:
     jp z,lessthaneq
     dec bc
     jp lessthan
-    
-div_:
+slash_:
     jp div
 nop_:  
     jp (ix)
+rparen_:
+    jp rparen
 
 ;*******************************************************************
 ; word operators
@@ -320,7 +325,6 @@ plus:
     cp "+"                      ; ++ increment variable
     jr nz,add1
     pop hl
-    push hl                     ; return pre-incremented value
     inc hl
     jp assign0
 add1:
@@ -380,19 +384,19 @@ xor1:
     jp (ix)    
 invert:				            ; Bitwise INVert the top member of the stack
     ld de, $FFFF                ; by xoring with $FFFF
-    jp xor1    
+    jr xor1    
 
 ; $a .. $z
 ; -- value
 ; returns value of arg
 arg:
-    ld e,(iy+4)                 ; hl = arg_list* 
+    ld e,(iy+4)                 ; hl = dollar_list* 
     ld d,(iy+5)
     ex de,hl                    
-    ld a,l                      ; arg_list* == null, skip
+    ld a,l                      ; dollar_list* == null, skip
     or h
     jr z,arg0a
-    dec hl                      ; a = num_args, hl = arg_list*
+    dec hl                      ; a = num_args, hl = dollar_list*
     dec hl
     ld a,(hl)                    
     inc hl
@@ -400,18 +404,18 @@ arg:
     or a
     jr z,arg0a                  ; num_args == 0, skip 
     ld e,a                      ; e = a = num_args
-    inc bc                      ; a = next char = arg_name
+    inc bc                      ; a = next char = dollar_name
     ld a,(bc)
     push bc                     ; save IP                         
     ld b,e                      ; b = e = num_args
     ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
     ld d,(iy+3)
 arg0:
-    dec de                      ; a = arg_name, de = next arg*
+    dec de                      ; a = dollar_name, de = next arg*
     dec de
     cp (hl)
     jr z,arg1
-    inc hl                      ; hl = next arg_list*            
+    inc hl                      ; hl = next dollar_list*            
     djnz arg0
     pop bc                      ; no match, restore IP
 arg0a:
@@ -428,57 +432,13 @@ arg1a:
     push de                     ; push arg
     jp (ix)
 
-
-; arg_list - parses input (ab:c)
-; names after the : represent uninitialised locals
-; return values are the state of the stack after the block ends
-
-arg_list:
-    ld de,0                     ; d = count locals, e = count args ()
-    ld hl,(vHeapPtr)            ; hl = heap*
-    inc hl                      ; skip length field to start
-    inc hl
-    push hl                     ; save start of arg_list
-    inc bc                      ; point to next char
-arg_list1:
-    ld a,(bc)
-    cp ")"                      ; ) is the arg_list terminator
-    jr z,arg_list4
-    cp ":"
-    jr nz,arg_list2
-    inc d                       ; non zero value local count acts as flag
-    jr nz,arg_list3
-arg_list2:
-    ld (hl),a
-    inc hl                      
-    inc e                       ; increase arg count
-    xor a
-    or d
-    jr z,arg_list3
-    inc d                       ; if d > 0 increase local count
-arg_list3:
-    inc bc                      ; point to next char
-    jr arg_list1
-arg_list4:
-    xor a
-    or d
-    jr z,arg_list5
-    dec d                       ; remove initial inc
-arg_list5:
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap* to after end of string
-    pop hl                      ; hl = start of arg_list
-    push hl                     ; return start of string    
-    dec hl                      ; write length bytes to length field at start - 2                                      
-    ld (hl),d
-    dec hl
-    ld (hl),e
-    jp (ix)  
+tilde:
+    jp (ix)
 
 arrBegin:
     ld de,0                     ; create stack frame
     push de                     ; push null for IP
-    ld e,(iy+4)                 ; push arg_list* from parent stack frame
+    ld e,(iy+4)                 ; push dollar_list* from parent stack frame
     ld d,(iy+5)                 ; 
     push de                     ; 
     ld e,(iy+2)                 ; push first_arg* from parent stack frame
@@ -528,7 +488,7 @@ arrEnd2:
     ex de,hl                    ; iy = de = old BP, hl = end of array
     ld iyh,d
     ld iyl,e
-    pop de                      ; pop arg_list (discard)
+    pop de                      ; pop dollar_list (discard)
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-2]
@@ -578,6 +538,56 @@ assignx:
     inc hl    
     ld (hl),d
 assign1:	  
+    jp (ix)  
+
+; dollar_list - parses input (ab:c)
+; names after the : represent uninitialised locals
+; return values are the state of the stack after the block ends
+
+backslash:
+dollar_list:
+    ld de,0                     ; d = count locals, e = count args ()
+    ld hl,(vHeapPtr)            ; hl = heap*
+    inc hl                      ; skip length field to start
+    inc hl
+    push hl                     ; save start of dollar_list
+    inc bc                      ; point to next char
+dollar_list1:
+    ld a,(bc)
+    cp ":"                      ; ":" switches from args to locals
+    jr nz,dollar_list1a
+    inc d                       ; non zero value local count acts as flag
+    jr dollar_list3
+dollar_list1a:
+    cp "A"                      ; < "A" terminates dollar_list
+    jr c,dollar_list4
+    cp "z"+1                    ; > "z" terminates dollar_list
+    jr nc,dollar_list4
+dollar_list2:
+    ld (hl),a
+    inc hl                      
+    inc e                       ; increase arg count
+    xor a
+    or d
+    jr z,dollar_list3
+    inc d                       ; if d > 0 increase local count
+dollar_list3:
+    inc bc                      ; point to next char
+    jr dollar_list1
+dollar_list4:
+    xor a
+    or d
+    jr z,dollar_list5
+    dec d                       ; remove initial inc
+dollar_list5:
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
+    pop hl                      ; hl = start of dollar_list
+    push hl                     ; return start of dollar_list    
+    dec hl                      ; write number of locals at start - 1                                      
+    ld (hl),d
+    dec hl                      ; write number of args + locals at start - 2
+    ld (hl),e
     jp (ix)  
 
 block:
@@ -718,7 +728,11 @@ char3:
     push hl
     jp (ix)  
 
+colon:
+    jp (ix)
 comma:
+    ; TODO: limit this to SP >= BP
+    pop hl
     jp (ix)
 
 div:
@@ -823,6 +837,9 @@ false1:
     push hl
     jp (ix) 
 
+lparen:
+    jp block 
+
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
@@ -837,16 +854,13 @@ go1:
 go2:
     ld a,(de)
     cp "{"
+    jr z,goBlock1
+    cp "("
     jp nz,goFunc
+    inc de                      ; de is the address to jump back to
+    push de                     ; push de just before stack frame
 goBlock:
-    inc de
-    ld a,(de)
-    dec de
-    cp ":"
-    jr nz,goBlockX1
-    inc de
-    push de
-goBlockX1:    
+goBlock1:    
     ld (vTemp1),de              ; save de
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
     ld d,iyh                    
@@ -859,12 +873,12 @@ goBlockX1:
     ld a,0
     jr z,goFunc8
     push bc                     ; push IP
-    ld c,(iy+4)                 ; push arg_list* (parent)
+    ld c,(iy+4)                 ; push dollar_list* (parent)
     ld b,(iy+5)                 
     ld l,(iy+2)                 ; push first_arg* (parent)
     ld h,(iy+3)                 
-goBlock1:
-    push bc                     ; arg_list*
+goBlock2:
+    push bc                     ; dollar_list*
     push hl                     ; first_arg*
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
@@ -910,19 +924,19 @@ goFunc3:
     ld d,(hl)
     inc hl
     ld (vTemp1),de              ; save block*
-    ld e,(hl)                   ; de = arg_list*
+    ld e,(hl)                   ; de = dollar_list*
     inc hl
     ld d,(hl)
     inc hl
-    ex de,hl                    ; hl = arg_list*
+    ex de,hl                    ; hl = dollar_list*
     ld de,(vTemp1)              ; restore de = block*
-    ld a,l                      ; if arg_list* == null a = 0
+    ld a,l                      ; if dollar_list* == null a = 0
     or h
     jr nz,goFunc4          
     xor a                       ; a = num_args (zero), num locals (zero)
     jr goFunc8                  
 goFunc4:                        ; allocate locals 
-    dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
+    dec hl                      ; a = num_locals*, de = hblock* hl = dollar_list*
     ld a,(hl)
     jr goFunc6
 goFunc5:                        ; loop
@@ -945,7 +959,7 @@ goFunc8:
     add a,l                     
     ld l,a
     add hl,sp
-    jr goBlock1
+    jr goBlock2
 
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
@@ -967,11 +981,11 @@ hexnum2:
     add a,l                     ; add into bottom of hl
     ld  l,a        
     jr  hexnum1
-identU:
+upcase:
     ld a,(bc)                   ; a = identifier char
     sub 'A'                     ; 'A' = 0
     jr ident1
-identL:
+lowcase:
     ld a,(bc)
     sub 'a' 
     add a,26
@@ -1006,7 +1020,7 @@ ifte1:
     ld a,h
     or l
     pop hl                      ; hl = then
-    jp z,go1                ; if z de = else                   
+    jp z,go1                    ; if z de = else                   
     ex de,hl                    ; condition = false, de = then  
     jp go1
 
@@ -1075,27 +1089,32 @@ remain:
     push hl
     jp (ix)
 
-; arg_list* block* -- ptr
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
+
+; dollar_list* block* -- ptr
 semicolon:
-    pop de                              ; de = block* hl = heap*
+    pop de                      ; de = block* hl = heap*
     ld hl,(vHeapPtr)
     xor a
-    ld (hl),a                           ; compile null partial_array*
+    ld (hl),a                   ; compile null partial_array*
     inc hl
     ld (hl),a
     inc hl
-    ld (hl),e                           ; compile block*
+    ld (hl),e                   ; compile block*
     inc hl
     ld (hl),d
     inc hl
-    pop de                              ; de = block*
-    ld (hl),e                           ; compile arg_list*
+    pop de                      ; de = block*
+    ld (hl),e                   ; compile dollar_list*
     inc hl
     ld (hl),d
     inc hl
-    ld de,(vHeapPtr)                    ; return func*
+    ld de,(vHeapPtr)            ; return func*
     push de
-    ld (vHeapPtr),hl                    ; heap* += 4
+    ld (vHeapPtr),hl            ; heap* += 4
     jp (ix)
 
 ; shiftLeft  
@@ -1182,7 +1201,6 @@ sub:                           ; Subtract the value 2nd on stack from top of sta
     cp "-"
     jr nz,sub1
     pop hl
-    push hl                     ; return the preincremented value
     dec hl
     jp assign0
 sub1:
@@ -1217,8 +1235,6 @@ command:
     jp z,numbers
     cp "o"                      ; \o output
     jp z,output
-    cp "s"                      ; \s select
-    jp z,select    
     cp "t"                      ; \t true
     jp z,true1
     cp "v"                      ; \v invert
@@ -1267,19 +1283,6 @@ comment:
     jr nc,comment
     dec bc
     jp (ix) 
-
-colon:
-    inc bc
-    ld a,(bc)
-    cp "}"
-    jp z,loopEnd
-    dec bc
-    jp error1
-
-loopEnd:
-    ld c,(iy+8)                    ; get block* just under stack frame
-    ld b,(iy+9)
-    jp (ix)
 
 break:
     pop hl
@@ -1334,18 +1337,6 @@ output:
     out (c),l
     ld c,e                      ; restore IP
     jp (ix)    
-
-; select
-; index array -- value
-select: 
-    pop de                      ; de = array
-    pop hl                      ; hl = index  
-    add hl,hl                   ; if data width = 2 then double 
-    add hl,de                   ; add addr
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    jp go1
 
 numbers:
     ld hl,2
