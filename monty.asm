@@ -13,20 +13,24 @@
 ;
 ; *****************************************************************************
 
-DSIZE       EQU     $80
-TIBSIZE     EQU     $100	    ; 256 bytes , along line!
-TRUE        EQU     -1		    ; C-style true
-FALSE       EQU     0
-EMPTY       EQU     0		         
-UNUSED      EQU     $ff
-NUL         EQU     0           ; exit code
-DC1         EQU     17          ; ?
-DC2         EQU     18          ; ?
-DC3         EQU     19          ; ?
-ESC         EQU     27          ; ?
-DQUOTE      EQU     $22         ; " double quote char
+DSIZE   equ     $80
+TIBSIZE equ     $100	    ; 256 bytes , along line!
+TRUE    equ     -1		    ; C-style true
+FALSE   equ     0
+; EMPTY   equ     0		         
+; UNUSED  equ     $ff
+NUL     equ     0           ; exit code
+; DC1     equ     17          ; ?
+; DC2     equ     18          ; ?
+; DC3     equ     19          ; ?
+DQUOTE  equ     $22         ; " double quote char
+CTRL_C  equ     3
+CTRL_H  equ     8
+CTRL_J  equ     10
+CTRL_L  equ     12
+ESC     equ     27          
 
-z80_RST8    EQU     $CF
+z80_RST8    equ     $CF
 ; **************************************************************************
 ; stack frame
 ;
@@ -74,38 +78,38 @@ isysVars:
 opcodesBase:
 
 ctrlCodes:
-    DB lsb(EMPTY)               ; ^@  0 NUL  
-    DB lsb(EMPTY)               ; ^A  1 SOH
-    DB lsb(EMPTY)               ; ^B  2 STX
-    DB lsb(EMPTY)               ; ^C  3 ETX
-    DB lsb(EMPTY)               ; ^D  4 EOT
-    DB lsb(EMPTY)               ; ^E  5 ENQ
-    DB lsb(EMPTY)               ; ^F  6 ACK
-    DB lsb(EMPTY)               ; ^G  7 BEL
-    DB lsb(EMPTY)               ; ^H  8 BS
-    DB lsb(EMPTY)               ; ^I  9 TAB
-    DB lsb(EMPTY)               ; ^J 10 LF
-    DB lsb(EMPTY)               ; ^K 11 VT
-    DB lsb(EMPTY)               ; ^L 12 FF
-    DB lsb(EMPTY)               ; ^M 13 CR
-    DB lsb(EMPTY)               ; ^N 14 SO
-    DB lsb(EMPTY)               ; ^O 15 SI
-    DB lsb(EMPTY)               ; ^P 16 DLE
-    DB lsb(EMPTY)               ; ^Q 17 DC1    
-    DB lsb(EMPTY)               ; ^R 18 DC2   
-    DB lsb(EMPTY)               ; ^S 19 DC3  
-    DB lsb(EMPTY)               ; ^T 20 DC4  
-    DB lsb(EMPTY)               ; ^U 21 NAK     
-    DB lsb(EMPTY)               ; ^V 22 SYN
-    DB lsb(EMPTY)               ; ^W 23 ETB  
-    DB lsb(EMPTY)               ; ^X 24 CAN   
-    DB lsb(EMPTY)               ; ^Y 25 EM  
-    DB lsb(EMPTY)               ; ^Z 26 SUB  
-    DB lsb(EMPTY)               ; ^[ 27 ESC
-    DB lsb(EMPTY)               ; ^\ 28 FS
-    DB lsb(EMPTY)               ; ^] 29 GS
-    DB lsb(EMPTY)               ; ^^ 30 RS
-    DB lsb(EMPTY)               ; ^_ 31 US
+    DB 0               ; ^@  0 NUL  
+    DB 0               ; ^A  1 SOH
+    DB 0               ; ^B  2 STX
+    DB 0               ; ^C  3 ETX
+    DB 0               ; ^D  4 EOT
+    DB 0               ; ^E  5 ENQ
+    DB 0               ; ^F  6 ACK
+    DB 0               ; ^G  7 BEL
+    DB 0               ; ^H  8 BS
+    DB 0               ; ^I  9 TAB
+    DB 0               ; ^J 10 LF
+    DB 0               ; ^K 11 VT
+    DB 0               ; ^L 12 FF
+    DB 0               ; ^M 13 CR
+    DB 0               ; ^N 14 SO
+    DB 0               ; ^O 15 SI
+    DB 0               ; ^P 16 DLE
+    DB 0               ; ^Q 17 DC1    
+    DB 0               ; ^R 18 DC2   
+    DB 0               ; ^S 19 DC3  
+    DB 0               ; ^T 20 DC4  
+    DB 0               ; ^U 21 NAK     
+    DB 0               ; ^V 22 SYN
+    DB 0               ; ^W 23 ETB  
+    DB 0               ; ^X 24 CAN   
+    DB 0               ; ^Y 25 EM  
+    DB 0               ; ^Z 26 SUB  
+    DB 0               ; ^[ 27 ESC
+    DB 0               ; ^\ 28 FS
+    DB 0               ; ^] 29 GS
+    DB 0               ; ^^ 30 RS
+    DB 0               ; ^_ 31 US
 
 opcodes:                        ; still available ~ `  
     DB lsb(nop_)                ; SP  
@@ -575,6 +579,7 @@ arglist3:
     inc bc                      ; point to next char
     jr arglist1
 arglist4:
+    dec bc
     xor a
     or d
     jr z,arglist5
@@ -1024,7 +1029,7 @@ if:
     cp "?"
     jr z,ifte
     dec bc
-    ld de,0                      ; NUL pointer for else
+    ld de,NUL                   ; NUL pointer for else
     jr ifte1
 ; ifte
 ; condition then else -- value
@@ -1579,27 +1584,25 @@ interpret5:
     call getchar                ; loop around waiting for character from serial port
     cp $20			            ; compare to space
     jr nc,interpret6		        ; if >= space, if below 20 set cary flag
-    cp $0                       ; is it end of string? NUL end of string
+    cp NUL                      ; is it end of string? NUL end of string
                                 ; ???? NEEDED?
     jr z,interpret8
     cp '\r'                     ; carriage return? ascii 13
     jr z,interpret7		        ; if anything else its macro/control 
 
-                                ; macro       
-;  ld (vTIBPtr),bc
-;  ld hl,ctrlCodes
-;  add a,l			            ; look up key of macros
-;  ld l,a
-;  ld e,(hl)
-;  ld a,e
-;  or a
-;  jr z,macro1
-;  ld d,msb(macros)
-;  push de
-;  call call		            ; monty exec_ operation and jump to it
-;  db DC1,0
-; macro1:
-;  ld bc,(vTIBPtr)
+    ; ld (vTIBPtr),bc
+
+    cp CTRL_H
+    jr nz,interpret5a
+    ld a,'-'
+    call putchar
+interpret5a:    
+    ; DB     lsb(edit_)       ; ENQ ^E  5
+    ; DB     lsb(backsp_)     ; BS  ^H  8
+    ; DB     lsb(reedit_)     ; LF  ^J 10
+    ; DB     lsb(list_)       ; FF  ^L 12
+    ; DB     lsb(printStack_) ; DLE ^P 16
+    ; ld bc,(vTIBPtr)
     jr interpret2
 
 interpret6:
@@ -1650,6 +1653,9 @@ exit_:
     ld hl,bc
     jp (hl)
 
+backSpace:
+    jp interpret
+    
 error:
     call printStr		        
     .cstr "Error "
