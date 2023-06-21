@@ -1,4 +1,4 @@
-.engine mycomputer
+; .engine mycomputer
 
 .include "constants.asm"
 .include "IOSerial.asm"
@@ -17,7 +17,7 @@ CALL init
 ld hl,testGetCharImpl                       ; change getchar implmentation to use tbuf
 LD (GETCVEC),hl
 
-testInput "3 2 1 + + ."
+testInput "1 2 3 .k"
 JP interpret
 
 testGetCharImpl:

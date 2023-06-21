@@ -545,17 +545,14 @@
 00CC                TIBSIZE:   EQU   $100   ; 256 bytes , along line!
 00CC                TRUE:     EQU   -1   ; C-style true
 00CC                FALSE:    EQU   0   
-00CC                             ; EMPTY   equ     0		
-00CC                             ; UNUSED  equ     $ff
 00CC                NUL:      EQU   0   ; exit code
-00CC                             ; DC1     equ     17          ; ?
-00CC                             ; DC2     equ     18          ; ?
-00CC                             ; DC3     equ     19          ; ?
 00CC                DQUOTE:   EQU   $22   ; " double quote char
 00CC                CTRL_C:   EQU   3   
+00CC                CTRL_E:   EQU   5   
 00CC                CTRL_H:   EQU   8   
 00CC                CTRL_J:   EQU   10   
 00CC                CTRL_L:   EQU   12   
+00CC                CTRL_P:   EQU   16   
 00CC                ESC:      EQU   27   
 00CC                Z80_RST8:   EQU   $CF   
 00CC                             ; **************************************************************************
@@ -591,10 +588,10 @@
 0180                             ; Initial values for system vars		
 0180                             ; ***********************************************************************		
 0180                ISYSVARS:      
-0180   02 00                  DW   2   ; b vDataWidth in bytes of array operations (default 1 byte)
-0182   00 00                  DW   0   ; c vTIBPtr an offset to the tib
-0184   2A 0A                  DW   next   ; g nNext
-0186   00 10                  DW   heap   ; h vHeapPtr \h start of the free mem
+0180   02 00                  DW   2   ; vDataWidth in bytes of array operations (default 1 byte)
+0182   00 00                  DW   0   ; vTIBPtr an offset to the tib
+0184   31 0A                  DW   next   ; nNext
+0186   00 10                  DW   heap   ; vHeapPtr \h start of the free mem
 0188                          ALIGN   $100   
 0200                OPCODESBASE:      
 0200                CTRLCODES:      
@@ -1121,7 +1118,7 @@
 04F9   28 0D                  JR   z,block3   
 04FB   FE 60                  CP   "`"   
 04FD   28 09                  JR   z,block3   
-04FF   FE 22                  CP   $22   
+04FF   FE 22                  CP   DQUOTE   
 0501   28 05                  JR   z,block3   
 0503   18 D4                  JR   block1   
 0505                BLOCK2:      
@@ -1264,9 +1261,9 @@
 05D3   C1                     POP   bc   
 05D4   C3 99 03               JP   add3   
 05D7                DOT:         
-05D7   E1                     POP   hl   
-05D8   03                     INC   bc   
-05D9   0A                     LD   a,(bc)   
+05D7   03                     INC   bc   
+05D8   0A                     LD   a,(bc)   
+05D9   E1                     POP   hl   
 05DA   FE 68                  CP   "h"   
 05DC   20 05                  JR   nz,dot1   
 05DE   CD 25 09               CALL   prthex   
@@ -1737,7 +1734,7 @@
 084B   CA C4 03               JP   z,xor   
 084E                ERROR1:      
 084E   21 01 00               LD   hl,1   ; error 1: unknown command
-0851   C3 46 0A               JP   error   
+0851   C3 97 0A               JP   error   
 0854                ABS1:        
 0854   E1                     POP   hl   
 0855   CB 7C                  BIT   7,h   
@@ -2022,77 +2019,139 @@
 09E7                INTERPRET5:      
 09E7   CD 81 00               CALL   getchar   ; loop around waiting for character from serial port
 09EA   FE 20                  CP   $20   ; compare to space
-09EC   30 13                  JR   nc,interpret6   ; if >= space, if below 20 set cary flag
+09EC   30 1A                  JR   nc,interpret6   ; if >= space, if below 20 set cary flag
 09EE   FE 00                  CP   NUL   ; is it end of string? NUL end of string
 09F0                             ; ???? NEEDED?
-09F0   28 30                  JR   z,interpret8   
+09F0   28 37                  JR   z,interpret8   
 09F2   FE 0D                  CP   "\r"   ; carriage return? ascii 13
-09F4   28 19                  JR   z,interpret7   ; if anything else its macro/control
-09F6                             ; ld (vTIBPtr),bc
-09F6   FE 08                  CP   CTRL_H   
-09F8   20 05                  JR   nz,interpret5a   
-09FA   3E 2D                  LD   a,"-"   
-09FC   CD 85 00               CALL   putchar   
-09FF                INTERPRET5A:      
-09FF                             ; DB     lsb(edit_)       ; ENQ ^E  5
-09FF                             ; DB     lsb(backsp_)     ; BS  ^H  8
-09FF                             ; DB     lsb(reedit_)     ; LF  ^J 10
-09FF                             ; DB     lsb(list_)       ; FF  ^L 12
-09FF                             ; DB     lsb(printStack_) ; DLE ^P 16
-09FF                             ; ld bc,(vTIBPtr)
-09FF   18 D3                  JR   interpret2   
-0A01                INTERPRET6:      
-0A01   21 00 0E               LD   hl,TIB   
-0A04   09                     ADD   hl,bc   
-0A05   77                     LD   (hl),a   ; store the character in textbuf
-0A06   03                     INC   bc   
-0A07   CD 85 00               CALL   putchar   ; echo character to screen
-0A0A   CD 4D 09               CALL   nesting   
-0A0D   18 D8                  JR   interpret5   ; wait for next character
-0A0F                INTERPRET7:      
-0A0F   21 00 0E               LD   hl,TIB   
-0A12   09                     ADD   hl,bc   
-0A13   36 0D                  LD   (hl),"\r"   ; store the crlf in textbuf
-0A15   23                     INC   hl   
-0A16   36 0A                  LD   (hl),"\n"   
-0A18   23                     INC   hl   
-0A19   03                     INC   bc   
-0A1A   03                     INC   bc   
-0A1B   CD 88 09               CALL   crlf   ; echo character to screen
-0A1E   7B                     LD   a,e   ; if zero nesting append and ETX after \r
-0A1F   B7                     OR   a   
-0A20   20 C5                  JR   nz,interpret5   
-0A22                INTERPRET8:      
-0A22   ED 43 E8 0C            LD   (vTIBPtr),bc   
-0A26   01 00 0E               LD   bc,TIB   ; Instructions stored on heap at address HERE,
-0A29                             ; we pressed enter
-0A29   0B                     DEC   bc   
-0A2A                NEXT:        
-0A2A   03                     INC   bc   ; Increment the IP
-0A2B   0A                     LD   a,(bc)   ; Get the next character and dispatch
-0A2C   FE 20                  CP   " "   ; whitespace?
-0A2E   28 FA                  JR   z,next   ; space? ignore
-0A30   38 07                  JR   c,next1   
-0A32   6F                     LD   l,a   ; index into table
-0A33   26 02                  LD   h,msb(opcodesBase)   ; start address of jump table
-0A35   6E                     LD   l,(hl)   ; get low jump address
-0A36   26 03                  LD   h,msb(page4)   ; Load h with the 1st page address
-0A38   E9                     JP   (hl)   ; Jump to routine
-0A39                NEXT1:       
-0A39   FE 00                  CP   NUL   ; end of input string?
-0A3B   28 03                  JR   z,exit_   
-0A3D   C3 CA 09               JP   interpret   ; no, other whitespace, macros?
-0A40                EXIT_:       
-0A40   60 69                  LD   hl,bc   
-0A42   E9                     JP   (hl)   
-0A43                BACKSPACE:      
-0A43   C3 CA 09               JP   interpret   
-0A46                ERROR:       
-0A46   CD 8F 09               CALL   printStr   
-0A49   45 72 72 6F 72 20 00   .CSTR   "Error "   
-0A50   CD DD 08               CALL   prtdec   
-0A53   C3 CA 09               JP   interpret   
-0A56                          ALIGN   $100   
+09F4   28 20                  JR   z,interpret7   ; if anything else its macro/control
+09F6   FE 05                  CP   CTRL_E   
+09F8   28 50                  JR   z,edit   
+09FA   FE 08                  CP   CTRL_H   
+09FC   28 52                  JR   z,backSpace   
+09FE   FE 0A                  CP   CTRL_J   
+0A00   28 4B                  JR   z,reEdit   
+0A02   FE 10                  CP   CTRL_P   
+0A04   28 59                  JR   z,printStack   
+0A06                             ; DB     lsb(edit_)       ; ENQ ^E  5
+0A06                             ; DB     lsb(reedit_)     ; LF  ^J 10
+0A06                             ; DB     lsb(list_)       ; FF  ^L 12
+0A06                             ; DB     lsb(printStack_) ; DLE ^P 16
+0A06                             ; DB lsb(depth_)      ;\#3    ( -- val )    depth of data stack
+0A06                             ; DB lsb(prtStk_)   ;\#4    ( -- )        non-destructively prints stack
+0A06                             ; DB lsb(prompt_)     ;\#5    ( -- )        print MINT prompt
+0A06                             ; DB lsb(editDef_)    ;\#6    ( char -- )   edit command
+0A06                             ; DB lsb(aDup_)       ;\#7    ( adr -- )    dupe (used in asm tests)
+0A06                             ; DB     lsb(newln_)      ;a4    \$  prints a newline to output	
+0A06                             ; reedit_: DB "\\e\\@\\#6;"			; lastDef, edit. remembers last line edited
+0A06                             ; edit_: .cstr "`?`?\\#5\\#6;"      ; ?,key,prompt,edit
+0A06                             ; list_: .cstr "\\$26(\\i@65+\\#6\\c@0>(\\$))\\#5;" newln, loop 26 (index + "A", edit tib* > 0, newln),prompt
+0A06                             ; printStack_: .cstr "\\#4\\#5;"  ; print stack, prompt
+0A06                INTERPRET5A:      
+0A06                             ; ld (vTIBPtr),bc
+0A06                             ; ld bc,(vTIBPtr)
+0A06   18 CC                  JR   interpret2   
+0A08                INTERPRET6:      
+0A08   21 00 0E               LD   hl,TIB   
+0A0B   09                     ADD   hl,bc   
+0A0C   77                     LD   (hl),a   ; store the character in textbuf
+0A0D   03                     INC   bc   
+0A0E   CD 85 00               CALL   putchar   ; echo character to screen
+0A11   CD 4D 09               CALL   nesting   
+0A14   18 D1                  JR   interpret5   ; wait for next character
+0A16                INTERPRET7:      
+0A16   21 00 0E               LD   hl,TIB   
+0A19   09                     ADD   hl,bc   
+0A1A   36 0D                  LD   (hl),"\r"   ; store the crlf in textbuf
+0A1C   23                     INC   hl   
+0A1D   36 0A                  LD   (hl),"\n"   
+0A1F   23                     INC   hl   
+0A20   03                     INC   bc   
+0A21   03                     INC   bc   
+0A22   CD 88 09               CALL   crlf   ; echo character to screen
+0A25   7B                     LD   a,e   ; if zero nesting append and ETX after \r
+0A26   B7                     OR   a   
+0A27   20 BE                  JR   nz,interpret5   
+0A29                INTERPRET8:      
+0A29   ED 43 E8 0C            LD   (vTIBPtr),bc   
+0A2D   01 00 0E               LD   bc,TIB   ; Instructions stored on heap at address HERE,
+0A30                             ; we pressed enter
+0A30   0B                     DEC   bc   
+0A31                NEXT:        
+0A31   03                     INC   bc   ; Increment the IP
+0A32   0A                     LD   a,(bc)   ; Get the next character and dispatch
+0A33   FE 20                  CP   " "   ; whitespace?
+0A35   28 FA                  JR   z,next   ; space? ignore
+0A37   38 07                  JR   c,next1   
+0A39   6F                     LD   l,a   ; index into table
+0A3A   26 02                  LD   h,msb(opcodesBase)   ; start address of jump table
+0A3C   6E                     LD   l,(hl)   ; get low jump address
+0A3D   26 03                  LD   h,msb(page4)   ; Load h with the 1st page address
+0A3F   E9                     JP   (hl)   ; Jump to routine
+0A40                NEXT1:       
+0A40   FE 00                  CP   NUL   ; end of input string?
+0A42   28 03                  JR   z,exit_   
+0A44   C3 CA 09               JP   interpret   ; no, other whitespace, macros?
+0A47                EXIT_:       
+0A47   60 69                  LD   hl,bc   
+0A49   E9                     JP   (hl)   
+0A4A                EDIT:        
+0A4A   C3 D4 09               JP   interpret2   
+0A4D                REEDIT:      
+0A4D   C3 D4 09               JP   interpret2   
+0A50                BACKSPACE:      
+0A50   79                     LD   a,c   
+0A51   B0                     OR   b   
+0A52   28 80                  JR   z,interpret2   
+0A54   0B                     DEC   bc   
+0A55   CD 8F 09               CALL   printStr   
+0A58   08 20 08 00            .CSTR   "\b \b"   
+0A5C   C3 D4 09               JP   interpret2   
+0A5F                PRINTSTACK:      
+0A5F   ED 43 FA 0C            LD   (vTemp1),bc   
+0A63   CD 8F 09               CALL   printStr   
+0A66   3D 3E 20 00            .CSTR   "=> "   
+0A6A   21 80 0B               LD   hl,STACK   
+0A6D   ED 72                  SBC   hl,sp   
+0A6F   CB 3C                  SRL   h   
+0A71   CB 1D                  RR   l   
+0A73   44 4D                  LD   bc,hl   
+0A75   21 80 0B               LD   hl,STACK   
+0A78   18 0F                  JR   prtStk2   
+0A7A                PRTSTK1:      
+0A7A   0B                     DEC   bc   
+0A7B   2B                     DEC   hl   
+0A7C   56                     LD   d,(hl)   
+0A7D   2B                     DEC   hl   
+0A7E   5E                     LD   e,(hl)   
+0A7F   EB                     EX   de,hl   
+0A80   CD 25 09               CALL   prthex   
+0A83   EB                     EX   de,hl   
+0A84   3E 20                  LD   a," "   
+0A86   CD 85 00               CALL   putchar   
+0A89                PRTSTK2:      
+0A89   79                     LD   a,c   
+0A8A   B0                     OR   b   
+0A8B   20 ED                  JR   nz,prtStk1   
+0A8D   CD 7F 09               CALL   prompt   
+0A90   ED 4B FA 0C            LD   bc,(vTemp1)   
+0A94   C3 D4 09               JP   interpret2   
+0A97                             ; "`=> `\\a@2-\\#3 1-(",$22,"@\\b@(,)(.)2-)'\\$"
+0A97                             ; \a start of stack \#3 depth \b base \$ prompt
+0A97                             ; DW dStack               ; a vS0 start of datastack			
+0A97                             ; DW FALSE                ; b vBase16
+0A97                             ; DW 0                    ; c vTIBPtr an offset to the tib
+0A97                             ; DW 0                    ; d
+0A97                             ; DW 65                   ; e vLastDef "A" last command u defined
+0A97                             ; DW 0                    ; f
+0A97                             ; DW page6                ; g 256 bytes limits
+0A97                             ; DW HEAP                 ; h vHeapPtr \h start of the free mem
+0A97                ERROR:       
+0A97   CD 8F 09               CALL   printStr   
+0A9A   45 72 72 6F 72 20 00   .CSTR   "Error "   
+0AA1   CD DD 08               CALL   prtdec   
+0AA4   C3 CA 09               JP   interpret   
+0AA7                          ALIGN   $100   
 0B00                             ; .org RAMSTART
 0B00                          DS   DSIZE   
 0B80                STACK:       
@@ -2153,7 +2212,7 @@ ROMSTART:           0000 DEFINED AT LINE 23 IN constants.asm
                     > USED AT LINE 147 IN IOSerial.asm
                     > USED AT LINE 153 IN IOSerial.asm
                     > USED AT LINE 195 IN IOSerial.asm
-                    > USED AT LINE 60 IN monty.asm
+                    > USED AT LINE 57 IN MAIN.asm
 RAMSTART:           1800 DEFINED AT LINE 24 IN constants.asm
 ROMSIZE:            0800 DEFINED AT LINE 25 IN constants.asm
 RAMSIZE:            0800 DEFINED AT LINE 26 IN constants.asm
@@ -2195,14 +2254,14 @@ OVRN:               0005 DEFINED AT LINE 66 IN IOSerial.asm
 PE:                 0006 DEFINED AT LINE 67 IN IOSerial.asm
 IRQ:                0007 DEFINED AT LINE 68 IN IOSerial.asm
 KEYBUF:             0000 DEFINED AT LINE 76 IN IOSerial.asm
-SCAN:               08DB DEFINED AT LINE 1383 IN monty.asm
+SCAN:               08DB DEFINED AT LINE 1380 IN MAIN.asm
 DISPLY:             0002 DEFINED AT LINE 78 IN IOSerial.asm
 PORT3:              0003 DEFINED AT LINE 79 IN IOSerial.asm
 PORT4:              0004 DEFINED AT LINE 80 IN IOSerial.asm
 PORT5:              0005 DEFINED AT LINE 81 IN IOSerial.asm
 PORT6:              0006 DEFINED AT LINE 82 IN IOSerial.asm
 PORT7:              0007 DEFINED AT LINE 83 IN IOSerial.asm
-ESC:                001B DEFINED AT LINE 31 IN monty.asm
+ESC:                001B DEFINED AT LINE 28 IN MAIN.asm
 CR:                 000D DEFINED AT LINE 97 IN IOSerial.asm
 LF:                 000A DEFINED AT LINE 98 IN IOSerial.asm
 RSTVEC:             0000 DEFINED AT LINE 102 IN IOSerial.asm
@@ -2224,497 +2283,523 @@ RXDATA:             0078 DEFINED AT LINE 315 IN IOSerial.asm
 RXCHAR:             0078 DEFINED AT LINE 316 IN IOSerial.asm
                     > USED AT LINE 320 IN IOSerial.asm
 GETCHAR:            0081 DEFINED AT LINE 440 IN IOSerial.asm
-                    > USED AT LINE 1355 IN monty.asm
-                    > USED AT LINE 1584 IN monty.asm
+                    > USED AT LINE 1352 IN MAIN.asm
+                    > USED AT LINE 1581 IN MAIN.asm
 PUTCHAR:            0085 DEFINED AT LINE 444 IN IOSerial.asm
-                    > USED AT LINE 792 IN monty.asm
-                    > USED AT LINE 799 IN monty.asm
-                    > USED AT LINE 1394 IN monty.asm
-                    > USED AT LINE 1435 IN monty.asm
-                    > USED AT LINE 1459 IN monty.asm
-                    > USED AT LINE 1462 IN monty.asm
-                    > USED AT LINE 1598 IN monty.asm
-                    > USED AT LINE 1613 IN monty.asm
+                    > USED AT LINE 789 IN MAIN.asm
+                    > USED AT LINE 796 IN MAIN.asm
+                    > USED AT LINE 1391 IN MAIN.asm
+                    > USED AT LINE 1432 IN MAIN.asm
+                    > USED AT LINE 1456 IN MAIN.asm
+                    > USED AT LINE 1459 IN MAIN.asm
+                    > USED AT LINE 1626 IN MAIN.asm
+                    > USED AT LINE 1703 IN MAIN.asm
 RESET:              008B DEFINED AT LINE 450 IN IOSerial.asm
                     > USED AT LINE 103 IN IOSerial.asm
-DSIZE:              0080 DEFINED AT LINE 16 IN monty.asm
+DSIZE:              0080 DEFINED AT LINE 16 IN MAIN.asm
                     > USED AT LINE 4 IN ram.asm
-TIBSIZE:            0100 DEFINED AT LINE 17 IN monty.asm
+TIBSIZE:            0100 DEFINED AT LINE 17 IN MAIN.asm
                     > USED AT LINE 53 IN ram.asm
-TRUE:               00-1 DEFINED AT LINE 18 IN monty.asm
-                    > USED AT LINE 850 IN monty.asm
-FALSE:              0000 DEFINED AT LINE 19 IN monty.asm
-                    > USED AT LINE 855 IN monty.asm
-NUL:                0000 DEFINED AT LINE 22 IN monty.asm
-                    > USED AT LINE 1032 IN monty.asm
-                    > USED AT LINE 1587 IN monty.asm
-                    > USED AT LINE 1649 IN monty.asm
-DQUOTE:             0022 DEFINED AT LINE 26 IN monty.asm
-                    > USED AT LINE 1194 IN monty.asm
-                    > USED AT LINE 1481 IN monty.asm
-CTRL_C:             0003 DEFINED AT LINE 27 IN monty.asm
-CTRL_H:             0008 DEFINED AT LINE 28 IN monty.asm
-                    > USED AT LINE 1595 IN monty.asm
-CTRL_J:             000A DEFINED AT LINE 29 IN monty.asm
-CTRL_L:             000C DEFINED AT LINE 30 IN monty.asm
-Z80_RST8:           00CF DEFINED AT LINE 33 IN monty.asm
-MACROS:             0180 DEFINED AT LINE 65 IN monty.asm
-ISYSVARS:           0180 DEFINED AT LINE 70 IN monty.asm
-                    > USED AT LINE 1539 IN monty.asm
-OPCODESBASE:        0200 DEFINED AT LINE 78 IN monty.asm
-CTRLCODES:          0200 DEFINED AT LINE 80 IN monty.asm
-OPCODES:            0220 DEFINED AT LINE 114 IN monty.asm
-PAGE4:              0300 DEFINED AT LINE 217 IN monty.asm
-PLUS_:              0300 DEFINED AT LINE 219 IN monty.asm
-AT_:                0303 DEFINED AT LINE 221 IN monty.asm
-AMPER_:             0306 DEFINED AT LINE 223 IN monty.asm
-DOLLAR_:            0309 DEFINED AT LINE 225 IN monty.asm
-LBRACK_:            030C DEFINED AT LINE 227 IN monty.asm
-RBRACK_:            030F DEFINED AT LINE 229 IN monty.asm
-PERCENT_:           0312 DEFINED AT LINE 231 IN monty.asm
-BACKSLASH_:         0315 DEFINED AT LINE 233 IN monty.asm
-LBRACE_:            0318 DEFINED AT LINE 235 IN monty.asm
-RBRACE_:            031B DEFINED AT LINE 237 IN monty.asm
-TICK_:              031E DEFINED AT LINE 239 IN monty.asm
-SEMICOLON_:         0321 DEFINED AT LINE 241 IN monty.asm
-DOT_:               0324 DEFINED AT LINE 243 IN monty.asm
-UNDERSCORE_:        0327 DEFINED AT LINE 245 IN monty.asm
-COLON_:             032A DEFINED AT LINE 247 IN monty.asm
-UPCASE_:            032D DEFINED AT LINE 249 IN monty.asm
-LOWCASE_:           0330 DEFINED AT LINE 251 IN monty.asm
-QUESTION_:          0333 DEFINED AT LINE 253 IN monty.asm
-STAR_:              0336 DEFINED AT LINE 255 IN monty.asm
-BANG_:              0339 DEFINED AT LINE 257 IN monty.asm
-NUM_:               033E DEFINED AT LINE 260 IN monty.asm
-                    > USED AT LINE 1221 IN monty.asm
-HASH_:              0341 DEFINED AT LINE 262 IN monty.asm
-PIPE_:              0344 DEFINED AT LINE 264 IN monty.asm
-CARET_:             0347 DEFINED AT LINE 266 IN monty.asm
-COMMA_:             034A DEFINED AT LINE 268 IN monty.asm
-DBLQUOTE_:          034D DEFINED AT LINE 270 IN monty.asm
-MINUS_:             0350 DEFINED AT LINE 272 IN monty.asm
-EQ_:                0353 DEFINED AT LINE 274 IN monty.asm
-EQ0:                035D DEFINED AT LINE 281 IN monty.asm
-                    > USED AT LINE 278 IN monty.asm
-EQ1:                035E DEFINED AT LINE 283 IN monty.asm
-                    > USED AT LINE 259 IN monty.asm
-GT_:                0362 DEFINED AT LINE 287 IN monty.asm
-LPAREN_:            036D DEFINED AT LINE 295 IN monty.asm
-LT_:                0370 DEFINED AT LINE 297 IN monty.asm
-LT1:                0379 DEFINED AT LINE 304 IN monty.asm
-                    > USED AT LINE 294 IN monty.asm
-SLASH_:             0382 DEFINED AT LINE 309 IN monty.asm
-NOP_:               0385 DEFINED AT LINE 311 IN monty.asm
-RPAREN_:            0387 DEFINED AT LINE 313 IN monty.asm
-PLUS:               038A DEFINED AT LINE 320 IN monty.asm
-                    > USED AT LINE 220 IN monty.asm
-ADD:                038A DEFINED AT LINE 321 IN monty.asm
-ADD1:               0395 DEFINED AT LINE 329 IN monty.asm
-                    > USED AT LINE 325 IN monty.asm
-ADD3:               0399 DEFINED AT LINE 334 IN monty.asm
-                    > USED AT LINE 364 IN monty.asm
-                    > USED AT LINE 773 IN monty.asm
-                    > USED AT LINE 1068 IN monty.asm
-                    > USED AT LINE 1235 IN monty.asm
-AT:                 03A4 DEFINED AT LINE 345 IN monty.asm
-                    > USED AT LINE 222 IN monty.asm
-ADDR:               03A4 DEFINED AT LINE 346 IN monty.asm
-AMPER:              03B0 DEFINED AT LINE 353 IN monty.asm
-                    > USED AT LINE 224 IN monty.asm
-AND:                03B0 DEFINED AT LINE 354 IN monty.asm
-AND1:               03B7 DEFINED AT LINE 362 IN monty.asm
-                    > USED AT LINE 375 IN monty.asm
-PIPE:               03BB DEFINED AT LINE 366 IN monty.asm
-                    > USED AT LINE 265 IN monty.asm
-OR:                 03BB DEFINED AT LINE 367 IN monty.asm
-XOR:                03C4 DEFINED AT LINE 377 IN monty.asm
-                    > USED AT LINE 1268 IN monty.asm
-XOR1:               03C5 DEFINED AT LINE 379 IN monty.asm
-                    > USED AT LINE 391 IN monty.asm
-INVERT:             03CF DEFINED AT LINE 389 IN monty.asm
-                    > USED AT LINE 1266 IN monty.asm
-DOLLAR:             03D4 DEFINED AT LINE 396 IN monty.asm
-                    > USED AT LINE 226 IN monty.asm
-ARG:                03D4 DEFINED AT LINE 397 IN monty.asm
-ARG0:               03F2 DEFINED AT LINE 418 IN monty.asm
-                    > USED AT LINE 424 IN monty.asm
-ARG0A:              03FB DEFINED AT LINE 426 IN monty.asm
-                    > USED AT LINE 403 IN monty.asm
-                    > USED AT LINE 410 IN monty.asm
-ARG1:               0400 DEFINED AT LINE 429 IN monty.asm
-                    > USED AT LINE 422 IN monty.asm
-ARG1A:              0408 DEFINED AT LINE 436 IN monty.asm
-                    > USED AT LINE 428 IN monty.asm
-LBRACK:             040B DEFINED AT LINE 440 IN monty.asm
-                    > USED AT LINE 228 IN monty.asm
-ARRBEGIN:           040B DEFINED AT LINE 441 IN monty.asm
-RBRACK:             0427 DEFINED AT LINE 455 IN monty.asm
-                    > USED AT LINE 230 IN monty.asm
-ARREND:             0427 DEFINED AT LINE 456 IN monty.asm
-ARREND1:            0441 DEFINED AT LINE 472 IN monty.asm
-                    > USED AT LINE 488 IN monty.asm
-ARREND2:            0451 DEFINED AT LINE 482 IN monty.asm
-                    > USED AT LINE 478 IN monty.asm
-ARRINDEX:           0475 DEFINED AT LINE 509 IN monty.asm
-                    > USED AT LINE 232 IN monty.asm
-ARRINDEX0:          047D DEFINED AT LINE 515 IN monty.asm
-ARRINDEX1:          047E DEFINED AT LINE 517 IN monty.asm
-                    > USED AT LINE 514 IN monty.asm
-ARRINDEX2:          048A DEFINED AT LINE 526 IN monty.asm
-                    > USED AT LINE 523 IN monty.asm
-ASSIGN:             048D DEFINED AT LINE 531 IN monty.asm
-                    > USED AT LINE 280 IN monty.asm
-ASSIGN0:            048F DEFINED AT LINE 534 IN monty.asm
-                    > USED AT LINE 328 IN monty.asm
-                    > USED AT LINE 338 IN monty.asm
-                    > USED AT LINE 1228 IN monty.asm
-ASSIGNX:            0490 DEFINED AT LINE 536 IN monty.asm
-ASSIGN1:            049C DEFINED AT LINE 544 IN monty.asm
-                    > USED AT LINE 541 IN monty.asm
-COLON:              049E DEFINED AT LINE 551 IN monty.asm
-                    > USED AT LINE 248 IN monty.asm
-ARGLIST:            049E DEFINED AT LINE 552 IN monty.asm
-ARGLIST1:           04A8 DEFINED AT LINE 559 IN monty.asm
-                    > USED AT LINE 580 IN monty.asm
-ARGLIST1A:          04B0 DEFINED AT LINE 565 IN monty.asm
-                    > USED AT LINE 562 IN monty.asm
-ARGLIST2:           04B8 DEFINED AT LINE 570 IN monty.asm
-ARGLIST3:           04C0 DEFINED AT LINE 578 IN monty.asm
-                    > USED AT LINE 564 IN monty.asm
-                    > USED AT LINE 576 IN monty.asm
-ARGLIST4:           04C3 DEFINED AT LINE 581 IN monty.asm
-                    > USED AT LINE 567 IN monty.asm
-                    > USED AT LINE 569 IN monty.asm
-ARGLIST5:           04C9 DEFINED AT LINE 587 IN monty.asm
-                    > USED AT LINE 585 IN monty.asm
-LBRACE:             04D5 DEFINED AT LINE 598 IN monty.asm
-                    > USED AT LINE 236 IN monty.asm
-BLOCK:              04D5 DEFINED AT LINE 599 IN monty.asm
-                    > USED AT LINE 860 IN monty.asm
-BLOCK1:             04D9 DEFINED AT LINE 603 IN monty.asm
-                    > USED AT LINE 607 IN monty.asm
-                    > USED AT LINE 629 IN monty.asm
-                    > USED AT LINE 632 IN monty.asm
-                    > USED AT LINE 637 IN monty.asm
-                    > USED AT LINE 641 IN monty.asm
-BLOCK2:             0505 DEFINED AT LINE 630 IN monty.asm
-                    > USED AT LINE 617 IN monty.asm
-                    > USED AT LINE 619 IN monty.asm
-                    > USED AT LINE 621 IN monty.asm
-BLOCK3:             0508 DEFINED AT LINE 633 IN monty.asm
-                    > USED AT LINE 624 IN monty.asm
-                    > USED AT LINE 626 IN monty.asm
-                    > USED AT LINE 628 IN monty.asm
-BLOCK4:             0510 DEFINED AT LINE 639 IN monty.asm
-                    > USED AT LINE 610 IN monty.asm
-                    > USED AT LINE 612 IN monty.asm
-                    > USED AT LINE 614 IN monty.asm
-BLOCK5:             0513 DEFINED AT LINE 642 IN monty.asm
-                    > USED AT LINE 638 IN monty.asm
-BLOCK6:             053B DEFINED AT LINE 661 IN monty.asm
-                    > USED AT LINE 648 IN monty.asm
-RBRACE:             053E DEFINED AT LINE 665 IN monty.asm
-                    > USED AT LINE 238 IN monty.asm
-BLOCKEND:           053E DEFINED AT LINE 666 IN monty.asm
-                    > USED AT LINE 1327 IN monty.asm
-BLOCKEND1:          056A DEFINED AT LINE 688 IN monty.asm
-                    > USED AT LINE 681 IN monty.asm
-BLOCKEND2:          0576 DEFINED AT LINE 695 IN monty.asm
-                    > USED AT LINE 687 IN monty.asm
-BLOCKEND3:          0588 DEFINED AT LINE 709 IN monty.asm
-                    > USED AT LINE 701 IN monty.asm
-TICK:               0593 DEFINED AT LINE 720 IN monty.asm
-                    > USED AT LINE 240 IN monty.asm
-CHAR:               0593 DEFINED AT LINE 721 IN monty.asm
-CHAR1:              0596 DEFINED AT LINE 723 IN monty.asm
-                    > USED AT LINE 734 IN monty.asm
-CHAR2:              05A2 DEFINED AT LINE 732 IN monty.asm
-                    > USED AT LINE 729 IN monty.asm
-CHAR3:              05A5 DEFINED AT LINE 735 IN monty.asm
-                    > USED AT LINE 727 IN monty.asm
-BACKSLASH:          05A8 DEFINED AT LINE 739 IN monty.asm
-                    > USED AT LINE 234 IN monty.asm
-COMMA:              05AA DEFINED AT LINE 744 IN monty.asm
-                    > USED AT LINE 269 IN monty.asm
-DISCARD:            05AA DEFINED AT LINE 745 IN monty.asm
-DISCARD1:           05B7 DEFINED AT LINE 754 IN monty.asm
-                    > USED AT LINE 752 IN monty.asm
-SLASH:              05B9 DEFINED AT LINE 757 IN monty.asm
-                    > USED AT LINE 310 IN monty.asm
-DOT:                05D7 DEFINED AT LINE 775 IN monty.asm
-                    > USED AT LINE 244 IN monty.asm
-DOT1:               05E3 DEFINED AT LINE 783 IN monty.asm
-                    > USED AT LINE 780 IN monty.asm
-DOT2:               05EC DEFINED AT LINE 788 IN monty.asm
-                    > USED AT LINE 785 IN monty.asm
-DOT3:               05F6 DEFINED AT LINE 794 IN monty.asm
-                    > USED AT LINE 790 IN monty.asm
-DOT4:               05FA DEFINED AT LINE 797 IN monty.asm
-                    > USED AT LINE 782 IN monty.asm
-                    > USED AT LINE 787 IN monty.asm
-                    > USED AT LINE 793 IN monty.asm
-DIVIDE:             0601 DEFINED AT LINE 805 IN monty.asm
-                    > USED AT LINE 769 IN monty.asm
-DIVIDE1:            0606 DEFINED AT LINE 808 IN monty.asm
-                    > USED AT LINE 820 IN monty.asm
-DIVIDE2:            0613 DEFINED AT LINE 816 IN monty.asm
-                    > USED AT LINE 813 IN monty.asm
-DIVIDE3:            0614 DEFINED AT LINE 818 IN monty.asm
-                    > USED AT LINE 815 IN monty.asm
-EQUALS:             061A DEFINED AT LINE 826 IN monty.asm
-                    > USED AT LINE 285 IN monty.asm
-LESSTHANEQ:         0622 DEFINED AT LINE 834 IN monty.asm
-                    > USED AT LINE 306 IN monty.asm
-LESSTHAN:           0627 DEFINED AT LINE 841 IN monty.asm
-                    > USED AT LINE 308 IN monty.asm
-LESSTHAN1:          062C DEFINED AT LINE 846 IN monty.asm
-                    > USED AT LINE 837 IN monty.asm
-TRUE1:              062F DEFINED AT LINE 849 IN monty.asm
-                    > USED AT LINE 829 IN monty.asm
-                    > USED AT LINE 1264 IN monty.asm
-NULL1:              0635 DEFINED AT LINE 853 IN monty.asm
-FALSE1:             0635 DEFINED AT LINE 854 IN monty.asm
-                    > USED AT LINE 830 IN monty.asm
-                    > USED AT LINE 844 IN monty.asm
-                    > USED AT LINE 847 IN monty.asm
-                    > USED AT LINE 1252 IN monty.asm
-LPAREN:             063B DEFINED AT LINE 859 IN monty.asm
-                    > USED AT LINE 296 IN monty.asm
-CARET:              063E DEFINED AT LINE 865 IN monty.asm
-                    > USED AT LINE 267 IN monty.asm
-GO:                 063E DEFINED AT LINE 866 IN monty.asm
-GO1:                063F DEFINED AT LINE 868 IN monty.asm
-                    > USED AT LINE 1044 IN monty.asm
-                    > USED AT LINE 1046 IN monty.asm
-GO2:                0645 DEFINED AT LINE 873 IN monty.asm
-                    > USED AT LINE 871 IN monty.asm
-GOBLOCK:            0651 DEFINED AT LINE 881 IN monty.asm
-GOBLOCK1:           0651 DEFINED AT LINE 882 IN monty.asm
-                    > USED AT LINE 876 IN monty.asm
-GOBLOCK2:           0676 DEFINED AT LINE 899 IN monty.asm
-                    > USED AT LINE 981 IN monty.asm
-GOFUNC:             0684 DEFINED AT LINE 908 IN monty.asm
-                    > USED AT LINE 878 IN monty.asm
-GOFUNC1:            069D DEFINED AT LINE 927 IN monty.asm
-                    > USED AT LINE 937 IN monty.asm
-GOFUNC2:            06A3 DEFINED AT LINE 934 IN monty.asm
-                    > USED AT LINE 926 IN monty.asm
-GOFUNC3:            06AE DEFINED AT LINE 940 IN monty.asm
-                    > USED AT LINE 916 IN monty.asm
-GOFUNC4:            06C6 DEFINED AT LINE 957 IN monty.asm
-                    > USED AT LINE 954 IN monty.asm
-GOFUNC5:            06CA DEFINED AT LINE 961 IN monty.asm
-                    > USED AT LINE 967 IN monty.asm
-GOFUNC6:            06CD DEFINED AT LINE 965 IN monty.asm
-                    > USED AT LINE 960 IN monty.asm
-GOFUNC7:            06D0 DEFINED AT LINE 968 IN monty.asm
-GOFUNC8:            06D5 DEFINED AT LINE 974 IN monty.asm
-                    > USED AT LINE 893 IN monty.asm
-                    > USED AT LINE 956 IN monty.asm
-HASH:               06E0 DEFINED AT LINE 983 IN monty.asm
-                    > USED AT LINE 263 IN monty.asm
-HEXNUM:             06E0 DEFINED AT LINE 984 IN monty.asm
-HEXNUM1:            06E3 DEFINED AT LINE 986 IN monty.asm
-                    > USED AT LINE 1003 IN monty.asm
-HEXNUM2:            06EB DEFINED AT LINE 992 IN monty.asm
-                    > USED AT LINE 990 IN monty.asm
-UPCASE:             06FD DEFINED AT LINE 1004 IN monty.asm
-                    > USED AT LINE 250 IN monty.asm
-LOWCASE:            0702 DEFINED AT LINE 1008 IN monty.asm
-                    > USED AT LINE 252 IN monty.asm
-IDENT1:             0707 DEFINED AT LINE 1012 IN monty.asm
-                    > USED AT LINE 1007 IN monty.asm
-QUESTION:           0714 DEFINED AT LINE 1025 IN monty.asm
-                    > USED AT LINE 254 IN monty.asm
-IF:                 0714 DEFINED AT LINE 1026 IN monty.asm
-IFTE:               0720 DEFINED AT LINE 1036 IN monty.asm
-                    > USED AT LINE 1030 IN monty.asm
-IFTE1:              0721 DEFINED AT LINE 1038 IN monty.asm
-                    > USED AT LINE 1033 IN monty.asm
-STAR:               072D DEFINED AT LINE 1048 IN monty.asm
-                    > USED AT LINE 256 IN monty.asm
-MUL:                072D DEFINED AT LINE 1049 IN monty.asm
-MUL2:               072F DEFINED AT LINE 1052 IN monty.asm
-MUL3:               0737 DEFINED AT LINE 1057 IN monty.asm
-                    > USED AT LINE 1066 IN monty.asm
-NUM:                0749 DEFINED AT LINE 1070 IN monty.asm
-                    > USED AT LINE 261 IN monty.asm
-NUM0:               0752 DEFINED AT LINE 1076 IN monty.asm
-                    > USED AT LINE 1074 IN monty.asm
-NUM1:               0753 DEFINED AT LINE 1078 IN monty.asm
-                    > USED AT LINE 1095 IN monty.asm
-NUM2:               076B DEFINED AT LINE 1096 IN monty.asm
-                    > USED AT LINE 994 IN monty.asm
-                    > USED AT LINE 996 IN monty.asm
-                    > USED AT LINE 1081 IN monty.asm
-                    > USED AT LINE 1083 IN monty.asm
-NUM3:               0776 DEFINED AT LINE 1104 IN monty.asm
-                    > USED AT LINE 1099 IN monty.asm
-UNDERSCORE:         0779 DEFINED AT LINE 1108 IN monty.asm
-                    > USED AT LINE 246 IN monty.asm
-REMAIN:             0779 DEFINED AT LINE 1109 IN monty.asm
-RPAREN:             077F DEFINED AT LINE 1114 IN monty.asm
-                    > USED AT LINE 314 IN monty.asm
-SEMICOLON:          0787 DEFINED AT LINE 1120 IN monty.asm
-                    > USED AT LINE 242 IN monty.asm
-SHIFTLEFT:          07A3 DEFINED AT LINE 1144 IN monty.asm
-                    > USED AT LINE 301 IN monty.asm
-SHIFTLEFT1:         07AB DEFINED AT LINE 1151 IN monty.asm
-                    > USED AT LINE 1154 IN monty.asm
-SHIFTLEFT2:         07AC DEFINED AT LINE 1153 IN monty.asm
-                    > USED AT LINE 1150 IN monty.asm
-SHIFTRIGHT:         07B3 DEFINED AT LINE 1161 IN monty.asm
-                    > USED AT LINE 291 IN monty.asm
-SHIFTRIGHT1:        07BB DEFINED AT LINE 1168 IN monty.asm
-                    > USED AT LINE 1172 IN monty.asm
-SHIFTRIGHT2:        07BF DEFINED AT LINE 1171 IN monty.asm
-                    > USED AT LINE 1167 IN monty.asm
-DBLQUOTE:           07C6 DEFINED AT LINE 1180 IN monty.asm
-                    > USED AT LINE 271 IN monty.asm
-STRING:             07C6 DEFINED AT LINE 1181 IN monty.asm
-STRING1:            07CF DEFINED AT LINE 1188 IN monty.asm
-                    > USED AT LINE 1195 IN monty.asm
-                    > USED AT LINE 1197 IN monty.asm
-STRING2:            07D2 DEFINED AT LINE 1192 IN monty.asm
-                    > USED AT LINE 1187 IN monty.asm
-MINUS:              07EE DEFINED AT LINE 1214 IN monty.asm
-                    > USED AT LINE 273 IN monty.asm
-SUB:                07FA DEFINED AT LINE 1222 IN monty.asm
-                    > USED AT LINE 1219 IN monty.asm
-SUB1:               0804 DEFINED AT LINE 1229 IN monty.asm
-                    > USED AT LINE 1225 IN monty.asm
-COMMAND:            080D DEFINED AT LINE 1242 IN monty.asm
-                    > USED AT LINE 763 IN monty.asm
-ERROR1:             084E DEFINED AT LINE 1269 IN monty.asm
-ABS1:               0854 DEFINED AT LINE 1273 IN monty.asm
-                    > USED AT LINE 1244 IN monty.asm
-PARTIAL:            0861 DEFINED AT LINE 1288 IN monty.asm
-                    > USED AT LINE 1250 IN monty.asm
-COMMENT:            0881 DEFINED AT LINE 1304 IN monty.asm
-                    > USED AT LINE 761 IN monty.asm
-                    > USED AT LINE 1308 IN monty.asm
-BREAK:              088A DEFINED AT LINE 1312 IN monty.asm
-                    > USED AT LINE 1246 IN monty.asm
-BREAK1:             0891 DEFINED AT LINE 1318 IN monty.asm
-                    > USED AT LINE 1316 IN monty.asm
-CHARS:              08A4 DEFINED AT LINE 1329 IN monty.asm
-                    > USED AT LINE 1248 IN monty.asm
-CHARS1:             08A7 DEFINED AT LINE 1331 IN monty.asm
-                    > USED AT LINE 1374 IN monty.asm
-HEAPPTR:            08AC DEFINED AT LINE 1335 IN monty.asm
-                    > USED AT LINE 1254 IN monty.asm
-INPUT:              08B8 DEFINED AT LINE 1344 IN monty.asm
-                    > USED AT LINE 1256 IN monty.asm
-KEY:                08C3 DEFINED AT LINE 1354 IN monty.asm
-                    > USED AT LINE 1258 IN monty.asm
-OUTPUT:             08CC DEFINED AT LINE 1363 IN monty.asm
-                    > USED AT LINE 1262 IN monty.asm
-NUMBERS:            08D5 DEFINED AT LINE 1372 IN monty.asm
-                    > USED AT LINE 1260 IN monty.asm
-FILTER:             08DB DEFINED AT LINE 1381 IN monty.asm
-MAP:                08DB DEFINED AT LINE 1382 IN monty.asm
-PRTDEC:             08DD DEFINED AT LINE 1390 IN monty.asm
-                    > USED AT LINE 796 IN monty.asm
-                    > USED AT LINE 1662 IN monty.asm
-PRTDEC0:            08EC DEFINED AT LINE 1401 IN monty.asm
-                    > USED AT LINE 1392 IN monty.asm
-PRTDEC1:            090E DEFINED AT LINE 1417 IN monty.asm
-                    > USED AT LINE 1405 IN monty.asm
-                    > USED AT LINE 1407 IN monty.asm
-                    > USED AT LINE 1409 IN monty.asm
-                    > USED AT LINE 1411 IN monty.asm
-                    > USED AT LINE 1414 IN monty.asm
-PRTDEC2:            0910 DEFINED AT LINE 1419 IN monty.asm
-                    > USED AT LINE 1422 IN monty.asm
-PRTDEC3:            0920 DEFINED AT LINE 1431 IN monty.asm
-                    > USED AT LINE 1426 IN monty.asm
-PRTDEC4:            0921 DEFINED AT LINE 1433 IN monty.asm
-                    > USED AT LINE 1430 IN monty.asm
-PRTHEX:             0925 DEFINED AT LINE 1437 IN monty.asm
-                    > USED AT LINE 781 IN monty.asm
-PRTHEX2:            0930 DEFINED AT LINE 1445 IN monty.asm
-                    > USED AT LINE 1440 IN monty.asm
-                    > USED AT LINE 1442 IN monty.asm
-PRTHEX3:            0939 DEFINED AT LINE 1453 IN monty.asm
-                    > USED AT LINE 1451 IN monty.asm
-PRTSTR0:            0944 DEFINED AT LINE 1461 IN monty.asm
-                    > USED AT LINE 1467 IN monty.asm
-PRTSTR:             0948 DEFINED AT LINE 1464 IN monty.asm
-                    > USED AT LINE 786 IN monty.asm
-                    > USED AT LINE 1531 IN monty.asm
-NESTING:            094D DEFINED AT LINE 1480 IN monty.asm
-                    > USED AT LINE 1575 IN monty.asm
-                    > USED AT LINE 1614 IN monty.asm
-NESTING0:           0957 DEFINED AT LINE 1486 IN monty.asm
-                    > USED AT LINE 1482 IN monty.asm
-                    > USED AT LINE 1484 IN monty.asm
-NESTING1A:          095E DEFINED AT LINE 1491 IN monty.asm
-                    > USED AT LINE 1488 IN monty.asm
-NESTING1:           0961 DEFINED AT LINE 1494 IN monty.asm
-                    > USED AT LINE 1485 IN monty.asm
-NESTING2:           0970 DEFINED AT LINE 1503 IN monty.asm
-                    > USED AT LINE 1498 IN monty.asm
-                    > USED AT LINE 1500 IN monty.asm
-NESTING3:           0972 DEFINED AT LINE 1506 IN monty.asm
-                    > USED AT LINE 1502 IN monty.asm
-NESTING4:           097D DEFINED AT LINE 1513 IN monty.asm
-                    > USED AT LINE 1508 IN monty.asm
-                    > USED AT LINE 1510 IN monty.asm
-PROMPT:             097F DEFINED AT LINE 1517 IN monty.asm
-                    > USED AT LINE 1559 IN monty.asm
-CRLF:               0988 DEFINED AT LINE 1522 IN monty.asm
-                    > USED AT LINE 1626 IN monty.asm
-PRINTSTR:           098F DEFINED AT LINE 1529 IN monty.asm
-                    > USED AT LINE 1518 IN monty.asm
-                    > USED AT LINE 1523 IN monty.asm
-                    > USED AT LINE 1555 IN monty.asm
-                    > USED AT LINE 1660 IN monty.asm
-INIT:               0996 DEFINED AT LINE 1536 IN monty.asm
+TRUE:               00-1 DEFINED AT LINE 18 IN MAIN.asm
+                    > USED AT LINE 847 IN MAIN.asm
+FALSE:              0000 DEFINED AT LINE 19 IN MAIN.asm
+                    > USED AT LINE 852 IN MAIN.asm
+NUL:                0000 DEFINED AT LINE 20 IN MAIN.asm
+                    > USED AT LINE 1029 IN MAIN.asm
+                    > USED AT LINE 1584 IN MAIN.asm
+                    > USED AT LINE 1662 IN MAIN.asm
+DQUOTE:             0022 DEFINED AT LINE 21 IN MAIN.asm
+                    > USED AT LINE 624 IN MAIN.asm
+                    > USED AT LINE 1191 IN MAIN.asm
+                    > USED AT LINE 1478 IN MAIN.asm
+CTRL_C:             0003 DEFINED AT LINE 22 IN MAIN.asm
+CTRL_E:             0005 DEFINED AT LINE 23 IN MAIN.asm
+                    > USED AT LINE 1590 IN MAIN.asm
+CTRL_H:             0008 DEFINED AT LINE 24 IN MAIN.asm
+                    > USED AT LINE 1592 IN MAIN.asm
+CTRL_J:             000A DEFINED AT LINE 25 IN MAIN.asm
+                    > USED AT LINE 1594 IN MAIN.asm
+CTRL_L:             000C DEFINED AT LINE 26 IN MAIN.asm
+CTRL_P:             0010 DEFINED AT LINE 27 IN MAIN.asm
+                    > USED AT LINE 1596 IN MAIN.asm
+Z80_RST8:           00CF DEFINED AT LINE 30 IN MAIN.asm
+MACROS:             0180 DEFINED AT LINE 62 IN MAIN.asm
+ISYSVARS:           0180 DEFINED AT LINE 67 IN MAIN.asm
+                    > USED AT LINE 1536 IN MAIN.asm
+OPCODESBASE:        0200 DEFINED AT LINE 75 IN MAIN.asm
+CTRLCODES:          0200 DEFINED AT LINE 77 IN MAIN.asm
+OPCODES:            0220 DEFINED AT LINE 111 IN MAIN.asm
+PAGE4:              0300 DEFINED AT LINE 214 IN MAIN.asm
+PLUS_:              0300 DEFINED AT LINE 216 IN MAIN.asm
+AT_:                0303 DEFINED AT LINE 218 IN MAIN.asm
+AMPER_:             0306 DEFINED AT LINE 220 IN MAIN.asm
+DOLLAR_:            0309 DEFINED AT LINE 222 IN MAIN.asm
+LBRACK_:            030C DEFINED AT LINE 224 IN MAIN.asm
+RBRACK_:            030F DEFINED AT LINE 226 IN MAIN.asm
+PERCENT_:           0312 DEFINED AT LINE 228 IN MAIN.asm
+BACKSLASH_:         0315 DEFINED AT LINE 230 IN MAIN.asm
+LBRACE_:            0318 DEFINED AT LINE 232 IN MAIN.asm
+RBRACE_:            031B DEFINED AT LINE 234 IN MAIN.asm
+TICK_:              031E DEFINED AT LINE 236 IN MAIN.asm
+SEMICOLON_:         0321 DEFINED AT LINE 238 IN MAIN.asm
+DOT_:               0324 DEFINED AT LINE 240 IN MAIN.asm
+UNDERSCORE_:        0327 DEFINED AT LINE 242 IN MAIN.asm
+COLON_:             032A DEFINED AT LINE 244 IN MAIN.asm
+UPCASE_:            032D DEFINED AT LINE 246 IN MAIN.asm
+LOWCASE_:           0330 DEFINED AT LINE 248 IN MAIN.asm
+QUESTION_:          0333 DEFINED AT LINE 250 IN MAIN.asm
+STAR_:              0336 DEFINED AT LINE 252 IN MAIN.asm
+BANG_:              0339 DEFINED AT LINE 254 IN MAIN.asm
+NUM_:               033E DEFINED AT LINE 257 IN MAIN.asm
+                    > USED AT LINE 1218 IN MAIN.asm
+HASH_:              0341 DEFINED AT LINE 259 IN MAIN.asm
+PIPE_:              0344 DEFINED AT LINE 261 IN MAIN.asm
+CARET_:             0347 DEFINED AT LINE 263 IN MAIN.asm
+COMMA_:             034A DEFINED AT LINE 265 IN MAIN.asm
+DBLQUOTE_:          034D DEFINED AT LINE 267 IN MAIN.asm
+MINUS_:             0350 DEFINED AT LINE 269 IN MAIN.asm
+EQ_:                0353 DEFINED AT LINE 271 IN MAIN.asm
+EQ0:                035D DEFINED AT LINE 278 IN MAIN.asm
+                    > USED AT LINE 275 IN MAIN.asm
+EQ1:                035E DEFINED AT LINE 280 IN MAIN.asm
+                    > USED AT LINE 256 IN MAIN.asm
+GT_:                0362 DEFINED AT LINE 284 IN MAIN.asm
+LPAREN_:            036D DEFINED AT LINE 292 IN MAIN.asm
+LT_:                0370 DEFINED AT LINE 294 IN MAIN.asm
+LT1:                0379 DEFINED AT LINE 301 IN MAIN.asm
+                    > USED AT LINE 291 IN MAIN.asm
+SLASH_:             0382 DEFINED AT LINE 306 IN MAIN.asm
+NOP_:               0385 DEFINED AT LINE 308 IN MAIN.asm
+RPAREN_:            0387 DEFINED AT LINE 310 IN MAIN.asm
+PLUS:               038A DEFINED AT LINE 317 IN MAIN.asm
+                    > USED AT LINE 217 IN MAIN.asm
+ADD:                038A DEFINED AT LINE 318 IN MAIN.asm
+ADD1:               0395 DEFINED AT LINE 326 IN MAIN.asm
+                    > USED AT LINE 322 IN MAIN.asm
+ADD3:               0399 DEFINED AT LINE 331 IN MAIN.asm
+                    > USED AT LINE 361 IN MAIN.asm
+                    > USED AT LINE 770 IN MAIN.asm
+                    > USED AT LINE 1065 IN MAIN.asm
+                    > USED AT LINE 1232 IN MAIN.asm
+AT:                 03A4 DEFINED AT LINE 342 IN MAIN.asm
+                    > USED AT LINE 219 IN MAIN.asm
+ADDR:               03A4 DEFINED AT LINE 343 IN MAIN.asm
+AMPER:              03B0 DEFINED AT LINE 350 IN MAIN.asm
+                    > USED AT LINE 221 IN MAIN.asm
+AND:                03B0 DEFINED AT LINE 351 IN MAIN.asm
+AND1:               03B7 DEFINED AT LINE 359 IN MAIN.asm
+                    > USED AT LINE 372 IN MAIN.asm
+PIPE:               03BB DEFINED AT LINE 363 IN MAIN.asm
+                    > USED AT LINE 262 IN MAIN.asm
+OR:                 03BB DEFINED AT LINE 364 IN MAIN.asm
+XOR:                03C4 DEFINED AT LINE 374 IN MAIN.asm
+                    > USED AT LINE 1265 IN MAIN.asm
+XOR1:               03C5 DEFINED AT LINE 376 IN MAIN.asm
+                    > USED AT LINE 388 IN MAIN.asm
+INVERT:             03CF DEFINED AT LINE 386 IN MAIN.asm
+                    > USED AT LINE 1263 IN MAIN.asm
+DOLLAR:             03D4 DEFINED AT LINE 393 IN MAIN.asm
+                    > USED AT LINE 223 IN MAIN.asm
+ARG:                03D4 DEFINED AT LINE 394 IN MAIN.asm
+ARG0:               03F2 DEFINED AT LINE 415 IN MAIN.asm
+                    > USED AT LINE 421 IN MAIN.asm
+ARG0A:              03FB DEFINED AT LINE 423 IN MAIN.asm
+                    > USED AT LINE 400 IN MAIN.asm
+                    > USED AT LINE 407 IN MAIN.asm
+ARG1:               0400 DEFINED AT LINE 426 IN MAIN.asm
+                    > USED AT LINE 419 IN MAIN.asm
+ARG1A:              0408 DEFINED AT LINE 433 IN MAIN.asm
+                    > USED AT LINE 425 IN MAIN.asm
+LBRACK:             040B DEFINED AT LINE 437 IN MAIN.asm
+                    > USED AT LINE 225 IN MAIN.asm
+ARRBEGIN:           040B DEFINED AT LINE 438 IN MAIN.asm
+RBRACK:             0427 DEFINED AT LINE 452 IN MAIN.asm
+                    > USED AT LINE 227 IN MAIN.asm
+ARREND:             0427 DEFINED AT LINE 453 IN MAIN.asm
+ARREND1:            0441 DEFINED AT LINE 469 IN MAIN.asm
+                    > USED AT LINE 485 IN MAIN.asm
+ARREND2:            0451 DEFINED AT LINE 479 IN MAIN.asm
+                    > USED AT LINE 475 IN MAIN.asm
+ARRINDEX:           0475 DEFINED AT LINE 506 IN MAIN.asm
+                    > USED AT LINE 229 IN MAIN.asm
+ARRINDEX0:          047D DEFINED AT LINE 512 IN MAIN.asm
+ARRINDEX1:          047E DEFINED AT LINE 514 IN MAIN.asm
+                    > USED AT LINE 511 IN MAIN.asm
+ARRINDEX2:          048A DEFINED AT LINE 523 IN MAIN.asm
+                    > USED AT LINE 520 IN MAIN.asm
+ASSIGN:             048D DEFINED AT LINE 528 IN MAIN.asm
+                    > USED AT LINE 277 IN MAIN.asm
+ASSIGN0:            048F DEFINED AT LINE 531 IN MAIN.asm
+                    > USED AT LINE 325 IN MAIN.asm
+                    > USED AT LINE 335 IN MAIN.asm
+                    > USED AT LINE 1225 IN MAIN.asm
+ASSIGNX:            0490 DEFINED AT LINE 533 IN MAIN.asm
+ASSIGN1:            049C DEFINED AT LINE 541 IN MAIN.asm
+                    > USED AT LINE 538 IN MAIN.asm
+COLON:              049E DEFINED AT LINE 548 IN MAIN.asm
+                    > USED AT LINE 245 IN MAIN.asm
+ARGLIST:            049E DEFINED AT LINE 549 IN MAIN.asm
+ARGLIST1:           04A8 DEFINED AT LINE 556 IN MAIN.asm
+                    > USED AT LINE 577 IN MAIN.asm
+ARGLIST1A:          04B0 DEFINED AT LINE 562 IN MAIN.asm
+                    > USED AT LINE 559 IN MAIN.asm
+ARGLIST2:           04B8 DEFINED AT LINE 567 IN MAIN.asm
+ARGLIST3:           04C0 DEFINED AT LINE 575 IN MAIN.asm
+                    > USED AT LINE 561 IN MAIN.asm
+                    > USED AT LINE 573 IN MAIN.asm
+ARGLIST4:           04C3 DEFINED AT LINE 578 IN MAIN.asm
+                    > USED AT LINE 564 IN MAIN.asm
+                    > USED AT LINE 566 IN MAIN.asm
+ARGLIST5:           04C9 DEFINED AT LINE 584 IN MAIN.asm
+                    > USED AT LINE 582 IN MAIN.asm
+LBRACE:             04D5 DEFINED AT LINE 595 IN MAIN.asm
+                    > USED AT LINE 233 IN MAIN.asm
+BLOCK:              04D5 DEFINED AT LINE 596 IN MAIN.asm
+                    > USED AT LINE 857 IN MAIN.asm
+BLOCK1:             04D9 DEFINED AT LINE 600 IN MAIN.asm
+                    > USED AT LINE 604 IN MAIN.asm
+                    > USED AT LINE 626 IN MAIN.asm
+                    > USED AT LINE 629 IN MAIN.asm
+                    > USED AT LINE 634 IN MAIN.asm
+                    > USED AT LINE 638 IN MAIN.asm
+BLOCK2:             0505 DEFINED AT LINE 627 IN MAIN.asm
+                    > USED AT LINE 614 IN MAIN.asm
+                    > USED AT LINE 616 IN MAIN.asm
+                    > USED AT LINE 618 IN MAIN.asm
+BLOCK3:             0508 DEFINED AT LINE 630 IN MAIN.asm
+                    > USED AT LINE 621 IN MAIN.asm
+                    > USED AT LINE 623 IN MAIN.asm
+                    > USED AT LINE 625 IN MAIN.asm
+BLOCK4:             0510 DEFINED AT LINE 636 IN MAIN.asm
+                    > USED AT LINE 607 IN MAIN.asm
+                    > USED AT LINE 609 IN MAIN.asm
+                    > USED AT LINE 611 IN MAIN.asm
+BLOCK5:             0513 DEFINED AT LINE 639 IN MAIN.asm
+                    > USED AT LINE 635 IN MAIN.asm
+BLOCK6:             053B DEFINED AT LINE 658 IN MAIN.asm
+                    > USED AT LINE 645 IN MAIN.asm
+RBRACE:             053E DEFINED AT LINE 662 IN MAIN.asm
+                    > USED AT LINE 235 IN MAIN.asm
+BLOCKEND:           053E DEFINED AT LINE 663 IN MAIN.asm
+                    > USED AT LINE 1324 IN MAIN.asm
+BLOCKEND1:          056A DEFINED AT LINE 685 IN MAIN.asm
+                    > USED AT LINE 678 IN MAIN.asm
+BLOCKEND2:          0576 DEFINED AT LINE 692 IN MAIN.asm
+                    > USED AT LINE 684 IN MAIN.asm
+BLOCKEND3:          0588 DEFINED AT LINE 706 IN MAIN.asm
+                    > USED AT LINE 698 IN MAIN.asm
+TICK:               0593 DEFINED AT LINE 717 IN MAIN.asm
+                    > USED AT LINE 237 IN MAIN.asm
+CHAR:               0593 DEFINED AT LINE 718 IN MAIN.asm
+CHAR1:              0596 DEFINED AT LINE 720 IN MAIN.asm
+                    > USED AT LINE 731 IN MAIN.asm
+CHAR2:              05A2 DEFINED AT LINE 729 IN MAIN.asm
+                    > USED AT LINE 726 IN MAIN.asm
+CHAR3:              05A5 DEFINED AT LINE 732 IN MAIN.asm
+                    > USED AT LINE 724 IN MAIN.asm
+BACKSLASH:          05A8 DEFINED AT LINE 736 IN MAIN.asm
+                    > USED AT LINE 231 IN MAIN.asm
+COMMA:              05AA DEFINED AT LINE 741 IN MAIN.asm
+                    > USED AT LINE 266 IN MAIN.asm
+DISCARD:            05AA DEFINED AT LINE 742 IN MAIN.asm
+DISCARD1:           05B7 DEFINED AT LINE 751 IN MAIN.asm
+                    > USED AT LINE 749 IN MAIN.asm
+SLASH:              05B9 DEFINED AT LINE 754 IN MAIN.asm
+                    > USED AT LINE 307 IN MAIN.asm
+DOT:                05D7 DEFINED AT LINE 772 IN MAIN.asm
+                    > USED AT LINE 241 IN MAIN.asm
+DOT1:               05E3 DEFINED AT LINE 780 IN MAIN.asm
+                    > USED AT LINE 777 IN MAIN.asm
+DOT2:               05EC DEFINED AT LINE 785 IN MAIN.asm
+                    > USED AT LINE 782 IN MAIN.asm
+DOT3:               05F6 DEFINED AT LINE 791 IN MAIN.asm
+                    > USED AT LINE 787 IN MAIN.asm
+DOT4:               05FA DEFINED AT LINE 794 IN MAIN.asm
+                    > USED AT LINE 779 IN MAIN.asm
+                    > USED AT LINE 784 IN MAIN.asm
+                    > USED AT LINE 790 IN MAIN.asm
+DIVIDE:             0601 DEFINED AT LINE 802 IN MAIN.asm
+                    > USED AT LINE 766 IN MAIN.asm
+DIVIDE1:            0606 DEFINED AT LINE 805 IN MAIN.asm
+                    > USED AT LINE 817 IN MAIN.asm
+DIVIDE2:            0613 DEFINED AT LINE 813 IN MAIN.asm
+                    > USED AT LINE 810 IN MAIN.asm
+DIVIDE3:            0614 DEFINED AT LINE 815 IN MAIN.asm
+                    > USED AT LINE 812 IN MAIN.asm
+EQUALS:             061A DEFINED AT LINE 823 IN MAIN.asm
+                    > USED AT LINE 282 IN MAIN.asm
+LESSTHANEQ:         0622 DEFINED AT LINE 831 IN MAIN.asm
+                    > USED AT LINE 303 IN MAIN.asm
+LESSTHAN:           0627 DEFINED AT LINE 838 IN MAIN.asm
+                    > USED AT LINE 305 IN MAIN.asm
+LESSTHAN1:          062C DEFINED AT LINE 843 IN MAIN.asm
+                    > USED AT LINE 834 IN MAIN.asm
+TRUE1:              062F DEFINED AT LINE 846 IN MAIN.asm
+                    > USED AT LINE 826 IN MAIN.asm
+                    > USED AT LINE 1261 IN MAIN.asm
+NULL1:              0635 DEFINED AT LINE 850 IN MAIN.asm
+FALSE1:             0635 DEFINED AT LINE 851 IN MAIN.asm
+                    > USED AT LINE 827 IN MAIN.asm
+                    > USED AT LINE 841 IN MAIN.asm
+                    > USED AT LINE 844 IN MAIN.asm
+                    > USED AT LINE 1249 IN MAIN.asm
+LPAREN:             063B DEFINED AT LINE 856 IN MAIN.asm
+                    > USED AT LINE 293 IN MAIN.asm
+CARET:              063E DEFINED AT LINE 862 IN MAIN.asm
+                    > USED AT LINE 264 IN MAIN.asm
+GO:                 063E DEFINED AT LINE 863 IN MAIN.asm
+GO1:                063F DEFINED AT LINE 865 IN MAIN.asm
+                    > USED AT LINE 1041 IN MAIN.asm
+                    > USED AT LINE 1043 IN MAIN.asm
+GO2:                0645 DEFINED AT LINE 870 IN MAIN.asm
+                    > USED AT LINE 868 IN MAIN.asm
+GOBLOCK:            0651 DEFINED AT LINE 878 IN MAIN.asm
+GOBLOCK1:           0651 DEFINED AT LINE 879 IN MAIN.asm
+                    > USED AT LINE 873 IN MAIN.asm
+GOBLOCK2:           0676 DEFINED AT LINE 896 IN MAIN.asm
+                    > USED AT LINE 978 IN MAIN.asm
+GOFUNC:             0684 DEFINED AT LINE 905 IN MAIN.asm
+                    > USED AT LINE 875 IN MAIN.asm
+GOFUNC1:            069D DEFINED AT LINE 924 IN MAIN.asm
+                    > USED AT LINE 934 IN MAIN.asm
+GOFUNC2:            06A3 DEFINED AT LINE 931 IN MAIN.asm
+                    > USED AT LINE 923 IN MAIN.asm
+GOFUNC3:            06AE DEFINED AT LINE 937 IN MAIN.asm
+                    > USED AT LINE 913 IN MAIN.asm
+GOFUNC4:            06C6 DEFINED AT LINE 954 IN MAIN.asm
+                    > USED AT LINE 951 IN MAIN.asm
+GOFUNC5:            06CA DEFINED AT LINE 958 IN MAIN.asm
+                    > USED AT LINE 964 IN MAIN.asm
+GOFUNC6:            06CD DEFINED AT LINE 962 IN MAIN.asm
+                    > USED AT LINE 957 IN MAIN.asm
+GOFUNC7:            06D0 DEFINED AT LINE 965 IN MAIN.asm
+GOFUNC8:            06D5 DEFINED AT LINE 971 IN MAIN.asm
+                    > USED AT LINE 890 IN MAIN.asm
+                    > USED AT LINE 953 IN MAIN.asm
+HASH:               06E0 DEFINED AT LINE 980 IN MAIN.asm
+                    > USED AT LINE 260 IN MAIN.asm
+HEXNUM:             06E0 DEFINED AT LINE 981 IN MAIN.asm
+HEXNUM1:            06E3 DEFINED AT LINE 983 IN MAIN.asm
+                    > USED AT LINE 1000 IN MAIN.asm
+HEXNUM2:            06EB DEFINED AT LINE 989 IN MAIN.asm
+                    > USED AT LINE 987 IN MAIN.asm
+UPCASE:             06FD DEFINED AT LINE 1001 IN MAIN.asm
+                    > USED AT LINE 247 IN MAIN.asm
+LOWCASE:            0702 DEFINED AT LINE 1005 IN MAIN.asm
+                    > USED AT LINE 249 IN MAIN.asm
+IDENT1:             0707 DEFINED AT LINE 1009 IN MAIN.asm
+                    > USED AT LINE 1004 IN MAIN.asm
+QUESTION:           0714 DEFINED AT LINE 1022 IN MAIN.asm
+                    > USED AT LINE 251 IN MAIN.asm
+IF:                 0714 DEFINED AT LINE 1023 IN MAIN.asm
+IFTE:               0720 DEFINED AT LINE 1033 IN MAIN.asm
+                    > USED AT LINE 1027 IN MAIN.asm
+IFTE1:              0721 DEFINED AT LINE 1035 IN MAIN.asm
+                    > USED AT LINE 1030 IN MAIN.asm
+STAR:               072D DEFINED AT LINE 1045 IN MAIN.asm
+                    > USED AT LINE 253 IN MAIN.asm
+MUL:                072D DEFINED AT LINE 1046 IN MAIN.asm
+MUL2:               072F DEFINED AT LINE 1049 IN MAIN.asm
+MUL3:               0737 DEFINED AT LINE 1054 IN MAIN.asm
+                    > USED AT LINE 1063 IN MAIN.asm
+NUM:                0749 DEFINED AT LINE 1067 IN MAIN.asm
+                    > USED AT LINE 258 IN MAIN.asm
+NUM0:               0752 DEFINED AT LINE 1073 IN MAIN.asm
+                    > USED AT LINE 1071 IN MAIN.asm
+NUM1:               0753 DEFINED AT LINE 1075 IN MAIN.asm
+                    > USED AT LINE 1092 IN MAIN.asm
+NUM2:               076B DEFINED AT LINE 1093 IN MAIN.asm
+                    > USED AT LINE 991 IN MAIN.asm
+                    > USED AT LINE 993 IN MAIN.asm
+                    > USED AT LINE 1078 IN MAIN.asm
+                    > USED AT LINE 1080 IN MAIN.asm
+NUM3:               0776 DEFINED AT LINE 1101 IN MAIN.asm
+                    > USED AT LINE 1096 IN MAIN.asm
+UNDERSCORE:         0779 DEFINED AT LINE 1105 IN MAIN.asm
+                    > USED AT LINE 243 IN MAIN.asm
+REMAIN:             0779 DEFINED AT LINE 1106 IN MAIN.asm
+RPAREN:             077F DEFINED AT LINE 1111 IN MAIN.asm
+                    > USED AT LINE 311 IN MAIN.asm
+SEMICOLON:          0787 DEFINED AT LINE 1117 IN MAIN.asm
+                    > USED AT LINE 239 IN MAIN.asm
+SHIFTLEFT:          07A3 DEFINED AT LINE 1141 IN MAIN.asm
+                    > USED AT LINE 298 IN MAIN.asm
+SHIFTLEFT1:         07AB DEFINED AT LINE 1148 IN MAIN.asm
+                    > USED AT LINE 1151 IN MAIN.asm
+SHIFTLEFT2:         07AC DEFINED AT LINE 1150 IN MAIN.asm
+                    > USED AT LINE 1147 IN MAIN.asm
+SHIFTRIGHT:         07B3 DEFINED AT LINE 1158 IN MAIN.asm
+                    > USED AT LINE 288 IN MAIN.asm
+SHIFTRIGHT1:        07BB DEFINED AT LINE 1165 IN MAIN.asm
+                    > USED AT LINE 1169 IN MAIN.asm
+SHIFTRIGHT2:        07BF DEFINED AT LINE 1168 IN MAIN.asm
+                    > USED AT LINE 1164 IN MAIN.asm
+DBLQUOTE:           07C6 DEFINED AT LINE 1177 IN MAIN.asm
+                    > USED AT LINE 268 IN MAIN.asm
+STRING:             07C6 DEFINED AT LINE 1178 IN MAIN.asm
+STRING1:            07CF DEFINED AT LINE 1185 IN MAIN.asm
+                    > USED AT LINE 1192 IN MAIN.asm
+                    > USED AT LINE 1194 IN MAIN.asm
+STRING2:            07D2 DEFINED AT LINE 1189 IN MAIN.asm
+                    > USED AT LINE 1184 IN MAIN.asm
+MINUS:              07EE DEFINED AT LINE 1211 IN MAIN.asm
+                    > USED AT LINE 270 IN MAIN.asm
+SUB:                07FA DEFINED AT LINE 1219 IN MAIN.asm
+                    > USED AT LINE 1216 IN MAIN.asm
+SUB1:               0804 DEFINED AT LINE 1226 IN MAIN.asm
+                    > USED AT LINE 1222 IN MAIN.asm
+COMMAND:            080D DEFINED AT LINE 1239 IN MAIN.asm
+                    > USED AT LINE 760 IN MAIN.asm
+ERROR1:             084E DEFINED AT LINE 1266 IN MAIN.asm
+ABS1:               0854 DEFINED AT LINE 1270 IN MAIN.asm
+                    > USED AT LINE 1241 IN MAIN.asm
+PARTIAL:            0861 DEFINED AT LINE 1285 IN MAIN.asm
+                    > USED AT LINE 1247 IN MAIN.asm
+COMMENT:            0881 DEFINED AT LINE 1301 IN MAIN.asm
+                    > USED AT LINE 758 IN MAIN.asm
+                    > USED AT LINE 1305 IN MAIN.asm
+BREAK:              088A DEFINED AT LINE 1309 IN MAIN.asm
+                    > USED AT LINE 1243 IN MAIN.asm
+BREAK1:             0891 DEFINED AT LINE 1315 IN MAIN.asm
+                    > USED AT LINE 1313 IN MAIN.asm
+CHARS:              08A4 DEFINED AT LINE 1326 IN MAIN.asm
+                    > USED AT LINE 1245 IN MAIN.asm
+CHARS1:             08A7 DEFINED AT LINE 1328 IN MAIN.asm
+                    > USED AT LINE 1371 IN MAIN.asm
+HEAPPTR:            08AC DEFINED AT LINE 1332 IN MAIN.asm
+                    > USED AT LINE 1251 IN MAIN.asm
+INPUT:              08B8 DEFINED AT LINE 1341 IN MAIN.asm
+                    > USED AT LINE 1253 IN MAIN.asm
+KEY:                08C3 DEFINED AT LINE 1351 IN MAIN.asm
+                    > USED AT LINE 1255 IN MAIN.asm
+OUTPUT:             08CC DEFINED AT LINE 1360 IN MAIN.asm
+                    > USED AT LINE 1259 IN MAIN.asm
+NUMBERS:            08D5 DEFINED AT LINE 1369 IN MAIN.asm
+                    > USED AT LINE 1257 IN MAIN.asm
+FILTER:             08DB DEFINED AT LINE 1378 IN MAIN.asm
+MAP:                08DB DEFINED AT LINE 1379 IN MAIN.asm
+PRTDEC:             08DD DEFINED AT LINE 1387 IN MAIN.asm
+                    > USED AT LINE 793 IN MAIN.asm
+                    > USED AT LINE 1726 IN MAIN.asm
+PRTDEC0:            08EC DEFINED AT LINE 1398 IN MAIN.asm
+                    > USED AT LINE 1389 IN MAIN.asm
+PRTDEC1:            090E DEFINED AT LINE 1414 IN MAIN.asm
+                    > USED AT LINE 1402 IN MAIN.asm
+                    > USED AT LINE 1404 IN MAIN.asm
+                    > USED AT LINE 1406 IN MAIN.asm
+                    > USED AT LINE 1408 IN MAIN.asm
+                    > USED AT LINE 1411 IN MAIN.asm
+PRTDEC2:            0910 DEFINED AT LINE 1416 IN MAIN.asm
+                    > USED AT LINE 1419 IN MAIN.asm
+PRTDEC3:            0920 DEFINED AT LINE 1428 IN MAIN.asm
+                    > USED AT LINE 1423 IN MAIN.asm
+PRTDEC4:            0921 DEFINED AT LINE 1430 IN MAIN.asm
+                    > USED AT LINE 1427 IN MAIN.asm
+PRTHEX:             0925 DEFINED AT LINE 1434 IN MAIN.asm
+                    > USED AT LINE 778 IN MAIN.asm
+                    > USED AT LINE 1700 IN MAIN.asm
+PRTHEX2:            0930 DEFINED AT LINE 1442 IN MAIN.asm
+                    > USED AT LINE 1437 IN MAIN.asm
+                    > USED AT LINE 1439 IN MAIN.asm
+PRTHEX3:            0939 DEFINED AT LINE 1450 IN MAIN.asm
+                    > USED AT LINE 1448 IN MAIN.asm
+PRTSTR0:            0944 DEFINED AT LINE 1458 IN MAIN.asm
+                    > USED AT LINE 1464 IN MAIN.asm
+PRTSTR:             0948 DEFINED AT LINE 1461 IN MAIN.asm
+                    > USED AT LINE 783 IN MAIN.asm
+                    > USED AT LINE 1528 IN MAIN.asm
+NESTING:            094D DEFINED AT LINE 1477 IN MAIN.asm
+                    > USED AT LINE 1572 IN MAIN.asm
+                    > USED AT LINE 1627 IN MAIN.asm
+NESTING0:           0957 DEFINED AT LINE 1483 IN MAIN.asm
+                    > USED AT LINE 1479 IN MAIN.asm
+                    > USED AT LINE 1481 IN MAIN.asm
+NESTING1A:          095E DEFINED AT LINE 1488 IN MAIN.asm
+                    > USED AT LINE 1485 IN MAIN.asm
+NESTING1:           0961 DEFINED AT LINE 1491 IN MAIN.asm
+                    > USED AT LINE 1482 IN MAIN.asm
+NESTING2:           0970 DEFINED AT LINE 1500 IN MAIN.asm
+                    > USED AT LINE 1495 IN MAIN.asm
+                    > USED AT LINE 1497 IN MAIN.asm
+NESTING3:           0972 DEFINED AT LINE 1503 IN MAIN.asm
+                    > USED AT LINE 1499 IN MAIN.asm
+NESTING4:           097D DEFINED AT LINE 1510 IN MAIN.asm
+                    > USED AT LINE 1505 IN MAIN.asm
+                    > USED AT LINE 1507 IN MAIN.asm
+PROMPT:             097F DEFINED AT LINE 1514 IN MAIN.asm
+                    > USED AT LINE 1556 IN MAIN.asm
+                    > USED AT LINE 1708 IN MAIN.asm
+CRLF:               0988 DEFINED AT LINE 1519 IN MAIN.asm
+                    > USED AT LINE 1639 IN MAIN.asm
+PRINTSTR:           098F DEFINED AT LINE 1526 IN MAIN.asm
+                    > USED AT LINE 1515 IN MAIN.asm
+                    > USED AT LINE 1520 IN MAIN.asm
+                    > USED AT LINE 1552 IN MAIN.asm
+                    > USED AT LINE 1678 IN MAIN.asm
+                    > USED AT LINE 1684 IN MAIN.asm
+                    > USED AT LINE 1724 IN MAIN.asm
+INIT:               0996 DEFINED AT LINE 1533 IN MAIN.asm
                     > USED AT LINE 7
-                    > USED AT LINE 1554 IN monty.asm
-INIT0:              09AF DEFINED AT LINE 1546 IN monty.asm
-                    > USED AT LINE 1549 IN monty.asm
-START:              09B4 DEFINED AT LINE 1552 IN monty.asm
+                    > USED AT LINE 1551 IN MAIN.asm
+INIT0:              09AF DEFINED AT LINE 1543 IN MAIN.asm
+                    > USED AT LINE 1546 IN MAIN.asm
+START:              09B4 DEFINED AT LINE 1549 IN MAIN.asm
                     > USED AT LINE 8
-INTERPRET:          09CA DEFINED AT LINE 1558 IN monty.asm
-                    > USED AT LINE 1651 IN monty.asm
-                    > USED AT LINE 1657 IN monty.asm
-                    > USED AT LINE 1663 IN monty.asm
-INTERPRET2:         09D4 DEFINED AT LINE 1564 IN monty.asm
-                    > USED AT LINE 1606 IN monty.asm
-INTERPRET3:         09DC DEFINED AT LINE 1571 IN monty.asm
-                    > USED AT LINE 1580 IN monty.asm
-INTERPRET4:         09E2 DEFINED AT LINE 1577 IN monty.asm
-                    > USED AT LINE 1569 IN monty.asm
-INTERPRET5:         09E7 DEFINED AT LINE 1583 IN monty.asm
-                    > USED AT LINE 1615 IN monty.asm
-                    > USED AT LINE 1629 IN monty.asm
-INTERPRET5A:        09FF DEFINED AT LINE 1599 IN monty.asm
-                    > USED AT LINE 1596 IN monty.asm
-INTERPRET6:         0A01 DEFINED AT LINE 1608 IN monty.asm
-                    > USED AT LINE 1586 IN monty.asm
-INTERPRET7:         0A0F DEFINED AT LINE 1617 IN monty.asm
-                    > USED AT LINE 1591 IN monty.asm
-INTERPRET8:         0A22 DEFINED AT LINE 1631 IN monty.asm
-                    > USED AT LINE 1589 IN monty.asm
-NEXT:               0A2A DEFINED AT LINE 1637 IN monty.asm
-                    > USED AT LINE 73 IN monty.asm
-                    > USED AT LINE 1641 IN monty.asm
-NEXT1:              0A39 DEFINED AT LINE 1648 IN monty.asm
-                    > USED AT LINE 1642 IN monty.asm
-EXIT_:              0A40 DEFINED AT LINE 1652 IN monty.asm
-                    > USED AT LINE 1650 IN monty.asm
-BACKSPACE:          0A43 DEFINED AT LINE 1656 IN monty.asm
-ERROR:              0A46 DEFINED AT LINE 1659 IN monty.asm
-                    > USED AT LINE 1271 IN monty.asm
+INTERPRET:          09CA DEFINED AT LINE 1555 IN MAIN.asm
+                    > USED AT LINE 1664 IN MAIN.asm
+                    > USED AT LINE 1727 IN MAIN.asm
+INTERPRET2:         09D4 DEFINED AT LINE 1561 IN MAIN.asm
+                    > USED AT LINE 1619 IN MAIN.asm
+                    > USED AT LINE 1670 IN MAIN.asm
+                    > USED AT LINE 1672 IN MAIN.asm
+                    > USED AT LINE 1676 IN MAIN.asm
+                    > USED AT LINE 1680 IN MAIN.asm
+                    > USED AT LINE 1710 IN MAIN.asm
+INTERPRET3:         09DC DEFINED AT LINE 1568 IN MAIN.asm
+                    > USED AT LINE 1577 IN MAIN.asm
+INTERPRET4:         09E2 DEFINED AT LINE 1574 IN MAIN.asm
+                    > USED AT LINE 1566 IN MAIN.asm
+INTERPRET5:         09E7 DEFINED AT LINE 1580 IN MAIN.asm
+                    > USED AT LINE 1628 IN MAIN.asm
+                    > USED AT LINE 1642 IN MAIN.asm
+INTERPRET5A:        0A06 DEFINED AT LINE 1616 IN MAIN.asm
+INTERPRET6:         0A08 DEFINED AT LINE 1621 IN MAIN.asm
+                    > USED AT LINE 1583 IN MAIN.asm
+INTERPRET7:         0A16 DEFINED AT LINE 1630 IN MAIN.asm
+                    > USED AT LINE 1588 IN MAIN.asm
+INTERPRET8:         0A29 DEFINED AT LINE 1644 IN MAIN.asm
+                    > USED AT LINE 1586 IN MAIN.asm
+NEXT:               0A31 DEFINED AT LINE 1650 IN MAIN.asm
+                    > USED AT LINE 70 IN MAIN.asm
+                    > USED AT LINE 1654 IN MAIN.asm
+NEXT1:              0A40 DEFINED AT LINE 1661 IN MAIN.asm
+                    > USED AT LINE 1655 IN MAIN.asm
+EXIT_:              0A47 DEFINED AT LINE 1665 IN MAIN.asm
+                    > USED AT LINE 1663 IN MAIN.asm
+EDIT:               0A4A DEFINED AT LINE 1669 IN MAIN.asm
+                    > USED AT LINE 1591 IN MAIN.asm
+REEDIT:             0A4D DEFINED AT LINE 1671 IN MAIN.asm
+                    > USED AT LINE 1595 IN MAIN.asm
+BACKSPACE:          0A50 DEFINED AT LINE 1673 IN MAIN.asm
+                    > USED AT LINE 1593 IN MAIN.asm
+PRINTSTACK:         0A5F DEFINED AT LINE 1682 IN MAIN.asm
+                    > USED AT LINE 1597 IN MAIN.asm
+PRTSTK1:            0A7A DEFINED AT LINE 1693 IN MAIN.asm
+                    > USED AT LINE 1707 IN MAIN.asm
+PRTSTK2:            0A89 DEFINED AT LINE 1704 IN MAIN.asm
+                    > USED AT LINE 1692 IN MAIN.asm
+ERROR:              0A97 DEFINED AT LINE 1723 IN MAIN.asm
+                    > USED AT LINE 1268 IN MAIN.asm
 STACK:              0B80 DEFINED AT LINE 5 IN ram.asm
                     > USED AT LINE 451 IN IOSerial.asm
                     > USED AT LINE 6
-                    > USED AT LINE 884 IN monty.asm
-                    > USED AT LINE 1538 IN monty.asm
-                    > USED AT LINE 1553 IN monty.asm
+                    > USED AT LINE 881 IN MAIN.asm
+                    > USED AT LINE 1535 IN MAIN.asm
+                    > USED AT LINE 1550 IN MAIN.asm
+                    > USED AT LINE 1686 IN MAIN.asm
+                    > USED AT LINE 1691 IN MAIN.asm
 VARS:               0C00 DEFINED AT LINE 9 IN ram.asm
-                    > USED AT LINE 1543 IN monty.asm
+                    > USED AT LINE 1540 IN MAIN.asm
 RESTARTS:           0CD0 DEFINED AT LINE 11 IN ram.asm
 RST08:              0CD0 DEFINED AT LINE 13 IN ram.asm
                     > USED AT LINE 107 IN IOSerial.asm
@@ -2748,76 +2833,78 @@ PUTCVEC:            0CE4 DEFINED AT LINE 23 IN ram.asm
                     > USED AT LINE 446 IN IOSerial.asm
                     > USED AT LINE 465 IN IOSerial.asm
 SYSVARS:            0CE6 DEFINED AT LINE 25 IN ram.asm
-                    > USED AT LINE 1540 IN monty.asm
+                    > USED AT LINE 1537 IN MAIN.asm
 VDATAWIDTH:         0CE6 DEFINED AT LINE 29 IN ram.asm
-                    > USED AT LINE 476 IN monty.asm
-                    > USED AT LINE 512 IN monty.asm
-                    > USED AT LINE 539 IN monty.asm
-                    > USED AT LINE 1332 IN monty.asm
+                    > USED AT LINE 473 IN MAIN.asm
+                    > USED AT LINE 509 IN MAIN.asm
+                    > USED AT LINE 536 IN MAIN.asm
+                    > USED AT LINE 1329 IN MAIN.asm
 VTIBPTR:            0CE8 DEFINED AT LINE 30 IN ram.asm
-                    > USED AT LINE 1562 IN monty.asm
-                    > USED AT LINE 1632 IN monty.asm
+                    > USED AT LINE 1559 IN MAIN.asm
+                    > USED AT LINE 1645 IN MAIN.asm
 VNEXT:              0CEA DEFINED AT LINE 31 IN ram.asm
-                    > USED AT LINE 1537 IN monty.asm
+                    > USED AT LINE 1534 IN MAIN.asm
 VHEAPPTR:           0CEC DEFINED AT LINE 32 IN ram.asm
-                    > USED AT LINE 466 IN monty.asm
-                    > USED AT LINE 498 IN monty.asm
-                    > USED AT LINE 499 IN monty.asm
-                    > USED AT LINE 554 IN monty.asm
-                    > USED AT LINE 589 IN monty.asm
-                    > USED AT LINE 656 IN monty.asm
-                    > USED AT LINE 659 IN monty.asm
-                    > USED AT LINE 1122 IN monty.asm
-                    > USED AT LINE 1137 IN monty.asm
-                    > USED AT LINE 1139 IN monty.asm
-                    > USED AT LINE 1182 IN monty.asm
-                    > USED AT LINE 1201 IN monty.asm
-                    > USED AT LINE 1290 IN monty.asm
-                    > USED AT LINE 1295 IN monty.asm
-                    > USED AT LINE 1296 IN monty.asm
-                    > USED AT LINE 1336 IN monty.asm
-                    > USED AT LINE 1338 IN monty.asm
+                    > USED AT LINE 463 IN MAIN.asm
+                    > USED AT LINE 495 IN MAIN.asm
+                    > USED AT LINE 496 IN MAIN.asm
+                    > USED AT LINE 551 IN MAIN.asm
+                    > USED AT LINE 586 IN MAIN.asm
+                    > USED AT LINE 653 IN MAIN.asm
+                    > USED AT LINE 656 IN MAIN.asm
+                    > USED AT LINE 1119 IN MAIN.asm
+                    > USED AT LINE 1134 IN MAIN.asm
+                    > USED AT LINE 1136 IN MAIN.asm
+                    > USED AT LINE 1179 IN MAIN.asm
+                    > USED AT LINE 1198 IN MAIN.asm
+                    > USED AT LINE 1287 IN MAIN.asm
+                    > USED AT LINE 1292 IN MAIN.asm
+                    > USED AT LINE 1293 IN MAIN.asm
+                    > USED AT LINE 1333 IN MAIN.asm
+                    > USED AT LINE 1335 IN MAIN.asm
 VPOINTER:           0CEE DEFINED AT LINE 36 IN ram.asm
-                    > USED AT LINE 347 IN monty.asm
-                    > USED AT LINE 349 IN monty.asm
-                    > USED AT LINE 350 IN monty.asm
-                    > USED AT LINE 432 IN monty.asm
-                    > USED AT LINE 519 IN monty.asm
-                    > USED AT LINE 537 IN monty.asm
-                    > USED AT LINE 1016 IN monty.asm
-                    > USED AT LINE 1339 IN monty.asm
+                    > USED AT LINE 344 IN MAIN.asm
+                    > USED AT LINE 346 IN MAIN.asm
+                    > USED AT LINE 347 IN MAIN.asm
+                    > USED AT LINE 429 IN MAIN.asm
+                    > USED AT LINE 516 IN MAIN.asm
+                    > USED AT LINE 534 IN MAIN.asm
+                    > USED AT LINE 1013 IN MAIN.asm
+                    > USED AT LINE 1336 IN MAIN.asm
 VREMAIN:            0CF0 DEFINED AT LINE 37 IN ram.asm
-                    > USED AT LINE 771 IN monty.asm
-                    > USED AT LINE 1110 IN monty.asm
+                    > USED AT LINE 768 IN MAIN.asm
+                    > USED AT LINE 1107 IN MAIN.asm
 VSAVEDIP:           0CF2 DEFINED AT LINE 39 IN ram.asm
 VSAVEDSP:           0CF4 DEFINED AT LINE 40 IN ram.asm
 VSAVEDBP:           0CF6 DEFINED AT LINE 41 IN ram.asm
 VCHECKSUM:          0CF8 DEFINED AT LINE 42 IN ram.asm
 VTEMP1:             0CFA DEFINED AT LINE 46 IN ram.asm
-                    > USED AT LINE 459 IN monty.asm
-                    > USED AT LINE 500 IN monty.asm
-                    > USED AT LINE 651 IN monty.asm
-                    > USED AT LINE 660 IN monty.asm
-                    > USED AT LINE 883 IN monty.asm
-                    > USED AT LINE 889 IN monty.asm
-                    > USED AT LINE 917 IN monty.asm
-                    > USED AT LINE 938 IN monty.asm
-                    > USED AT LINE 945 IN monty.asm
-                    > USED AT LINE 951 IN monty.asm
-                    > USED AT LINE 1291 IN monty.asm
-                    > USED AT LINE 1294 IN monty.asm
+                    > USED AT LINE 456 IN MAIN.asm
+                    > USED AT LINE 497 IN MAIN.asm
+                    > USED AT LINE 648 IN MAIN.asm
+                    > USED AT LINE 657 IN MAIN.asm
+                    > USED AT LINE 880 IN MAIN.asm
+                    > USED AT LINE 886 IN MAIN.asm
+                    > USED AT LINE 914 IN MAIN.asm
+                    > USED AT LINE 935 IN MAIN.asm
+                    > USED AT LINE 942 IN MAIN.asm
+                    > USED AT LINE 948 IN MAIN.asm
+                    > USED AT LINE 1288 IN MAIN.asm
+                    > USED AT LINE 1291 IN MAIN.asm
+                    > USED AT LINE 1683 IN MAIN.asm
+                    > USED AT LINE 1709 IN MAIN.asm
 VTEMP2:             0CFC DEFINED AT LINE 47 IN ram.asm
-                    > USED AT LINE 918 IN monty.asm
-                    > USED AT LINE 939 IN monty.asm
+                    > USED AT LINE 915 IN MAIN.asm
+                    > USED AT LINE 936 IN MAIN.asm
 VLASTDEF:           0CFE DEFINED AT LINE 48 IN ram.asm
 VHASHSTR:           0D00 DEFINED AT LINE 49 IN ram.asm
 TBPTR:              0D02 DEFINED AT LINE 50 IN ram.asm
 TIB:                0E00 DEFINED AT LINE 53 IN ram.asm
-                    > USED AT LINE 1568 IN monty.asm
-                    > USED AT LINE 1609 IN monty.asm
-                    > USED AT LINE 1618 IN monty.asm
-                    > USED AT LINE 1633 IN monty.asm
+                    > USED AT LINE 1565 IN MAIN.asm
+                    > USED AT LINE 1622 IN MAIN.asm
+                    > USED AT LINE 1631 IN MAIN.asm
+                    > USED AT LINE 1646 IN MAIN.asm
 PAD:                0F00 DEFINED AT LINE 56 IN ram.asm
 HEAP:               1000 DEFINED AT LINE 58 IN ram.asm
-                    > USED AT LINE 74 IN monty.asm
-                    > USED AT LINE 644 IN monty.asm
+                    > USED AT LINE 71 IN MAIN.asm
+                    > USED AT LINE 641 IN MAIN.asm

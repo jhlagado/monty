@@ -17,14 +17,17 @@ DSIZE   equ     $80
 TIBSIZE equ     $100	    ; 256 bytes , along line!
 TRUE    equ     -1		    ; C-style true
 FALSE   equ     0
+; EMPTY   equ     0		         
+; UNUSED  equ     $ff
 NUL     equ     0           ; exit code
+; DC1     equ     17          ; ?
+; DC2     equ     18          ; ?
+; DC3     equ     19          ; ?
 DQUOTE  equ     $22         ; " double quote char
 CTRL_C  equ     3
-CTRL_E  equ     5
 CTRL_H  equ     8
 CTRL_J  equ     10
 CTRL_L  equ     12
-CTRL_P  equ     16
 ESC     equ     27          
 
 z80_RST8    equ     $CF
@@ -65,10 +68,10 @@ macros:
 ; Initial values for system vars		
 ; ***********************************************************************		
 isysVars:			            
-    DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
-    DW 0                        ; vTIBPtr an offset to the tib
-    DW next                     ; nNext
-    DW heap                     ; vHeapPtr \h start of the free mem
+    DW 2                        ; b vDataWidth in bytes of array operations (default 1 byte) 
+    DW 0                        ; c vTIBPtr an offset to the tib
+    DW next                     ; g nNext
+    DW heap                     ; h vHeapPtr \h start of the free mem
 
     .align $100
 
@@ -621,7 +624,7 @@ block1:                         ; Skip to end of definition
     jr z,block3
     cp "`"
     jr z,block3
-    cp DQUOTE
+    cp $22
     jr z,block3
     jr block1
 block2:
@@ -770,9 +773,9 @@ slash:
     jp add3
 
 dot:  
+    pop hl
     inc bc
     ld a,(bc)
-    pop hl
     cp "h"
     jr nz,dot1
     call prthex
@@ -1587,34 +1590,18 @@ interpret5:
     cp '\r'                     ; carriage return? ascii 13
     jr z,interpret7		        ; if anything else its macro/control 
 
-    cp CTRL_E
-    jr z,edit
-    cp CTRL_H
-    jr z,backSpace
-    cp CTRL_J
-    jr z,reEdit
-    cp CTRL_P
-    jr z,printStack
+    ; ld (vTIBPtr),bc
 
+    cp CTRL_H
+    jr nz,interpret5a
+    ld a,'-'
+    call putchar
+interpret5a:    
     ; DB     lsb(edit_)       ; ENQ ^E  5
+    ; DB     lsb(backsp_)     ; BS  ^H  8
     ; DB     lsb(reedit_)     ; LF  ^J 10
     ; DB     lsb(list_)       ; FF  ^L 12
     ; DB     lsb(printStack_) ; DLE ^P 16
-    ; DB lsb(depth_)      ;\#3    ( -- val )    depth of data stack  
-    ; DB lsb(prtStk_)   ;\#4    ( -- )        non-destructively prints stack
-    ; DB lsb(prompt_)     ;\#5    ( -- )        print MINT prompt 
-    ; DB lsb(editDef_)    ;\#6    ( char -- )   edit command    
-    ; DB lsb(aDup_)       ;\#7    ( adr -- )    dupe (used in asm tests)
-    ; DB     lsb(newln_)      ;a4    \$  prints a newline to output	
-    
-    ; reedit_: DB "\\e\\@\\#6;"			; lastDef, edit. remembers last line edited
-    ; edit_: .cstr "`?`?\\#5\\#6;"      ; ?,key,prompt,edit 
-    ; list_: .cstr "\\$26(\\i@65+\\#6\\c@0>(\\$))\\#5;" newln, loop 26 (index + 'A', edit tib* > 0, newln),prompt
-    ; printStack_: .cstr "\\#4\\#5;"  ; print stack, prompt
-
-
-interpret5a:    
-    ; ld (vTIBPtr),bc
     ; ld bc,(vTIBPtr)
     jr interpret2
 
@@ -1666,60 +1653,9 @@ exit_:
     ld hl,bc
     jp (hl)
 
-edit:
-    jp interpret2
-reEdit:
-    jp interpret2
 backSpace:
-    ld a,c
-    or b
-    jr z, interpret2
-    dec bc
-    call printStr
-    .cstr "\b \b"
-    jp interpret2
-
-printStack:                           
-    ld (vTemp1),bc
-    call printStr
-    .cstr "=> "
-    ld hl,STACK
-    sbc hl,sp
-    srl h
-    rr l
-    ld bc,hl
-    ld hl,STACK
-    jr prtStk2
-prtStk1:
-    dec bc
-    dec hl
-    ld d,(hl)
-    dec hl
-    ld e,(hl)
-    ex de,hl    
-    call prthex
-    ex de,hl
-    ld a," "
-    call putchar
-prtStk2:
-    ld a,c
-    or b
-    jr nz,prtStk1
-    call prompt
-    ld bc,(vTemp1)
-    jp interpret2
+    jp interpret
     
-    ; "`=> `\\a@2-\\#3 1-(",$22,"@\\b@(,)(.)2-)'\\$"             
-    ; \a start of stack \#3 depth \b base \$ prompt
-    
-    ; DW dStack               ; a vS0 start of datastack			
-    ; DW FALSE                ; b vBase16 
-    ; DW 0                    ; c vTIBPtr an offset to the tib
-    ; DW 0                    ; d 
-    ; DW 65                   ; e vLastDef "A" last command u defined
-    ; DW 0                    ; f 
-    ; DW page6                ; g 256 bytes limits
-    ; DW HEAP                 ; h vHeapPtr \h start of the free mem
 error:
     call printStr		        
     .cstr "Error "
