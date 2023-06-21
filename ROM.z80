@@ -7,5 +7,5 @@
     call init
     jp   start
 
-.include "MONTY.asm"
+.include "MAIN.asm"
 .include "ram.asm"

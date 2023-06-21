@@ -29,5 +29,5 @@ testGetCharImpl:
     POP HL
     RET                 
 
-.include "MONTY.asm"
+.include "MAIN.asm"
 .include "ram.asm"

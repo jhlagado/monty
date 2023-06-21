@@ -9,7 +9,7 @@
     call init
     jp testsStart
 
-.include "MONTY.asm"
+.include "MAIN.asm"
 
 .align $100
 testsStart:
