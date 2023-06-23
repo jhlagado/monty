@@ -25,6 +25,7 @@ CTRL_H  equ     8
 CTRL_J  equ     10
 CTRL_L  equ     12
 CTRL_P  equ     16
+CTRL_S  equ     19
 ESC     equ     27          
 
 z80_RST8    equ     $CF
@@ -1189,9 +1190,10 @@ string1:
 string2:
     ld a,(bc)
     cp DQUOTE                      ; " is the string terminator
-    jr nz,string1
+    jr z,string3
     cp "`"                      ; ` is the string terminator used in testing
     jr nz,string1
+string3:
     xor a                       ; write NUL to terminate string
     ld (hl),a                   ; hl = end of string
     inc hl
@@ -1259,6 +1261,8 @@ command:
     jp z,output
     cp "t"                      ; \t true
     jp z,true1
+    cp "u"                      ; \v utility
+    jp z,utility
     cp "v"                      ; \v invert
     jp z,invert
     cp "x"                      ; \x xor
@@ -1369,6 +1373,72 @@ output:
 numbers:
     ld hl,2
     jp chars1
+
+utility:
+    inc bc
+    ld a,(bc)
+    cp "a"                      ; \a addrOf
+    jp z,addrOf
+    cp "s"                      ; \a addrOf
+    jp z,printStack
+    ld hl,2                     ; error 1: unknown command
+    jp error
+    
+; /ua addrOf
+; char -- addr
+addrOf:
+    pop hl                      ; a = char
+    ld a,l
+    cp "z"+1                    ; if a > z then exit
+    jr nc,addrOf2
+    sub "A"                     ; a - 65
+    jr nc,addrOf2               ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,addrOf1
+    sub "a"-"Z"+1
+addrOf1:
+    add a,a                     ; double a
+    ld hl,VARS                  ; hl = VARS + a
+    add a,l
+    ld l,a
+    adc a,h
+    ld h,a
+    push hl
+addrOf2:    
+    jp (ix)
+
+; /us print stack
+; -- 
+printStack:
+    ld (vTemp1),bc
+    call printStr
+    .cstr "=> "
+    ld hl,STACK
+    sbc hl,sp
+    srl h
+    rr l
+    ld bc,hl
+    ld hl,STACK
+    jr printStack2
+printStack1:
+    dec bc
+    dec hl
+    ld d,(hl)
+    dec hl
+    ld e,(hl)
+    ex de,hl    
+    call prthex
+    ex de,hl
+    ld a," "
+    call putchar
+printStack2:
+    ld a,c
+    or b
+    jr nz,printStack1
+    call prompt
+    ld bc,(vTemp1)
+    jp (ix)
+    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1588,20 +1658,20 @@ interpret5:
     jr z,interpret7		        ; if anything else its macro/control 
 
     cp CTRL_E
-    jr z,edit
+    jp z,edit_
     cp CTRL_H
-    jr z,backSpace
+    jp z,backSpace_
     cp CTRL_J
-    jr z,reEdit
-    cp CTRL_P
-    jr z,printStack
+    jp z,reEdit_
+    cp CTRL_S
+    jp z,printStack_
 
     ; DB     lsb(edit_)       ; ENQ ^E  5
     ; DB     lsb(reedit_)     ; LF  ^J 10
     ; DB     lsb(list_)       ; FF  ^L 12
     ; DB     lsb(printStack_) ; DLE ^P 16
     ; DB lsb(depth_)      ;\#3    ( -- val )    depth of data stack  
-    ; DB lsb(prtStk_)   ;\#4    ( -- )        non-destructively prints stack
+    ; DB lsb(printStack_)   ;\#4    ( -- )        non-destructively prints stack
     ; DB lsb(prompt_)     ;\#5    ( -- )        print MINT prompt 
     ; DB lsb(editDef_)    ;\#6    ( char -- )   edit command    
     ; DB lsb(aDup_)       ;\#7    ( adr -- )    dupe (used in asm tests)
@@ -1660,55 +1730,200 @@ next:
     jp (hl)                     ; Jump to routine
 next1:
     cp NUL                      ; end of input string?
-    jr z,exit_
+    jr z,exit
     jp interpret                ; no, other whitespace, macros?
-exit_:
+exit:
+    inc bc
     ld hl,bc
     jp (hl)
+run:
+    pop bc
+    dec bc
+    jp (ix)
 
-edit:
-    jp interpret2
-reEdit:
-    jp interpret2
-backSpace:
+error:
+    call printStr		        
+    .cstr "Error "
+    call prtdec
+    jp interpret
+
+backSpace_:
     ld a,c
     or b
-    jr z, interpret2
+    jp z, interpret2
     dec bc
     call printStr
     .cstr "\b \b"
     jp interpret2
 
-printStack:                           
-    ld (vTemp1),bc
-    call printStr
-    .cstr "=> "
-    ld hl,STACK
-    sbc hl,sp
-    srl h
-    rr l
-    ld bc,hl
-    ld hl,STACK
-    jr prtStk2
-prtStk1:
-    dec bc
-    dec hl
-    ld d,(hl)
-    dec hl
-    ld e,(hl)
-    ex de,hl    
-    call prthex
-    ex de,hl
-    ld a," "
-    call putchar
-prtStk2:
-    ld a,c
-    or b
-    jr nz,prtStk1
-    call prompt
-    ld bc,(vTemp1)
-    jp interpret2
+; edit 
+edit_:                        
+    call run
+    ; .cstr "`?`.s/k/ua."
+    db DQUOTE,"var?",DQUOTE,".s/k.",0
+    ; .cstr "1 2 3"
+    jp interpret
+
+reEdit_:
+    jp interpret
+
+printStack_:
+    call run
+    .cstr "/us"
+    jp interpret
+
+; editDef:
+;     pop hl                      ; pop ret address
+;     ex (sp),hl                  ; swap with TOS                  
+;     push hl                     ; dup TOS
+;     ld a,l                      ; a = ident
+;     ld de,TIB                   ; de = start of TIB
+;     ld (vTIBPtr),de             ; update TIB*
+;     push ix                     ; save NEXT
+;     ld ix,editDef0              ; NEXT = editDef0
+;     jp lookupRef                ; convert letter into address
+; editDef0:
+;     ld e,(hl)                   ; de = (hl++)
+;     inc hl
+;     ld d,(hl)
+;     ld a,d                      ; de == 0 ?
+;     or e
+;     jr z,editDef4
+;     ld ix,editDef3              ; NEXT = editDef3
+;     ex de,hl
+;     ld a,(hl)
+;     cp "{"
+;     jr nz,editDef1
+;     jp editBlock0               ; convert letter into address
+; editDef1:
+;     cp "("
+;     jr nz,editDef2
+;     jp editBlock0               ; convert letter into address
+; editDef2:
+;     jp editFunc
+; editDef3:
+;     ld a," "                    ; write assign
+;     call writeChar
+;     pop hl                      ; a = ident
+;     ld a,l
+;     call writeChar
+;     ld a,"="                    ; write assign
+;     call writeChar
+;     ld ix,editDef4              ; NEXT = editDef4
+;     jp printTIB
+; editDef4:
+;     pop ix                      ; restore NEXT
+;     jp (ix)
+
+; writeChar:
+;     ld de,(vTIBPtr)             ; de = TIB*
+;     ld (de),a                   ; write ident
+;     inc de
+;     ld (vTIBPtr),de             ; update TIB* to point to end of string
+;     ret
+
+; ; printTIB
+; printTIB:
+;     ld hl,(TIBPtr)
+;     ld de,TIB
+;     or a
+;     sbc hl,de
+;     jp printTIB2
+; printTIB1:
+;     ld a,(de)
+;     call putchar
+; printTIB2:
+;     ld a,l
+;     or h
+;     jr nz,printTIB1
+;     jp (ix)
+
+; editBlock:
+;     pop hl                      ; hl = block*
+; editBlock0:
+;     push ix                     ; save next
+;     push hl                     ; push block*
+;     push hl                     ; push block*
+;     ld ix,(editBlock2)
+;     jp blockLength
+; editBlock1:
+;     pop hl                      ; bc = length, (sp) = IP
+;     pop de                      ; de = block*
+;     ld a,l
+;     or h
+;     jr z,editBlock2
+;     push bc                      
+;     ld bc,hl                     
+;     ex de,hl                    ; hl = block*
+;     ld de,(TIBPtr)              ; de = TIB*
+;     ldir                        ; copy block to TIB
+;     ld (TIBPtr),de              ; save TIB*
+;     pop bc
+; editBlock2:
+;     pop ix                      ; restore next
+;     jp (ix)
+
+; editFunc:
     
+;     jp (ix)
+
+; editArray:
+;     jp (ix)
+
+; editArglist:
+;     jp (ix)
+
+; ; blockLength
+; ; addr1 -- length
+; blockLength:
+;     pop hl                      ; block*
+;     push hl                     ; save block*
+;     inc hl                      ; skip first char
+;     ld d,1                      ; increase nesting
+; blockLength1:                   ; Skip to end of definition    
+;     ld a,(hl)                   ; Get the next character
+;     inc hl                      ; Point to next character
+;     cp " " + 1                  ; ignore whitespace 
+;     jr c,blockLength1
+
+;     cp ")"
+;     jr z,blockLength4
+;     cp "}"                       
+;     jr z,blockLength4
+;     cp "]"
+;     jr z,blockLength4
+
+;     cp "("
+;     jr z,blockLength2
+;     cp "{"
+;     jr z,blockLength2
+;     cp "["
+;     jr z,blockLength2
+
+;     cp "'"
+;     jr z,blockLength3
+;     cp "`"
+;     jr z,blockLength3
+;     cp DQUOTE
+;     jr z,blockLength3
+;     jr blockLength1
+; blockLength2:
+;     inc d
+;     jr blockLength1                   
+; blockLength4:
+;     dec d
+;     jr nz, blockLength1         ; get the next element
+; blockLength3:
+;     ld a,$80
+;     xor d
+;     ld d,a
+;     jr nz, blockLength1
+;     pop hl                      ; hl = block*
+;     or a                        
+;     sbc hl,de
+;     push hl
+;     jp (ix)
+
     ; "`=> `\\a@2-\\#3 1-(",$22,"@\\b@(,)(.)2-)'\\$"             
     ; \a start of stack \#3 depth \b base \$ prompt
     
@@ -1720,8 +1935,3 @@ prtStk2:
     ; DW 0                    ; f 
     ; DW page6                ; g 256 bytes limits
     ; DW HEAP                 ; h vHeapPtr \h start of the free mem
-error:
-    call printStr		        
-    .cstr "Error "
-    call prtdec
-    jp interpret
