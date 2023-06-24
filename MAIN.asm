@@ -1239,39 +1239,90 @@ sub1:
 ; bc points to command letter
 ;*******************************************************************
 command:
-    cp "a"                      ; \a absolute
-    jp z,abs1
-    cp "b"                      ; \x break
+    cp "/"                      ; // comment
+    jp z,comment
+    cp "a"                      ; /ab absolute /ad address of
+    jr z,command_a
+    cp "b"                      ; /b br
     jp z,break
-    cp "c"                      ; \c chars
+    cp "c"                      ; /c chars
     jp z,chars
-    cp "p"                      ; \p partial
-    jp z,partial
-    cp "f"                      ; \f false
+    cp "f"                      ; /f false
     jp z,false1
-    cp "h"                      ; \h heap pointer
-    jp z,heapPtr
-    cp "i"                      ; \i input
-    jp z,input
-    cp "k"                      ; \k key
+    cp "i"                      ; /in input iv invert
+    jp z,command_i
+    cp "k"                      ; /k key
     jp z,key
-    cp "n"                      ; \n numbers
+    cp "n"                      ; /n numbers
     jp z,numbers
-    cp "o"                      ; \o output
+    cp "o"                      ; /o output
     jp z,output
-    cp "t"                      ; \t true
+    cp "p"                      ; /pa partial /ps print stack /pt print tib
+    jp z,command_p
+    cp "t"                      ; /t true
     jp z,true1
-    cp "u"                      ; \v utility
-    jp z,utility
-    cp "v"                      ; \v invert
-    jp z,invert
-    cp "x"                      ; \x xor
+    cp "v"                      ; /vh heap pointer
+    jp z,command_v
+    cp "x"                      ; /x xor
     jp z,xor
 error1:
     ld hl,1                     ; error 1: unknown command
     jp error
 
-abs1:
+command_a:
+    inc bc
+    ld a,(bc)
+    cp "b"
+    jp z,absolute
+    cp "d"
+    jp z,addrOf
+    jr error1
+
+command_b:
+    inc bc
+    ld a,(bc)
+    cp "b"                      ; /br br
+    jp z,break
+    jr error1
+
+command_i:
+    inc bc
+    ld a,(bc)
+    cp "n"                      ; /in input
+    jp z,input
+    cp "v"                      ; /iv invert
+    jp z,invert
+    jr error1
+
+command_p:
+    inc bc
+    ld a,(bc)
+    cp "a"
+    jp z,partial
+    cp "s"
+    jp z,printStack
+    cp "t"
+    jp z,printTIB
+    jr error1
+  
+command_v:
+    inc bc
+    ld a,(bc)
+    cp "h"
+    jp z,heapPtr
+    jr error1
+
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
+
+; /ab absolute
+; num -- num
+absolute:
     pop hl
     bit 7,h
     ret z
@@ -1283,6 +1334,49 @@ abs1:
     ld h,a
     push hl
     jp (ix)
+
+; /ad addrOf
+; char -- addr
+addrOf:
+    pop hl                      ; a = char
+    ld a,l
+    cp "z"+1                    ; if a > z then exit
+    jr nc,addrOf2
+    sub "A"                     ; a - 65
+    jr c,addrOf2                ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,addrOf1
+    sub "a"-("Z"+1)
+    cp "Z"-"A"+1
+    jr c,addrOf2                ; if < a then exit
+addrOf1:
+    add a,a                     ; double a
+    ld hl,VARS                  ; hl = VARS + a
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    push hl
+addrOf2:    
+    jp (ix)
+
+break:
+    pop hl
+    ld a,l
+    or h
+    jr z,break1
+    jp (ix)
+break1:    
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    inc hl
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+    jp blockEnd
 
 ; partial
 ; array* func* -- func1*
@@ -1302,30 +1396,56 @@ partial:
     ld (hl),d
     jp (ix)
 
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
+; /ps print stack
+; -- 
+printStack:
+    ld (vTemp1),bc
+    call printStr
+    .cstr "=> "
+    ld hl,STACK
+    sbc hl,sp
+    srl h
+    rr l
+    ld bc,hl
+    ld hl,STACK
+    jr printStack2
+printStack1:
     dec bc
-    jp (ix) 
+    dec hl
+    ld d,(hl)
+    dec hl
+    ld e,(hl)
+    ex de,hl    
+    call prthex
+    ex de,hl
+    ld a," "
+    call putchar
+printStack2:
+    ld a,c
+    or b
+    jr nz,printStack1
+    call prompt
+    ld bc,(vTemp1)
+    jp (ix)
 
-break:
-    pop hl
+; printTIB
+; --
+; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
+printTIB:
+    ld hl,(vTIBPtr)
+    ld de,TIB
+    or a
+    sbc hl,de
+    jp printTIB2
+printTIB1:
+    ld a,(de)
+    call putchar
     ld a,l
     or h
-    jr z,break1
+printTIB2:
+    jr nz,printTIB1
     jp (ix)
-break1:    
-    ld e,iyl                    ; get block* just under stack frame
-    ld d,iyh
-    ld hl,8
-    add hl,de
-    inc hl
-    inc hl
-    ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ld (iy+3),h                 ; first_arg* = address of block*
-    jp blockEnd
+
 
 chars:
     ld hl,1
@@ -1373,72 +1493,6 @@ output:
 numbers:
     ld hl,2
     jp chars1
-
-utility:
-    inc bc
-    ld a,(bc)
-    cp "a"                      ; \a addrOf
-    jp z,addrOf
-    cp "s"                      ; \a addrOf
-    jp z,printStack
-    ld hl,2                     ; error 1: unknown command
-    jp error
-    
-; /ua addrOf
-; char -- addr
-addrOf:
-    pop hl                      ; a = char
-    ld a,l
-    cp "z"+1                    ; if a > z then exit
-    jr nc,addrOf2
-    sub "A"                     ; a - 65
-    jr nc,addrOf2               ; if < A then exit
-    cp "Z"+1-"A"                ; if > Z then subtract 7
-    jr c,addrOf1
-    sub "a"-"Z"+1
-addrOf1:
-    add a,a                     ; double a
-    ld hl,VARS                  ; hl = VARS + a
-    add a,l
-    ld l,a
-    adc a,h
-    ld h,a
-    push hl
-addrOf2:    
-    jp (ix)
-
-; /us print stack
-; -- 
-printStack:
-    ld (vTemp1),bc
-    call printStr
-    .cstr "=> "
-    ld hl,STACK
-    sbc hl,sp
-    srl h
-    rr l
-    ld bc,hl
-    ld hl,STACK
-    jr printStack2
-printStack1:
-    dec bc
-    dec hl
-    ld d,(hl)
-    dec hl
-    ld e,(hl)
-    ex de,hl    
-    call prthex
-    ex de,hl
-    ld a," "
-    call putchar
-printStack2:
-    ld a,c
-    or b
-    jr nz,printStack1
-    call prompt
-    ld bc,(vTemp1)
-    jp (ix)
-    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1759,9 +1813,7 @@ backSpace_:
 ; edit 
 edit_:                        
     call run
-    ; .cstr "`?`.s/k/ua."
-    db DQUOTE,"var?",DQUOTE,".s/k.",0
-    ; .cstr "1 2 3"
+    db DQUOTE,"var?",DQUOTE,".s /k/ad .h",0
     jp interpret
 
 reEdit_:
@@ -1769,7 +1821,7 @@ reEdit_:
 
 printStack_:
     call run
-    .cstr "/us"
+    .cstr "/ps"
     jp interpret
 
 ; editDef:
@@ -1824,7 +1876,7 @@ printStack_:
 
 ; ; printTIB
 ; printTIB:
-;     ld hl,(TIBPtr)
+;     ld hl,(vTIBPtr)
 ;     ld de,TIB
 ;     or a
 ;     sbc hl,de
@@ -1855,9 +1907,9 @@ printStack_:
 ;     push bc                      
 ;     ld bc,hl                     
 ;     ex de,hl                    ; hl = block*
-;     ld de,(TIBPtr)              ; de = TIB*
+;     ld de,(vTIBPtr)              ; de = TIB*
 ;     ldir                        ; copy block to TIB
-;     ld (TIBPtr),de              ; save TIB*
+;     ld (vTIBPtr),de              ; save TIB*
 ;     pop bc
 ; editBlock2:
 ;     pop ix                      ; restore next
