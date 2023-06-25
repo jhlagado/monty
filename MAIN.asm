@@ -330,12 +330,12 @@ add1:
     pop hl                      ; first term
     add hl,de    
 add3:
-    inc bc                      
-    ld a,(bc)
-    cp "="                      ; += add to variable
-    jp z,assign0
+    ; inc bc                      
+    ; ld a,(bc)
+    ; cp "="                      ; += add to variable
+    ; jp z,assign0
     push hl        
-    dec bc
+    ; dec bc
     jp (ix)    
 
 ; @ addr
@@ -357,7 +357,8 @@ and:
     and h           
 and1:
     ld h,a        
-    jp add3
+    push hl        
+    jp (ix)    
     
 pipe:
 or:
@@ -1204,7 +1205,7 @@ string3:
     ld (hl),e
     jp (ix)  
 
-minus:  		                    ; negative sign or subtract
+minus:  		                ; negative sign or subtract
     inc bc                      ; check if sign of a number
     ld a,(bc)
     dec bc
@@ -1212,7 +1213,7 @@ minus:  		                    ; negative sign or subtract
     jr c,sub
     cp "9"+1
     jp c,num_    
-sub:                           ; Subtract the value 2nd on stack from top of stack 
+sub:                            ; Subtract the value 2nd on stack from top of stack 
     inc bc
     cp "-"
     jr nz,sub1
@@ -1261,6 +1262,8 @@ command:
     jp z,command_v
     cp "x"                      ; /x xor
     jp z,xor
+    cp "z"                      ; /z
+    jp z,zprt
 error1:
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1619,7 +1622,17 @@ map:
 scan:
     jp (ix)
 
-
+zprt:
+    call go
+    dw NUL                      ; closure
+    dw zprt_block
+    dw zprt_args
+    db 2                        ; num args + locals
+    db 0                        ; num locals
+zprt_args:
+    db "ab"
+zprt_block:
+    .cstr "{`sum:`.s $a $b + .}"   ; block
 
 ; print decimal
 ; hl = value
