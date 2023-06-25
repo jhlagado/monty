@@ -67,9 +67,9 @@ macros:
 ; ***********************************************************************		
 isysVars:			            
     DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
-    DW 0                        ; vTIBPtr an offset to the tib
+    DW TIB                      ; vTIBPtr an offset to the tib
     DW next                     ; nNext
-    DW heap                     ; vHeapPtr \h start of the free mem
+    DW HEAP                     ; vHeapPtr \h start of the free mem
 
     .align $100
 
@@ -174,7 +174,7 @@ opcodes:                        ; still available ~ `
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(underscore_)         ; _
-    DB lsb(nop_)                ; `     used for testing string   	    
+    DB lsb(dblquote_)           ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -342,11 +342,9 @@ add3:
 ; -- ptr
 at:
 addr:
-    ld hl,(vPointer)
-    push hl
+    ld de,(vPointer)
     ld hl,vPointer
-    ld (vPointer),hl
-    jp (ix)
+    jp variable
 
 amper:
 and:
@@ -662,12 +660,12 @@ block6:
 
 rbrace:
 blockEnd:
-    exx                         ; de' = oldBP bc' = oldIP
-    ld e,(iy+0)                  
+    ld e,(iy+0)                 ; vTemp1 = oldBP               
     ld d,(iy+1)
-    ld c,(iy+6)                  
-    ld b,(iy+7)
-    exx
+    ld (vTemp1),de
+    ld e,(iy+6)                 ; vTemp2 = oldIP 
+    ld d,(iy+7)
+    ld (vTemp2),de
     ld e,(iy+2)                 ; hl = first_arg*, is it in this scope?
     ld d,(iy+3)
     ex de,hl                                                              
@@ -705,14 +703,10 @@ blockEnd2:
     lddr
     inc de                      
 blockEnd3:                      
-    ex de,hl                    ; hl = new tos
-    ld sp,hl                    ; sp = new tos
-    exx                         ; bc = IP, iy = oldBP
-    push de                     
-    push bc                     
-    exx 
-    pop bc
-    pop iy
+    ex de,hl                    ; sp = de = new tos*
+    ld sp,hl                    
+    ld bc,(vTemp2)
+    ld iy,(vTemp1)
     jp (ix)    
 
 tick:
@@ -1243,8 +1237,10 @@ command:
     jp z,comment
     cp "a"                      ; /ab absolute /ad address of
     jr z,command_a
-    cp "b"                      ; /b br
-    jp z,break
+    cp "b"                      ; /ba buf array /bb buf block  
+                                ; /bd buf decimal /bp buf params 
+                                ; /bs buf string /br break
+    jp z,command_b
     cp "c"                      ; /c chars
     jp z,chars
     cp "f"                      ; /f false
@@ -1257,11 +1253,11 @@ command:
     jp z,numbers
     cp "o"                      ; /o output
     jp z,output
-    cp "p"                      ; /pa partial /ps print stack /pt print tib
+    cp "p"                      ; /pa partial /pc print chars /pk print stack 
     jp z,command_p
     cp "t"                      ; /t true
     jp z,true1
-    cp "v"                      ; /vh heap pointer
+    cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vt TIBPtr
     jp z,command_v
     cp "x"                      ; /x xor
     jp z,xor
@@ -1281,8 +1277,12 @@ command_a:
 command_b:
     inc bc
     ld a,(bc)
-    cp "b"                      ; /br br
+    cp "d"                      ; /bd buffer decimal
+    jp z,bufferDec
+    cp "r"                      ; /br break
     jp z,break
+    cp "s"                      ; /bs buffer string
+    jp z,bufferString
     jr error1
 
 command_i:
@@ -1299,17 +1299,23 @@ command_p:
     ld a,(bc)
     cp "a"
     jp z,partial
-    cp "s"
+    cp "c"
+    jp z,printChars
+    cp "k"
     jp z,printStack
-    cp "t"
-    jp z,printTIB
     jr error1
   
 command_v:
     inc bc
     ld a,(bc)
     cp "h"
-    jp z,heapPtr
+    jp z,varHeapPtr
+    cp "t"
+    jp z,varTIBPtr
+    cp "H"
+    jp z,constHeapStart
+    cp "T"
+    jp z,constTIBStart
     jr error1
 
 comment:
@@ -1361,6 +1367,99 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
+; /bs buffered string             
+; string* -- length
+bufferString:
+    pop hl                      ; hl = string*
+    ld de,(vTIBPtr)             ; de = buffer*
+    jr bufferString1
+bufferString0:
+    ld (de),a                   ; a -> buffer*
+    inc de                      ; string*++ buffer++
+    inc hl
+bufferString1:
+    ld a,(hl)                   ; a <- string*
+    or a                        ; if NUL exit loop
+    jr nz,bufferString0
+    ld hl,(vTIBPtr)             ; de = buffer*' hl = buffer*
+    ld (vTIBPtr),de             ; save buffer*' in pointer
+    ex de,hl                    ; hl = length
+    or a
+    sbc hl,de
+    push hl                     ; return length
+    jp (ix)
+
+; /bd buffer decimal
+; value -- length               ; length can be used to rewind buffer*
+bufferDec:        
+    ld de,(vTIBPtr)             ; de'= buffer* bc' = IP
+    exx                          
+    pop hl                      ; hl = value
+    call bufferDec0
+    exx                         ; de = buffer*' bc = IP
+    ld hl,(vTIBPtr)             ; hl = buffer*
+    ld (vTIBPtr),de             ; update buffer* with buffer*'
+    ex de,hl                    ; hl = length
+    or a                        
+    sbc hl,de                   
+    push hl                     ; return length
+    jp (ix)
+
+; hl = value
+; de' = buffer*
+; a, bc, de, hl destroyed
+bufferDec0:    
+    bit 7,h
+    jr z,bufferDec1
+    exx
+    ld a,'-'
+    ld (de),a
+    inc de
+    exx
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+bufferDec1:        
+    ld c,0                      ; leading zeros flag = false
+    ld de,-10000
+    call bufferDec2
+    ld de,-1000
+    call bufferDec2
+    ld de,-100
+    call bufferDec2
+    ld e,-10
+    call bufferDec2
+    inc c                       ; flag = true for at least digit
+    ld e,-1
+    call bufferDec2
+    ret
+bufferDec2:	     
+    ld b,'0'-1
+bufferDec3:	    
+    inc b
+    add hl,de
+    jr c,bufferDec3
+    sbc hl,de
+    ld a,'0'
+    cp b
+    jr nz,bufferDec4
+    xor a
+    or c
+    ret z
+    jr bufferDec5
+bufferDec4:	    
+    inc c
+bufferDec5:	    
+    ld a,b
+    exx
+    ld (de),a
+    inc de
+    exx
+    ret
+
 break:
     pop hl
     ld a,l
@@ -1396,7 +1495,25 @@ partial:
     ld (hl),d
     jp (ix)
 
-; /ps print stack
+; printChars
+; char* len --
+; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
+printChars:
+    pop hl          
+    pop de
+    jp printChars2
+printChars1:
+    inc de
+    dec hl
+printChars2:
+    ld a,(de)
+    call putchar
+    ld a,l
+    or h
+    jr nz,printChars1
+    jp (ix)
+
+; /pk print stack
 ; -- 
 printStack:
     ld (vTemp1),bc
@@ -1428,36 +1545,34 @@ printStack2:
     ld bc,(vTemp1)
     jp (ix)
 
-; printTIB
-; --
-; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
-printTIB:
-    ld hl,(vTIBPtr)
-    ld de,TIB
-    or a
-    sbc hl,de
-    jp printTIB2
-printTIB1:
-    ld a,(de)
-    call putchar
-    ld a,l
-    or h
-printTIB2:
-    jr nz,printTIB1
-    jp (ix)
-
-
 chars:
     ld hl,1
 chars1:
     ld (vDataWidth),hl
     jp (ix)
 
-heapPtr:
-    ld hl,(vHeapPtr)
-    push hl
+constHeapStart:
+    ld de,HEAP
+    jr constant
+
+constTIBStart:
+    ld de,TIB
+    jr constant
+
+varHeapPtr:
+    ld de,(vHeapPtr)
     ld hl,vHeapPtr
+    jr variable
+
+varTIBPtr:
+    ld de,(vTIBPtr)
+    ld hl,vTIBPtr
+    jr variable
+
+variable:
     ld (vPointer),hl
+constant:
+    push de
     jp (ix)
 
 ; Z80 port input
@@ -1679,10 +1794,11 @@ start:
 interpret:
     call prompt
 
-    ld bc,0                             ; load bc with offset into TIB, decide char into tib or execute or control    
-    ld (vTIBPtr),bc
+    ld bc,0                             ; load TIB length, decide char into tib or execute or control    
+    ld hl,TIB
+    ld (vTIBPtr),hl                     ; no chars in TIB so set end pointer to beginning           
 
-interpret2:                             ; calc nesting (a macro might have changed it)
+interpret2:                             ; calculate nesting 
     ld e,0                              ; initilize nesting value
     push bc                             ; save offset into TIB, 
                                         ; bc is also the count of chars in TIB
@@ -1765,8 +1881,10 @@ interpret7:
     or a
     jr nz,interpret5
 
-interpret8:    
-    ld (vTIBPtr),bc
+interpret8:
+    ld hl,TIB
+    add hl,bc
+    ld (vTIBPtr),hl
     ld bc,TIB                   ; Instructions stored on heap at address HERE, 
                                 ; we pressed enter
     dec bc
@@ -1821,7 +1939,7 @@ reEdit_:
 
 printStack_:
     call run
-    .cstr "/ps"
+    .cstr "/pk"
     jp interpret
 
 ; editDef:
