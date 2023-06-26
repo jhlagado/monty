@@ -28,6 +28,7 @@ sysVars:
 
 vDataWidth: ds 2                ; 
 vTIBPtr:    ds 2                ; 
+vBufPtr:    ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
 
@@ -51,6 +52,7 @@ tbPtr:      ds 2                ; reserved for tests
 
 .align $100
 TIB:        ds TIBSIZE
+BUF:        ds BUFSIZE
 
 .align $100
 pad:        ds $100

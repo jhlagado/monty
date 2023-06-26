@@ -15,6 +15,7 @@
 
 DSIZE   equ     $80
 TIBSIZE equ     $100	    ; 256 bytes , along line!
+BUFSIZE equ     $100	    ; 256 bytes , along line!
 TRUE    equ     -1		    ; C-style true
 FALSE   equ     0
 NUL     equ     0           ; exit code
@@ -67,7 +68,8 @@ macros:
 ; ***********************************************************************		
 isysVars:			            
     DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
-    DW TIB                      ; vTIBPtr an offset to the tib
+    DW TIB                      ; vTIBPtr pointer into TIB
+    DW BUF                      ; vBUFPtr pointer into BUF
     DW next                     ; nNext
     DW HEAP                     ; vHeapPtr \h start of the free mem
 
@@ -772,25 +774,52 @@ dot:
     cp "h"
     jr nz,dot1
     call prthex
-    jr dot4
+    jr dot5
 dot1:
     cp "s"
     jr nz,dot2
     call prtstr
-    jr dot4
+    jr dot5
 dot2:
     cp "c"
     jr nz,dot3
-    ld a,l
-    call putchar
-    jr dot4
+    ; ld a,l
+    ; call putchar
+    ; jr dot5
+    push hl
+    jp dotChar
 dot3:
     dec bc
-    call prtdec
-dot4:
+    push hl
+    jp dotDec
+dot5:
     ld a,' '       
     call putchar
     jp (ix)
+
+dotChar:
+    call go
+    dw NUL                      ; closure
+    dw dotChar_block
+    dw dotChar_args
+    db 1                        ; num args + locals
+    db 0                        ; num locals
+dotChar_args:
+    db "c"
+dotChar_block:
+    .cstr "{$c/bc/px}"          ; block
+
+dotDec:
+    call go
+    dw NUL                      ; closure
+    dw dotDec_block
+    dw dotDec_args
+    db 1                        ; num args + locals
+    db 0                        ; num locals
+dotDec_args:
+    db "n"
+dotDec_block:
+    .cstr "{$n/bd/px}"          ; block
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1258,7 +1287,7 @@ command:
     jp z,command_p
     cp "t"                      ; /t true
     jp z,true1
-    cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vt TIBPtr
+    cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vb TIBPtr
     jp z,command_v
     cp "x"                      ; /x xor
     jp z,xor
@@ -1280,12 +1309,16 @@ command_a:
 command_b:
     inc bc
     ld a,(bc)
+    cp "c"                      ; /bc buffer char
+    jp z,bufferChar
     cp "d"                      ; /bd buffer decimal
     jp z,bufferDec
     cp "r"                      ; /br break
     jp z,break
     cp "s"                      ; /bs buffer string
     jp z,bufferString
+    cp "x"                      ; /bx buffer x spaces
+    jp z,bufferXSpaces
     jr error1
 
 command_i:
@@ -1306,15 +1339,21 @@ command_p:
     jp z,printChars
     cp "k"
     jp z,printStack
+    cp "x"
+    jp z,printX
     jr error1
   
 command_v:
     inc bc
     ld a,(bc)
+    cp "b"
+    jp z,varBufPtr
     cp "h"
     jp z,varHeapPtr
     cp "t"
     jp z,varTIBPtr
+    cp "B"
+    jp z,constBufStart
     cp "H"
     jp z,constHeapStart
     cp "T"
@@ -1370,11 +1409,23 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
+; /bc buffer char             
+; char -- length
+bufferChar:
+    pop de                      ; e = char
+    ld hl,(vBufPtr)             ; hl = buffer*
+    ld (hl),e                   ; e -> buffer*
+    inc hl                      ; buffer*++
+    ld (vBufPtr),hl             ; save buffer*' in pointer
+    ld de,1                     ; return 1 byte
+    push de
+    jp (ix)
+    
 ; /bs buffered string             
 ; string* -- length
 bufferString:
     pop hl                      ; hl = string*
-    ld de,(vTIBPtr)             ; de = buffer*
+    ld de,(vBufPtr)             ; de = buffer*
     jr bufferString1
 bufferString0:
     ld (de),a                   ; a -> buffer*
@@ -1384,8 +1435,8 @@ bufferString1:
     ld a,(hl)                   ; a <- string*
     or a                        ; if NUL exit loop
     jr nz,bufferString0
-    ld hl,(vTIBPtr)             ; de = buffer*' hl = buffer*
-    ld (vTIBPtr),de             ; save buffer*' in pointer
+    ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
+    ld (vBufPtr),de             ; save buffer*' in pointer
     ex de,hl                    ; hl = length
     or a
     sbc hl,de
@@ -1395,13 +1446,13 @@ bufferString1:
 ; /bd buffer decimal
 ; value -- length               ; length can be used to rewind buffer*
 bufferDec:        
-    ld de,(vTIBPtr)             ; de'= buffer* bc' = IP
+    ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
     pop hl                      ; hl = value
     call bufferDec0
     exx                         ; de = buffer*' bc = IP
-    ld hl,(vTIBPtr)             ; hl = buffer*
-    ld (vTIBPtr),de             ; update buffer* with buffer*'
+    ld hl,(vBufPtr)             ; hl = buffer*
+    ld (vBufPtr),de             ; update buffer* with buffer*'
     ex de,hl                    ; hl = length
     or a                        
     sbc hl,de                   
@@ -1480,6 +1531,24 @@ break1:
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
 
+; /bx buffered x spaces             
+; length -- length
+bufferXSpaces:
+    pop de                      ; bc = length
+    push de                     ; return length
+    ld hl,(vBufPtr)             ; hl = buffer*
+    jr bufferXSpaces2
+bufferXSpaces1:
+    ld (hl)," "
+    inc hl
+    dec de
+bufferXSpaces2:
+    ld a,e
+    or d
+    jr nz,bufferXSpaces1
+    ld (vBufPtr),hl             ; save buffer*'
+    jp (ix)
+
 ; partial
 ; array* func* -- func1*
 partial:
@@ -1548,11 +1617,27 @@ printStack2:
     ld bc,(vTemp1)
     jp (ix)
 
+printX:
+    call go
+    dw NUL                      ; closure
+    dw printX_block
+    dw printX_args
+    db 1                        ; num args + locals
+    db 0                        ; num locals
+printX_args:
+    db "s"
+printX_block:
+    .cstr "{$s 1/bx+$s= /vb$s-/vb= /vb$s/pc}"   ; block
+
 chars:
     ld hl,1
 chars1:
     ld (vDataWidth),hl
     jp (ix)
+
+constBufStart:
+    ld de,BUF
+    jr constant
 
 constHeapStart:
     ld de,HEAP
@@ -1561,6 +1646,11 @@ constHeapStart:
 constTIBStart:
     ld de,TIB
     jr constant
+
+varBufPtr:
+    ld de,(vBufPtr)
+    ld hl,vBufPtr
+    jr variable
 
 varHeapPtr:
     ld de,(vHeapPtr)
@@ -1622,17 +1712,31 @@ map:
 scan:
     jp (ix)
 
+; zprt:
+;     call go
+;     dw NUL                      ; closure
+;     dw zprt_block
+;     dw zprt_args
+;     db 2                        ; num args + locals
+;     db 0                        ; num locals
+; zprt_args:
+;     db "ab"
+; zprt_block:
+;     .cstr "{`sum:`.s $a $b + .}"   ; block
+;
+; :a:s{$n/bd$s= /vb$s-/vb= /vb$s/pc};
+
 zprt:
     call go
     dw NUL                      ; closure
     dw zprt_block
     dw zprt_args
     db 2                        ; num args + locals
-    db 0                        ; num locals
+    db 1                        ; num locals
 zprt_args:
-    db "ab"
+    db "ns"
 zprt_block:
-    .cstr "{`sum:`.s $a $b + .}"   ; block
+    .cstr "{$n/bd` `/bs +$s= /vb$s-/vb= /vb$s/pc}"   ; block
 
 ; print decimal
 ; hl = value

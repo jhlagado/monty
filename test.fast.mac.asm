@@ -7,7 +7,7 @@
     sbc HL,DE
     ld A,L
     or H
-    jr Z,expect%%M
+    jp Z,expect%%M
 
     call printStr
     .cstr "Code: ",msg1
