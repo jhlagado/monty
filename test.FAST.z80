@@ -14,16 +14,7 @@
 .align $100
 testsStart:
 
-    test "1 /bx", 1
-
-    ; test "100 :a:s{$a.};^", 0
-    ; test "100 :a:s{$a/bd.};^", 0
-    ; test "100 :a:s{$a/bd$s= /vB$s-/vB= /vB$s/pc};^", 0
-
-    ; test "100 :a:s{$a/bd $s= /vB $s - /vB= /vB $s /pc};^", 0
-    ; test "/vB.h 100/bd s= /vB s - /vB= /vB.h", 0
-    ; test "100/bd s= /vB s- /vB= s /pc", 0
-    ; ; test "100 200 /z", false
+    test "#1234", 2
 
     ; call printStr
     ; .cstr "Done!"
@@ -140,6 +131,9 @@ testsStart:
     test "123 /bd", 3
     test "123 /bd/vB/c 1%", $32
     test "123/bd ` x `/bs 456/bd + + ", 9
+    test "#4321 /bh", 4
+    test "#4321 /bh/vB/c 0%", $34
+
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -148,10 +142,10 @@ testsStart:
     HALT
     
 .align 2
-printer:
-    pop hl
-    call prtdec
-    jp (ix)
+; printer:
+;     pop hl
+;     call prtdec
+;     jp (ix)
 
 ; executes a null teminated string (null executes exit_)
 ; the string should be immedaitely following the call

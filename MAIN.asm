@@ -211,7 +211,7 @@ opcodes:                        ; still available ~ `
 
 
 ; **********************************************************************			 
-; symbolic operators 
+; opcode landing page 
 ; **********************************************************************
     .align $100
 page4:
@@ -314,9 +314,8 @@ rparen_:
     jp rparen
 
 ;*******************************************************************
-; word operators
+; implementations
 ;*******************************************************************
-
 plus:
 add:
     inc bc
@@ -770,56 +769,46 @@ slash:
 dot:  
     inc bc
     ld a,(bc)
-    pop hl
     cp "h"
-    jr nz,dot1
-    call prthex
-    jr dot5
-dot1:
+    jp z,dotHex
     cp "s"
-    jr nz,dot2
-    call prtstr
-    jr dot5
-dot2:
+    jp z,dotStr
     cp "c"
-    jr nz,dot3
-    ; ld a,l
-    ; call putchar
-    ; jr dot5
-    push hl
-    jp dotChar
-dot3:
+    jp z,dotChar
     dec bc
-    push hl
     jp dotDec
-dot5:
-    ld a,' '       
-    call putchar
-    jp (ix)
+
+dotHex:
+    call go
+    dw NUL                      ; closure
+    dw dotHex_block
+    dw args1A0L
+dotHex_block:
+    .cstr "{$a/bh/px}"          ; block
+
+dotStr:
+    call go
+    dw NUL                      ; closure
+    dw dotStr_block
+    dw args1A0L
+dotStr_block:
+    .cstr "{$a/bs/px}"          ; block
 
 dotChar:
     call go
     dw NUL                      ; closure
     dw dotChar_block
-    dw dotChar_args
-    db 1                        ; num args + locals
-    db 0                        ; num locals
-dotChar_args:
-    db "c"
+    dw args1A0L
 dotChar_block:
-    .cstr "{$c/bc/px}"          ; block
+    .cstr "{$a/bc/px}"          ; block
 
 dotDec:
     call go
     dw NUL                      ; closure
     dw dotDec_block
-    dw dotDec_args
-    db 1                        ; num args + locals
-    db 0                        ; num locals
-dotDec_args:
-    db "n"
+    dw args1A0L
 dotDec_block:
-    .cstr "{$n/bd/px}"          ; block
+    .cstr "{$a/bd/px}"          ; block
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1295,70 +1284,8 @@ command:
     jp z,zprt
 error1:
     ld hl,1                     ; error 1: unknown command
+    push hl
     jp error
-
-command_a:
-    inc bc
-    ld a,(bc)
-    cp "b"
-    jp z,absolute
-    cp "d"
-    jp z,addrOf
-    jr error1
-
-command_b:
-    inc bc
-    ld a,(bc)
-    cp "c"                      ; /bc buffer char
-    jp z,bufferChar
-    cp "d"                      ; /bd buffer decimal
-    jp z,bufferDec
-    cp "r"                      ; /br break
-    jp z,break
-    cp "s"                      ; /bs buffer string
-    jp z,bufferString
-    cp "x"                      ; /bx buffer x spaces
-    jp z,bufferXSpaces
-    jr error1
-
-command_i:
-    inc bc
-    ld a,(bc)
-    cp "n"                      ; /in input
-    jp z,input
-    cp "v"                      ; /iv invert
-    jp z,invert
-    jr error1
-
-command_p:
-    inc bc
-    ld a,(bc)
-    cp "a"
-    jp z,partial
-    cp "c"
-    jp z,printChars
-    cp "k"
-    jp z,printStack
-    cp "x"
-    jp z,printX
-    jr error1
-  
-command_v:
-    inc bc
-    ld a,(bc)
-    cp "b"
-    jp z,varBufPtr
-    cp "h"
-    jp z,varHeapPtr
-    cp "t"
-    jp z,varTIBPtr
-    cp "B"
-    jp z,constBufStart
-    cp "H"
-    jp z,constHeapStart
-    cp "T"
-    jp z,constTIBStart
-    jr error1
 
 comment:
     inc bc                      ; point to next char
@@ -1367,6 +1294,15 @@ comment:
     jr nc,comment
     dec bc
     jp (ix) 
+
+command_a:
+    inc bc
+    ld a,(bc)
+    cp "b"
+    jp z,absolute
+    cp "d"
+    jp z,addrOf
+    jp error1
 
 ; /ab absolute
 ; num -- num
@@ -1409,6 +1345,24 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
+
+command_b:
+    inc bc
+    ld a,(bc)
+    cp "c"                      ; /bc buffer char
+    jp z,bufferChar
+    cp "d"                      ; /bd buffer decimal
+    jp z,bufferDec
+    cp "h"                      ; /bd buffer hexadecimal
+    jp z,bufferHex
+    cp "r"                      ; /br break
+    jp z,break
+    cp "s"                      ; /bs buffer string
+    jp z,bufferString
+    cp "x"                      ; /bx buffer x spaces
+    jp z,bufferXSpaces
+    jp error1
+
 ; /bc buffer char             
 ; char -- length
 bufferChar:
@@ -1419,28 +1373,6 @@ bufferChar:
     ld (vBufPtr),hl             ; save buffer*' in pointer
     ld de,1                     ; return 1 byte
     push de
-    jp (ix)
-    
-; /bs buffered string             
-; string* -- length
-bufferString:
-    pop hl                      ; hl = string*
-    ld de,(vBufPtr)             ; de = buffer*
-    jr bufferString1
-bufferString0:
-    ld (de),a                   ; a -> buffer*
-    inc de                      ; string*++ buffer++
-    inc hl
-bufferString1:
-    ld a,(hl)                   ; a <- string*
-    or a                        ; if NUL exit loop
-    jr nz,bufferString0
-    ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
-    ld (vBufPtr),de             ; save buffer*' in pointer
-    ex de,hl                    ; hl = length
-    or a
-    sbc hl,de
-    push hl                     ; return length
     jp (ix)
 
 ; /bd buffer decimal
@@ -1514,6 +1446,43 @@ bufferDec5:
     exx
     ret
 
+; /bh buffer hex
+; value -- length               ; length can be used to rewind buffer*
+bufferHex:                      
+    pop hl                      ; hl = value
+    ld de,(vBufPtr)
+    ld a,h
+    call bufferHex1
+    ld a,l
+    call bufferHex1
+    ex de,hl
+    ld de,(vBufPtr)
+    ld (vBufPtr),hl
+    or a 
+    sbc hl,de
+    push hl
+    jp (ix)
+
+bufferHex1:		     
+    push af
+	rra 
+	rra 
+	rra 
+	rra 
+    call bufferHex2
+    pop af
+bufferHex2:		
+    and	0x0F
+	add	a,0x90
+	daa
+	adc	a,0x40
+	daa
+	ld (de),a
+	inc de
+	ret
+
+; /br break from loop             
+; --
 break:
     pop hl
     ld a,l
@@ -1530,6 +1499,28 @@ break1:
     ld (iy+2),l                 ; force first_arg* into this scope for clean up
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
+
+; /bs buffered string             
+; string* -- length
+bufferString:
+    pop hl                      ; hl = string*
+    ld de,(vBufPtr)             ; de = buffer*
+    jr bufferString1
+bufferString0:
+    ld (de),a                   ; a -> buffer*
+    inc de                      ; string*++ buffer++
+    inc hl
+bufferString1:
+    ld a,(hl)                   ; a <- string*
+    or a                        ; if NUL exit loop
+    jr nz,bufferString0
+    ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
+    ld (vBufPtr),de             ; save buffer*' in pointer
+    ex de,hl                    ; hl = length
+    or a
+    sbc hl,de
+    push hl                     ; return length
+    jp (ix)
 
 ; /bx buffered x spaces             
 ; length -- length
@@ -1548,6 +1539,19 @@ bufferXSpaces2:
     jr nz,bufferXSpaces1
     ld (vBufPtr),hl             ; save buffer*'
     jp (ix)
+
+command_p:
+    inc bc
+    ld a,(bc)
+    cp "a"
+    jp z,partial
+    cp "c"
+    jp z,printChars
+    cp "k"
+    jp z,printStack
+    cp "x"
+    jp z,printX
+    jp error1
 
 ; partial
 ; array* func* -- func1*
@@ -1571,7 +1575,8 @@ partial:
 ; char* len --
 ; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
 printChars:
-    pop hl          
+    pop hl 
+    dec hl
     pop de
     jp printChars2
 printChars1:
@@ -1588,52 +1593,59 @@ printChars2:
 ; /pk print stack
 ; -- 
 printStack:
-    ld (vTemp1),bc
-    call printStr
-    .cstr "=> "
-    ld hl,STACK
-    sbc hl,sp
-    srl h
-    rr l
-    ld bc,hl
-    ld hl,STACK
-    jr printStack2
-printStack1:
-    dec bc
-    dec hl
-    ld d,(hl)
-    dec hl
-    ld e,(hl)
-    ex de,hl    
-    call prthex
-    ex de,hl
-    ld a," "
-    call putchar
-printStack2:
-    ld a,c
-    or b
-    jr nz,printStack1
-    call prompt
-    ld bc,(vTemp1)
+;     ld (vTemp1),bc
+;     call printStr
+;     .cstr "=> "
+;     ld hl,STACK
+;     sbc hl,sp
+;     srl h
+;     rr l
+;     ld bc,hl
+;     ld hl,STACK
+;     jr printStack2
+; printStack1:
+;     dec bc
+;     dec hl
+;     ld d,(hl)
+;     dec hl
+;     ld e,(hl)
+;     ex de,hl    
+;     call prthex
+;     ex de,hl
+;     ld a," "
+;     call putchar
+; printStack2:
+;     ld a,c
+;     or b
+;     jr nz,printStack1
+;     call prompt
+;     ld bc,(vTemp1)
     jp (ix)
 
 printX:
     call go
     dw NUL                      ; closure
     dw printX_block
-    dw printX_args
-    db 1                        ; num args + locals
-    db 0                        ; num locals
-printX_args:
-    db "s"
+    dw args1A0L
 printX_block:
-    .cstr "{$s 1/bx+$s= /vb$s-/vb= /vb$s/pc}"   ; block
+    .cstr "{$a 1/bx+$a= /vb$a-/vb= /vb$a/pc}"   ; block
 
-chars:
-    ld hl,1
-chars1:
-    ld (vDataWidth),hl
-    jp (ix)
+command_v:
+    inc bc
+    ld a,(bc)
+    cp "b"
+    jp z,varBufPtr
+    cp "h"
+    jp z,varHeapPtr
+    cp "t"
+    jp z,varTIBPtr
+    cp "B"
+    jp z,constBufStart
+    cp "H"
+    jp z,constHeapStart
+    cp "T"
+    jp z,constTIBStart
+    jp error1
 
 constBufStart:
     ld de,BUF
@@ -1667,6 +1679,23 @@ variable:
 constant:
     push de
     jp (ix)
+
+command_i:
+    inc bc
+    ld a,(bc)
+    cp "n"                      ; /in input
+    jp z,input
+    cp "v"                      ; /iv invert
+    jp z,invert
+    jp error1
+
+
+chars:
+    ld hl,1
+chars1:
+    ld (vDataWidth),hl
+    jp (ix)
+
 
 ; Z80 port input
 ; port -- value 
@@ -1712,20 +1741,6 @@ map:
 scan:
     jp (ix)
 
-; zprt:
-;     call go
-;     dw NUL                      ; closure
-;     dw zprt_block
-;     dw zprt_args
-;     db 2                        ; num args + locals
-;     db 0                        ; num locals
-; zprt_args:
-;     db "ab"
-; zprt_block:
-;     .cstr "{`sum:`.s $a $b + .}"   ; block
-;
-; :a:s{$n/bd$s= /vb$s-/vb= /vb$s/pc};
-
 zprt:
     call go
     dw NUL                      ; closure
@@ -1738,78 +1753,109 @@ zprt_args:
 zprt_block:
     .cstr "{$n/bd` `/bs +$s= /vb$s-/vb= /vb$s/pc}"   ; block
 
-; print decimal
-; hl = value
-prtdec:        
-    bit 7,h
-    jr z,prtdec0
-    ld a,'-'
-    call putchar
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-prtdec0:        
-    push bc
-    ld c,0                      ; leading zeros flag = false
-    ld de,-10000
-    call prtdec1
-    ld de,-1000
-    call prtdec1
-    ld de,-100
-    call prtdec1
-    ld e,-10
-    call prtdec1
-    inc c                       ; flag = true for at least digit
-    ld e,-1
-    call prtdec1
-    pop bc
-    ret
-prtdec1:	     
-    ld b,'0'-1
-prtdec2:	    
-    inc b
-    add hl,de
-    jr c,prtdec2
-    sbc hl,de
-    ld a,'0'
-    cp b
-    jr nz,prtdec3
-    xor a
-    or c
-    ret z
-    jr prtdec4
-prtdec3:	    
-    inc c
-prtdec4:	    
-    ld a,b
-    jp putchar
+;*******************************************************************
+; reusable arglists
+;*******************************************************************
+args0A1L_:                      ; zero args one local
+    db 1                        ; num args + locals
+    db 1                        ; num locals
+args0A1L:
+    db "a"
+
+args1A0L_:                      ; one arg zero locals
+    db 1                        ; num args + locals
+    db 0                        ; num locals
+args1A0L:
+    db "a"
+
+args1A1L_:                      ; one arg one local
+    db 2                        ; num args + locals
+    db 1                        ; num locals
+args1A1L:
+    db "ab"
+
+args2A0L_:                      ; two args zero locals
+    db 2                        ; num args + locals
+    db 0                        ; num locals
+args2A0L:
+    db "ab"
+
+;*******************************************************************
+; general routines
+;*******************************************************************
+
+; ; print decimal
+; ; hl = value
+; prtdec:        
+;     bit 7,h
+;     jr z,prtdec0
+;     ld a,'-'
+;     call putchar
+;     xor a  
+;     sub l  
+;     ld l,a
+;     sbc a,a  
+;     sub h  
+;     ld h,a
+; prtdec0:        
+;     push bc
+;     ld c,0                      ; leading zeros flag = false
+;     ld de,-10000
+;     call prtdec1
+;     ld de,-1000
+;     call prtdec1
+;     ld de,-100
+;     call prtdec1
+;     ld e,-10
+;     call prtdec1
+;     inc c                       ; flag = true for at least digit
+;     ld e,-1
+;     call prtdec1
+;     pop bc
+;     ret
+; prtdec1:	     
+;     ld b,'0'-1
+; prtdec2:	    
+;     inc b
+;     add hl,de
+;     jr c,prtdec2
+;     sbc hl,de
+;     ld a,'0'
+;     cp b
+;     jr nz,prtdec3
+;     xor a
+;     or c
+;     ret z
+;     jr prtdec4
+; prtdec3:	    
+;     inc c
+; prtdec4:	    
+;     ld a,b
+;     jp putchar
                                  
-prthex:                         ; display hl as a 16-bit number in hex.
-    push bc                     ; preserve the IP
-    ld a,h
-    call prthex2
-    ld a,l
-    call prthex2
-    pop bc
-    ret
-prthex2:		     
-    ld	c,a
-	rra 
-	rra 
-	rra 
-	rra 
-    call prthex3
-    ld a,c
-prthex3:		
-    and	0x0F
-	add	a,0x90
-	daa
-	adc	a,0x40
-	daa
-	jp putchar
+; prthex:                         ; display hl as a 16-bit number in hex.
+;     push bc                     ; preserve the IP
+;     ld a,h
+;     call prthex2
+;     ld a,l
+;     call prthex2
+;     pop bc
+;     ret
+; prthex2:		     
+;     ld	c,a
+; 	rra 
+; 	rra 
+; 	rra 
+; 	rra 
+;     call prthex3
+;     ld a,c
+; prthex3:		
+;     and	0x0F
+; 	add	a,0x90
+; 	daa
+; 	adc	a,0x40
+; 	daa
+; 	jp putchar
 
 prtstr0:
     call putchar
@@ -1878,7 +1924,7 @@ crlf:
     ret
 
 ; prints a null teminated string
-; the string should be immedaitely following the call
+; the string should be immediately following the call
 printStr:        
     ex (sp),hl		            ; swap			
     call prtstr		
@@ -2031,9 +2077,8 @@ run:
     jp (ix)
 
 error:
-    call printStr		        
-    .cstr "Error "
-    call prtdec
+    call run
+    db DQUOTE,"Error ",DQUOTE,".s .",0
     jp interpret
 
 backSpace_:

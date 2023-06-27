@@ -14,20 +14,27 @@
 
     call printStr
     .cstr "\r\n\r\nExpected: "
-    ld HL,val1
-    call prtdec
+    ld hl,val1
+    ; call prtdec
+    push hl
+    call run
+    .cstr "."
 
     call printStr
     .cstr "\r\n\r\nActual: "
     pop hl
+    ; push hl
+    ; call prtdec
     push hl
-    call prtdec
-    pop hl
-    call printStr
-    .cstr " (#"
-    call prthex
-    call printStr
-    .cstr ")\r\n"
+    push hl
+    call run
+    .cstr ". `(#`.s .h `)\r\n`.s"
+    ; pop hl
+    ; call printStr
+    ; .cstr " (#"
+    ; call prthex
+    ; call printStr
+    ; .cstr ")\r\n"
 
     halt
     .cstr
