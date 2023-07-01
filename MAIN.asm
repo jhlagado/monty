@@ -30,27 +30,6 @@ CTRL_S  equ     19
 ESC     equ     27          
 
 z80_RST8    equ     $CF
-; **************************************************************************
-; stack frame
-;
-; arg0                              -- 0th arg
-; arg1
-;  :
-; argn                              -- nth arg
-; loc0                              -- 0th local
-; loc1
-;  :
-; locn                              -- last local             
-; IP                                -- IP (saved interpreter ptr, return)
-; arg_list*                         -- arg_list*
-; first_arg*                        -- first_arg*           
-; BP                                -- BP (saved base ptr)           <-- iy
-; res0                              -- 0th result
-; res1
-;  :
-; resn                              -- last result.             <-- sp
-;
-; **************************************************************************
 
 ; **************************************************************************
 ; Page 0  Initialisation
@@ -74,42 +53,6 @@ isysVars:
     DW HEAP                     ; vHeapPtr \h start of the free mem
 
     .align $100
-
-opcodesBase:
-
-ctrlCodes:
-    DB 0               ; ^@  0 NUL  
-    DB 0               ; ^A  1 SOH
-    DB 0               ; ^B  2 STX
-    DB 0               ; ^C  3 ETX
-    DB 0               ; ^D  4 EOT
-    DB 0               ; ^E  5 ENQ
-    DB 0               ; ^F  6 ACK
-    DB 0               ; ^G  7 BEL
-    DB 0               ; ^H  8 BS
-    DB 0               ; ^I  9 TAB
-    DB 0               ; ^J 10 LF
-    DB 0               ; ^K 11 VT
-    DB 0               ; ^L 12 FF
-    DB 0               ; ^M 13 CR
-    DB 0               ; ^N 14 SO
-    DB 0               ; ^O 15 SI
-    DB 0               ; ^P 16 DLE
-    DB 0               ; ^Q 17 DC1    
-    DB 0               ; ^R 18 DC2   
-    DB 0               ; ^S 19 DC3  
-    DB 0               ; ^T 20 DC4  
-    DB 0               ; ^U 21 NAK     
-    DB 0               ; ^V 22 SYN
-    DB 0               ; ^W 23 ETB  
-    DB 0               ; ^X 24 CAN   
-    DB 0               ; ^Y 25 EM  
-    DB 0               ; ^Z 26 SUB  
-    DB 0               ; ^[ 27 ESC
-    DB 0               ; ^\ 28 FS
-    DB 0               ; ^] 29 GS
-    DB 0               ; ^^ 30 RS
-    DB 0               ; ^_ 31 US
 
 opcodes:                        ; still available ~ `  
     DB lsb(nop_)                ; SP  
@@ -494,11 +437,11 @@ arrEnd2:
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-2]
-    ld (vHeapPtr),hl            ; move heap* to end of array
-    ld bc,(vTemp1)              ; restore IP
     inc de                      ; de = array[0]
     inc de
     push de                     ; return array[0]
+    ld (vHeapPtr),hl            ; move heap* to end of array
+    ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
 
@@ -1784,79 +1727,6 @@ args2A0L:
 ; general routines
 ;*******************************************************************
 
-; ; print decimal
-; ; hl = value
-; prtdec:        
-;     bit 7,h
-;     jr z,prtdec0
-;     ld a,'-'
-;     call putchar
-;     xor a  
-;     sub l  
-;     ld l,a
-;     sbc a,a  
-;     sub h  
-;     ld h,a
-; prtdec0:        
-;     push bc
-;     ld c,0                      ; leading zeros flag = false
-;     ld de,-10000
-;     call prtdec1
-;     ld de,-1000
-;     call prtdec1
-;     ld de,-100
-;     call prtdec1
-;     ld e,-10
-;     call prtdec1
-;     inc c                       ; flag = true for at least digit
-;     ld e,-1
-;     call prtdec1
-;     pop bc
-;     ret
-; prtdec1:	     
-;     ld b,'0'-1
-; prtdec2:	    
-;     inc b
-;     add hl,de
-;     jr c,prtdec2
-;     sbc hl,de
-;     ld a,'0'
-;     cp b
-;     jr nz,prtdec3
-;     xor a
-;     or c
-;     ret z
-;     jr prtdec4
-; prtdec3:	    
-;     inc c
-; prtdec4:	    
-;     ld a,b
-;     jp putchar
-                                 
-; prthex:                         ; display hl as a 16-bit number in hex.
-;     push bc                     ; preserve the IP
-;     ld a,h
-;     call prthex2
-;     ld a,l
-;     call prthex2
-;     pop bc
-;     ret
-; prthex2:		     
-;     ld	c,a
-; 	rra 
-; 	rra 
-; 	rra 
-; 	rra 
-;     call prthex3
-;     ld a,c
-; prthex3:		
-;     and	0x0F
-; 	add	a,0x90
-; 	daa
-; 	adc	a,0x40
-; 	daa
-; 	jp putchar
-
 prtstr0:
     call putchar
     inc hl
@@ -1939,7 +1809,7 @@ init:
     ld de,sysVars
     ld bc,8 * 2
     ldir
-    ld hl,vars                          ; 52 vars LO HI 
+    ld hl,vars                  ; 52 vars LO HI 
     ld b,26*2                       
     xor a
 init0:
@@ -1949,23 +1819,23 @@ init0:
     ret
 
 start:
-    ld sp,STACK		                    ; start of monty
-    call init		                    ; setups
-    call printStr		                ; prog count to stack, put code line 235 on stack then call print
+    ld sp,STACK		            ; start Monty
+    call init		            ; setups
+    call printStr		        ; prog count to stack, put code line 235 on stack then call print
     .cstr "Monty V0.0\r\n"
 
 interpret:
     call prompt
 
-    ld bc,0                             ; load TIB length, decide char into tib or execute or control    
+    ld bc,0                     ; load TIB length, decide char into tib or execute or control    
     ld hl,TIB
-    ld (vTIBPtr),hl                     ; no chars in TIB so set end pointer to beginning           
+    ld (vTIBPtr),hl             ; no chars in TIB so set end pointer to beginning           
 
-interpret2:                             ; calculate nesting 
-    ld e,0                              ; initilize nesting value
-    push bc                             ; save offset into TIB, 
-                                        ; bc is also the count of chars in TIB
-    ld hl,TIB                           ; hl is start of TIB
+interpret2:                     ; calculate nesting 
+    ld e,0                      ; initilize nesting value
+    push bc                     ; save offset into TIB, 
+                                ; bc is also the count of chars in TIB
+    ld hl,TIB                   ; hl is start of TIB
     jr interpret4
 
 interpret3:
@@ -2058,6 +1928,7 @@ next:
     cp " "                      ; whitespace?
     jr z,next                   ; space? ignore
     jr c,next1
+    sub " "
     ld l,a                      ; index into table
     ld h,msb(opcodesBase)       ; start address of jump table    
     ld l,(hl)                   ; get low jump address

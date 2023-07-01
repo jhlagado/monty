@@ -1,13 +1,42 @@
 # Ideas
 
+type annotation
+
+every variable and every heap allocated item can have a type annotation. 
+Items on the stack cannot
+
+variables
+
+number 
+pointer
+
+heap
+
+number
+char
+string
+pointer
+array
+reference
+block
+arglist
+function
+
+Allocation always allows this
+type is always at -1 byte before pointer address
+
+the highest bit might indicate auto-executable for blocks and fuctions
+
+the main reason for these type tags is so they can be printed. 
+printing is a type of execution. Might be used with NEXT
+
+
 reset
 
 ### print
 
 .a should print an array
-.n should print newline
 .p should print formatted like printf
-.k should print the stack
 
 ### macros
 
@@ -15,7 +44,6 @@ reset
 ^Q to cold boot
 ^J edit previous line
 ^K edit next line
-backspace
 editing
 list
 
@@ -32,7 +60,7 @@ fixed number of returns?
 
 ### Notes:
 
-() are reserved for args and are never nested
+() are reserved for loops
 
 } must be used to end the block because it is used with the nesting algorithm to
 find the end of the block. It can be combined with other chars but these are treated
@@ -71,4 +99,5 @@ replace (ab:c) with \ab:c
 replace {: :} with ( )
 /h should return the heap* system variable for getting and setting 
 "," should check BP, not go negative into stack frame
+.k should print the stack
 
