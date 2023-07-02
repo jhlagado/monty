@@ -8,4 +8,6 @@
     jp   start
 
 .include "MAIN.asm"
+
+.org RAMSTART
 .include "ram.asm"

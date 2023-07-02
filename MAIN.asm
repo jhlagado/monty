@@ -13,23 +13,33 @@
 ;
 ; *****************************************************************************
 
-DSIZE   equ     $80
-TIBSIZE equ     $100	    ; 256 bytes , along line!
-BUFSIZE equ     $100	    ; 256 bytes , along line!
-TRUE    equ     -1		    ; C-style true
-FALSE   equ     0
-NUL     equ     0           ; exit code
-DQUOTE  equ     $22         ; " double quote char
-CTRL_C  equ     3
-CTRL_E  equ     5
-CTRL_H  equ     8
-CTRL_J  equ     10
-CTRL_L  equ     12
-CTRL_P  equ     16
-CTRL_S  equ     19
-ESC     equ     27          
+STKSIZE     equ     $80         ; Stack size
+TIBSIZE     equ     $100	    ; 256 bytes , along line!
+BUFSIZE     equ     $100	    ; 256 bytes , along line!
+TRUE        equ     -1		    ; C-style true
+FALSE       equ     0
+NUL         equ     0           ; exit code
+DQUOTE      equ     $22         ; " double quote char
+CTRL_C      equ     3
+CTRL_E      equ     5
+CTRL_H      equ     8
+CTRL_J      equ     10
+CTRL_L      equ     12
+CTRL_P      equ     16
+CTRL_S      equ     19
+ESC         equ     27          
 
-z80_RST8    equ     $CF
+TRESERV     equ     0           ; reserved
+TNUMBER     equ     1           ; number
+TSTRING     equ     2           ; string
+TPOINTER    equ     3           ; pointer
+TARRAY      equ     4           ; array
+TBLOCK      equ     5           ; block
+TFUNC       equ     6           ; function
+TARGLST     equ     7           ; arglist
+
+
+; z80_RST8    equ     $CF
 
 ; **************************************************************************
 ; Page 0  Initialisation
@@ -379,7 +389,7 @@ arg1a:
     jp (ix)
 
 lbrack:
-arrBegin:
+arrayStart:
     ld de,0                     ; create stack frame
     push de                     ; push null for IP
     ld e,(iy+4)                 ; push arg_list* from parent stack frame
@@ -394,7 +404,7 @@ arrBegin:
     jp (ix)
 
 rbrack:
-arrEnd:
+arrayEnd:
     ld d,iyh                    ; de = BP
     ld e,iyl
     ld (vTemp1),bc              ; save IP
@@ -404,29 +414,32 @@ arrEnd:
     srl h                       ; 
     rr l                        
     ld bc,hl                    ; bc = count
-    ld hl,(vHeapPtr)            ; hl = array[-2]
+    ld hl,(vHeapPtr)            ; hl = array[-3]
     ld (hl),c                   ; write num items in length word
     inc hl
     ld (hl),b
     inc hl                      ; hl = array[0], bc = count
                                 ; de = BP, hl = array[0], bc = count
-arrEnd1:                        
+    ld a,TARRAY
+    ld (hl),a
+    inc hl
+arrayEnd1:                        
     ld a,(iy-2)                 ; a = lsb of stack item
     ld (hl),a                   ; write lsb of array item
     inc hl                      ; move to msb of array item
     ld a,(vDataWidth)           ; vDataWidth=1? 
     dec a
-    jr z,arrEnd2
+    jr z,arrayEnd2
     ld a,(iy-1)                 ; a = msb of stack item
     ld (hl),a                   ; write msb of array item
     inc hl                      ; move to next word in array
-arrEnd2:
+arrayEnd2:
     dec iy                      ; move to next word on stack
     dec iy
     dec bc                      ; dec items count
     ld a,c                      ; if not zero loop
     or b
-    jr nz,arrEnd1
+    jr nz,arrayEnd1
     ex de,hl                    ; de = end of array, hl = BP 
     ld sp,hl                    ; sp = BP
     pop hl                      ; de = end of array, hl = old BP
@@ -436,8 +449,9 @@ arrEnd2:
     pop de                      ; pop arg_list (discard)
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
-    ld de,(vHeapPtr)            ; de = array[-2]
+    ld de,(vHeapPtr)            ; de = array[-4]
     inc de                      ; de = array[0]
+    inc de
     inc de
     push de                     ; return array[0]
     ld (vHeapPtr),hl            ; move heap* to end of array
@@ -871,13 +885,15 @@ goFunc:				            ; execute function
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
     ex de,hl                    ; hl = partial_array*
+    dec hl                      ; skip type byte
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
     ld c,(hl)
-    inc hl                      ; push each item on stack
+    inc hl                      ; hl = array data*
     inc hl
-    jr goFunc2
+    inc hl
+    jr goFunc2                  ; push each item on stack
 goFunc1:
     ld e,(hl)                   ; de = partial item
     inc hl
@@ -1217,6 +1233,8 @@ command:
     jp z,output
     cp "p"                      ; /pa partial /pc print chars /pk print stack 
     jp z,command_p
+    cp "s"                      ; /s size
+    jp z,size
     cp "t"                      ; /t true
     jp z,true1
     cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vb TIBPtr
@@ -1287,7 +1305,6 @@ addrOf1:
     push hl
 addrOf2:    
     jp (ix)
-
 
 command_b:
     inc bc
@@ -1563,6 +1580,16 @@ printStack:
 ;     jr nz,printStack1
 ;     call prompt
 ;     ld bc,(vTemp1)
+    jp (ix)
+
+size:
+    pop hl
+    dec hl
+    dec hl
+    ld d,(hl)
+    dec hl
+    ld e,(hl)
+    push de
     jp (ix)
 
 printX:
@@ -1930,7 +1957,7 @@ next:
     jr c,next1
     sub " "
     ld l,a                      ; index into table
-    ld h,msb(opcodesBase)       ; start address of jump table    
+    ld h,msb(opcodes)           ; start address of jump table    
     ld l,(hl)                   ; get low jump address
     ld h,msb(page4)             ; Load h with the 1st page address
     jp (hl)                     ; Jump to routine

@@ -1,7 +1,6 @@
 .align $100
-; .org RAMSTART
 
-            ds DSIZE
+            ds STKSIZE
 STACK:
 
 .align $100

@@ -15,16 +15,16 @@
 ### Types
 
 ```
-    0   reserved
-    1   number
-    2   char
-    3   string
-    4   pointer
-    5   array
-    6   block
-    7   arglist
-    8   function
-    9   reserved
+            0   reserved
+TNUMBER     1   number
+TSTRING     2   string
+TPOINTER    3   pointer
+TARRAY      4   array
+TBLOCK      5   block
+TFUNCTION   6   function
+TARGLIST    7   arglist
+            8   reserved
+            9   reserved
 ```
 
 ### Stack frame

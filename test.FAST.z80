@@ -14,10 +14,12 @@
 .align $100
 testsStart:
 
+    test "5 [4] :a{$a}; /pa ^", 4
+    ; test "5 [4] :ab{$a $b +}; /pa ^", 9
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -106,7 +108,7 @@ testsStart:
     test "1 10 20 :ab{/t{$a}{$b} ??};^ +", 11
     test "1 10 20 :ab{/f{$a}{$b} ??};^ +", 21
     test "[10 20 30] 1%", 20
-    test "[10 20 30 40] -1%", 4
+    test "[10 20 30 40] /s", 4
     test "/c [1 2 3] 1%", 2
     test "/c ['A' 'B' 'C'] 1%", 66
     test "[{10}{20}{30}] 0%^ ", 10
