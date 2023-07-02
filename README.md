@@ -21,7 +21,7 @@ TSTRING     2   string
 TPOINTER    3   pointer
 TARRAY      4   array
 TBLOCK      5   block
-TFUNCTION   6   function
+TLAMBDA     6   lambda function
 TARGLIST    7   arglist
             8   reserved
             9   reserved

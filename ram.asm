@@ -26,6 +26,7 @@ sysVars:
 ; initialised sys variables (preserved)
 
 vDataWidth: ds 2                ; 
+vNumBase:   ds 2                ;    
 vTIBPtr:    ds 2                ; 
 vBufPtr:    ds 2                ; 
 vNext       ds 2                ; 

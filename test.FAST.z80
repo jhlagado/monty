@@ -14,14 +14,11 @@
 .align $100
 testsStart:
 
-    test "5 [4] :a{$a}; /pa ^", 4
-    ; test "5 [4] :ab{$a $b +}; /pa ^", 9
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
-    call printStr
-    .cstr "Done!"
-    HALT
-
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     test "/f", false
     test "/t", true

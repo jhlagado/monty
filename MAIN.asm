@@ -35,7 +35,7 @@ TSTRING     equ     2           ; string
 TPOINTER    equ     3           ; pointer
 TARRAY      equ     4           ; array
 TBLOCK      equ     5           ; block
-TFUNC       equ     6           ; function
+TLAMBDA     equ     6           ; lambda
 TARGLST     equ     7           ; arglist
 
 
@@ -57,6 +57,7 @@ macros:
 ; ***********************************************************************		
 isysVars:			            
     DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
+    DW 10                       ; vNumBase = 10
     DW TIB                      ; vTIBPtr pointer into TIB
     DW BUF                      ; vBUFPtr pointer into BUF
     DW next                     ; nNext
@@ -185,6 +186,7 @@ percent_:
     jp arrIndex 
 backslash_:
     jp backslash
+lparen_:
 lbrace_:
     jp lbrace
 rbrace_:
@@ -245,8 +247,6 @@ gt_:
     pop de
     pop hl
     jr lt1
-lparen_:
-    jp lparen
 lt_:
     inc bc
     ld a,(bc)
@@ -284,12 +284,7 @@ add1:
     pop hl                      ; first term
     add hl,de    
 add3:
-    ; inc bc                      
-    ; ld a,(bc)
-    ; cp "="                      ; += add to variable
-    ; jp z,assign0
     push hl        
-    ; dec bc
     jp (ix)    
 
 ; @ addr
@@ -551,56 +546,56 @@ arglist5:
     jp (ix)  
 
 lbrace:
-block:
+blockStart:
     push bc                     ; return pointer to first { of block    
     inc bc
     ld d,1                      ; nesting: count first parenthesis
-block1:                         ; Skip to end of definition    
+blockStart1:                         ; Skip to end of definition    
     ld a,(bc)                   ; Get the next character
     inc bc                      ; Point to next character
     cp " " + 1                  ; ignore whitespace 
-    jr c,block1
+    jr c,blockStart1
 
     cp ")"
-    jr z,block4
+    jr z,blockStart4
     cp "}"                       
-    jr z,block4
+    jr z,blockStart4
     cp "]"
-    jr z,block4
+    jr z,blockStart4
 
     cp "("
-    jr z,block2
+    jr z,blockStart2
     cp "{"
-    jr z,block2
+    jr z,blockStart2
     cp "["
-    jr z,block2
+    jr z,blockStart2
 
     cp "'"
-    jr z,block3
+    jr z,blockStart3
     cp "`"
-    jr z,block3
+    jr z,blockStart3
     cp DQUOTE
-    jr z,block3
-    jr block1
-block2:
+    jr z,blockStart3
+    jr blockStart1
+blockStart2:
     inc d
-    jr block1                   
-block3:
+    jr blockStart1                   
+blockStart3:
     ld a,$80
     xor d
     ld b,a
-    jr nz, block1
-    jr block5
-block4:
+    jr nz, blockStart1
+    jr blockStart5
+blockStart4:
     dec d
-    jr nz, block1               ; get the next element
-block5:
+    jr nz, blockStart1               ; get the next element
+blockStart5:
     ld hl,bc                    ; hl = IP
     ld de,HEAP                  ; is IP pointing to object in heap
     or a                        ; IP - HEAP
     sbc hl,de
     bit 7,h                     ; if -ve then copy to heap else skip
-    jr z,block6
+    jr z,blockStart6
     ld hl,bc                    ; hl = IP
     pop de                      ; de = block*
     ld (vTemp1),bc              ; save IP
@@ -613,7 +608,7 @@ block5:
     ldir                        ; copy size bytes from block* to hblock*
     ld (vHeapPtr),de            ; heap* += size
     ld bc,(vTemp1)              ; restore IP
-block6:
+blockStart6:
     dec bc                      ; balanced, exit
     jp (ix)  
 
@@ -726,6 +721,8 @@ slash:
 dot:  
     inc bc
     ld a,(bc)
+    cp "a"
+    jp z,dotArray
     cp "h"
     jp z,dotHex
     cp "s"
@@ -735,9 +732,17 @@ dot:
     dec bc
     jp dotDec
 
+dotArray:
+    call go
+    dw NUL                      ; null closure
+    dw dotArray_block
+    dw args1A0L
+dotArray_block:
+    .cstr "{$a/ba/px}"          ; block
+
 dotHex:
     call go
-    dw NUL                      ; closure
+    dw NUL                      ; null closure
     dw dotHex_block
     dw args1A0L
 dotHex_block:
@@ -745,7 +750,7 @@ dotHex_block:
 
 dotStr:
     call go
-    dw NUL                      ; closure
+    dw NUL                      ; null closure
     dw dotStr_block
     dw args1A0L
 dotStr_block:
@@ -753,7 +758,7 @@ dotStr_block:
 
 dotChar:
     call go
-    dw NUL                      ; closure
+    dw NUL                      ; null closure
     dw dotChar_block
     dw args1A0L
 dotChar_block:
@@ -824,9 +829,6 @@ false1:
     push hl
     jp (ix) 
 
-lparen:
-    jp block 
-
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
 ; else uses outer scope 
@@ -843,7 +845,7 @@ go2:
     cp "{"
     jr z,goBlock1
     cp "("
-    jp nz,goFunc
+    jp nz,goLambda
     inc de                      ; de is the address to jump back to
     push de                     ; push de just before stack frame
 goBlock:
@@ -858,7 +860,7 @@ goBlock1:
     ld a,l                      ; if (not root_scope) then inherit scope vars from parent
     or h                    
     ld a,0
-    jr z,goFunc8
+    jr z,goLambda8
     push bc                     ; push IP
     ld c,(iy+4)                 ; push arg_list* (parent)
     ld b,(iy+5)                 
@@ -873,15 +875,15 @@ goBlock2:
     ld bc,de                    ; bc = de = block*-1
     jp (ix)    
     
-goFunc:				            ; execute function
-    ex de,hl                    ; hl = func*
+goLambda:				            ; execute lambda
+    ex de,hl                    ; hl = lambda*
     ld e,(hl)                   ; de = partial_array*
     inc hl
     ld d,(hl)
     inc hl
     ld a,e                      ; if partial_array* == null skip
     or d
-    jr z,goFunc3
+    jr z,goLambda3
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
     ex de,hl                    ; hl = partial_array*
@@ -893,21 +895,21 @@ goFunc:				            ; execute function
     inc hl                      ; hl = array data*
     inc hl
     inc hl
-    jr goFunc2                  ; push each item on stack
-goFunc1:
+    jr goLambda2                  ; push each item on stack
+goLambda1:
     ld e,(hl)                   ; de = partial item
     inc hl
     ld d,(hl)
     inc hl
     push de                     ; push on stack
     dec bc
-goFunc2:
+goLambda2:
     ld a,c                      ; if count != 0 then loop
     or b
-    jr nz,goFunc1
+    jr nz,goLambda1
     ld bc,(vTemp1)              ; restore bc
     ld hl,(vTemp2)              ; restore hl
-goFunc3:
+goLambda3:
     ld e,(hl)                   ; de = block*
     inc hl
     ld d,(hl)
@@ -921,27 +923,27 @@ goFunc3:
     ld de,(vTemp1)              ; restore de = block*
     ld a,l                      ; if arg_list* == null a = 0
     or h
-    jr nz,goFunc4          
+    jr nz,goLambda4          
     xor a                       ; a = num_args (zero), num locals (zero)
-    jr goFunc8                  
-goFunc4:                        ; allocate locals 
+    jr goLambda8                  
+goLambda4:                        ; allocate locals 
     dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
     ld a,(hl)
-    jr goFunc6
-goFunc5:                        ; loop
+    jr goLambda6
+goLambda5:                        ; loop
     dec sp
     dec sp
     dec a
-goFunc6:
+goLambda6:
     or a
-    jr nz,goFunc5               ; end loop
-goFunc7:
+    jr nz,goLambda5               ; end loop
+goLambda7:
     dec hl                      ; a = num_args* x 2 
     ld a,(hl)                   
     inc hl 
     inc hl
     add a,a                     ; a *= 2
-goFunc8:
+goLambda8:
     push bc                     ; push IP
     ld bc,hl
     ld hl,2                     ; hl = first_arg* (BP+8), a = num args offset
@@ -1104,7 +1106,7 @@ semicolon:
     inc hl
     ld (hl),d
     inc hl
-    ld de,(vHeapPtr)            ; return func*
+    ld de,(vHeapPtr)            ; return lambda*
     push de
     ld (vHeapPtr),hl            ; heap* += 4
     jp (ix)
@@ -1221,8 +1223,12 @@ command:
     jp z,command_b
     cp "c"                      ; /c chars
     jp z,chars
+    cp "d"                      ; /d decimal
+    jp z,decimal
     cp "f"                      ; /f false
     jp z,false1
+    cp "h"                      ; /h hexadecimal
+    jp z,hexadecimal
     cp "i"                      ; /in input iv invert
     jp z,command_i
     cp "k"                      ; /k key
@@ -1309,6 +1315,8 @@ addrOf2:
 command_b:
     inc bc
     ld a,(bc)
+    cp "a"                      ; /bc buffer array
+    jp z,bufferArray
     cp "c"                      ; /bc buffer char
     jp z,bufferChar
     cp "d"                      ; /bd buffer decimal
@@ -1322,6 +1330,55 @@ command_b:
     cp "x"                      ; /bx buffer x spaces
     jp z,bufferXSpaces
     jp error1
+
+bufferArray:
+    ld (vTemp1),bc
+    ld (vTemp2),ix
+    ld de,(vBufPtr)
+    ld a,"["
+    ld (de),a
+    inc de
+    ld a," "
+    ld (de),a
+    inc de
+    ld (vBufPtr),de
+    pop hl
+    dec hl
+    dec hl
+    ld b,(hl)
+    dec hl
+    ld c,(hl)
+    inc hl
+    inc hl
+    inc hl
+    push hl
+    ld ix,bufferArray3
+    jp (ix)
+bufferArray2:
+    dec bc
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    inc hl
+    push hl
+    push de
+    jp bufferDec
+bufferArray3:
+    pop hl
+    ld a,c
+    or b
+    jr nz,bufferArray2
+    ld de,(vBufPtr)
+    ld a," "
+    ld (de),a
+    inc de
+    ld a,"]"
+    ld (de),a
+    inc de
+    ld (vBufPtr),de
+    ld bc,(vTemp1)
+    ld ix,(vTemp2)
+    jp (ix)
 
 ; /bc buffer char             
 ; char -- length
@@ -1514,13 +1571,13 @@ command_p:
     jp error1
 
 ; partial
-; array* func* -- func1*
+; array* lambda* -- lambda1*
 partial:
-    pop hl                              ; h1 = func*
+    pop hl                              ; h1 = lambda*
     ld de,(vHeapPtr)                    ; de = heap* = partial_array*
     ld (vTemp1),bc                      ; save IP
     ld bc,6                             ; bc = count
-    ldir                                ; clone func
+    ldir                                ; clone lambda
     ld bc,(vTemp1)                      ; restore IP
     ld hl,(vHeapPtr)                    ; hl = heap* = partial_array*
     ld (vHeapPtr),de                    ; heap* += 6
@@ -1666,6 +1723,14 @@ chars1:
     ld (vDataWidth),hl
     jp (ix)
 
+decimal:
+    ld hl,10
+decimal1:
+    ld (vNumBase),hl
+    jp (ix)
+hexadecimal:
+    ld hl,16
+    jp decimal1
 
 ; Z80 port input
 ; port -- value 
@@ -2030,7 +2095,7 @@ printStack_:
 ;     jr nz,editDef2
 ;     jp editBlock0               ; convert letter into address
 ; editDef2:
-;     jp editFunc
+;     jp editLambda
 ; editDef3:
 ;     ld a," "                    ; write assign
 ;     call writeChar
@@ -2093,7 +2158,7 @@ printStack_:
 ;     pop ix                      ; restore next
 ;     jp (ix)
 
-; editFunc:
+; editLambda:
     
 ;     jp (ix)
 
