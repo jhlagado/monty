@@ -706,14 +706,41 @@ discard1:
     jp (ix)
 
 slash:
-    jp command
-    ; inc bc
-    ; ld a,(bc)
-    ; cp $5C
-    ; jp z,comment
-    ; cp "A"
-    ; jp nc,command
-    ; dec bc
+    call jumpTable
+    db "/"
+    dw comment
+    db "a"
+    dw command_a
+    db "b"
+    dw command_b
+    db "c"
+    dw chars
+    db "d"
+    dw decimal
+    db "f"
+    dw false1
+    db "h"
+    dw hexadecimal
+    db "i"
+    dw command_i
+    db "k"
+    dw key
+    db "n"
+    dw numbers
+    db "o"
+    dw output
+    db "p"
+    dw command_p
+    db "s"
+    dw size
+    db "t"
+    dw true1
+    db "v"
+    dw command_v
+    db "x"
+    dw xor
+    db NUL
+    dw div
 
 div:
     pop de
@@ -738,17 +765,6 @@ dot:
     dw dotChar
     db NUL
     dw dotDec
-
-    ; cp "a"
-    ; jp z,dotArray
-    ; cp "h"
-    ; jp z,dotHex
-    ; cp "s"
-    ; jp z,dotStr
-    ; cp "c"
-    ; jp z,dotChar
-    ; dec bc
-    ; jp dotDec
 
 dotArray:
     call go
@@ -1227,85 +1243,6 @@ sub1:
     sbc hl,de    
     jp add3
 
-;*******************************************************************
-; commands
-; a contains command letter
-; bc points to command letter
-;*******************************************************************
-command:
-    call jumpTable
-    db "/"
-    dw comment
-    db "a"
-    dw command_a
-    db "b"
-    dw command_b
-    db "c"
-    dw chars
-    db "d"
-    dw decimal
-    db "f"
-    dw false1
-    db "h"
-    dw hexadecimal
-    db "i"
-    dw command_i
-    db "k"
-    dw key
-    db "n"
-    dw numbers
-    db "o"
-    dw output
-    db "p"
-    dw command_p
-    db "s"
-    dw size
-    db "t"
-    dw true1
-    db "v"
-    dw command_v
-    db "x"
-    dw xor
-    db NUL
-    dw div
-
-
-    ; cp "/"                      ; // comment
-    ; jp z,comment
-    ; cp "a"                      ; /ab absolute /ad address of
-    ; jr z,command_a
-    ; cp "b"                      ; /ba buf array /bb buf block  
-    ;                             ; /bd buf decimal /bp buf params 
-    ;                             ; /bs buf string /br break
-    ; jp z,command_b
-    ; cp "c"                      ; /c chars
-    ; jp z,chars
-    ; cp "d"                      ; /d decimal
-    ; jp z,decimal
-    ; cp "f"                      ; /f false
-    ; jp z,false1
-    ; cp "h"                      ; /h hexadecimal
-    ; jp z,hexadecimal
-    ; cp "i"                      ; /in input iv invert
-    ; jp z,command_i
-    ; cp "k"                      ; /k key
-    ; jp z,key
-    ; cp "n"                      ; /n numbers
-    ; jp z,numbers
-    ; cp "o"                      ; /o output
-    ; jp z,output
-    ; cp "p"                      ; /pa partial /pc print chars /pk print stack 
-    ; jp z,command_p
-    ; cp "s"                      ; /s size
-    ; jp z,size
-    ; cp "t"                      ; /t true
-    ; jp z,true1
-    ; cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vb TIBPtr
-    ; jp z,command_v
-    ; cp "x"                      ; /x xor
-    ; jp z,xor
-    ; cp "z"                      ; /z
-    ; jp z,zprt
 error1:
     ld hl,1                     ; error 1: unknown command
     push hl
@@ -1327,14 +1264,6 @@ command_a:
     dw addrOf
     db NUL
     dw error1
-
-    ; inc bc
-    ; ld a,(bc)
-    ; cp "b"
-    ; jp z,absolute
-    ; cp "d"
-    ; jp z,addrOf
-    ; jp error1
 
 ; /ab absolute
 ; num -- num
@@ -1396,24 +1325,6 @@ command_b:
     db NUL
     dw error1
 
-    ; inc bc
-    ; ld a,(bc)
-    ; cp "a"                      ; /bc buffer array
-    ; jp z,bufferArray
-    ; cp "c"                      ; /bc buffer char
-    ; jp z,bufferChar
-    ; cp "d"                      ; /bd buffer decimal
-    ; jp z,bufferDec
-    ; cp "h"                      ; /bd buffer hexadecimal
-    ; jp z,bufferHex
-    ; cp "r"                      ; /br break
-    ; jp z,break
-    ; cp "s"                      ; /bs buffer string
-    ; jp z,bufferString
-    ; cp "x"                      ; /bx buffer x spaces
-    ; jp z,bufferXSpaces
-    ; jp error1
-
 bufferArray:
     call go
     dw NUL                      ; closure
@@ -1424,54 +1335,54 @@ bufferArray_block:
 
 
 
-    ld (vTemp1),bc
-    ld (vTemp2),ix
-    ld de,(vBufPtr)
-    ld a,"["
-    ld (de),a
-    inc de
-    ld a," "
-    ld (de),a
-    inc de
-    ld (vBufPtr),de
-    pop hl
-    dec hl
-    dec hl
-    dec hl
-    ld b,(hl)
-    dec hl
-    ld c,(hl)
-    inc hl
-    inc hl
-    inc hl
-    push hl
-    ld ix,bufferArray3
-    jp (ix)
-bufferArray2:
-    dec bc
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    inc hl
-    push hl
-    push de
-    jp bufferDec
-bufferArray3:
-    pop hl
-    ld a,c
-    or b
-    jr nz,bufferArray2
-    ld de,(vBufPtr)
-    ld a," "
-    ld (de),a
-    inc de
-    ld a,"]"
-    ld (de),a
-    inc de
-    ld (vBufPtr),de
-    ld bc,(vTemp1)
-    ld ix,(vTemp2)
-    jp (ix)
+;     ld (vTemp1),bc
+;     ld (vTemp2),ix
+;     ld de,(vBufPtr)
+;     ld a,"["
+;     ld (de),a
+;     inc de
+;     ld a," "
+;     ld (de),a
+;     inc de
+;     ld (vBufPtr),de
+;     pop hl
+;     dec hl
+;     dec hl
+;     dec hl
+;     ld b,(hl)
+;     dec hl
+;     ld c,(hl)
+;     inc hl
+;     inc hl
+;     inc hl
+;     push hl
+;     ld ix,bufferArray3
+;     jp (ix)
+; bufferArray2:
+;     dec bc
+;     ld e,(hl)
+;     inc hl
+;     ld d,(hl)
+;     inc hl
+;     push hl
+;     push de
+;     jp bufferDec
+; bufferArray3:
+;     pop hl
+;     ld a,c
+;     or b
+;     jr nz,bufferArray2
+;     ld de,(vBufPtr)
+;     ld a," "
+;     ld (de),a
+;     inc de
+;     ld a,"]"
+;     ld (de),a
+;     inc de
+;     ld (vBufPtr),de
+;     ld bc,(vTemp1)
+;     ld ix,(vTemp2)
+;     jp (ix)
 
 ; /bc buffer char             
 ; char -- length
@@ -1659,14 +1570,6 @@ command_i:
     db NUL
     dw error1
 
-    ; inc bc
-    ; ld a,(bc)
-    ; cp "n"                      ; /in input
-    ; jp z,input
-    ; cp "v"                      ; /iv invert
-    ; jp z,invert
-    ; jp error1
-
 command_p:
     call jumpTable
     db "a"
@@ -1679,18 +1582,6 @@ command_p:
     dw printX
     db NUL
     dw error1
-
-    ; inc bc
-    ; ld a,(bc)
-    ; cp "a"
-    ; jp z,partial
-    ; cp "c"
-    ; jp z,printChars
-    ; cp "k"
-    ; jp z,printStack
-    ; cp "x"
-    ; jp z,printX
-    ; jp error1
 
 ; partial
 ; array* lambda* -- lambda1*
@@ -1794,22 +1685,6 @@ command_v:
     dw constTIBStart
     db NUL
     dw error1
-
-    ; inc bc
-    ; ld a,(bc)
-    ; cp "b"
-    ; jp z,varBufPtr
-    ; cp "h"
-    ; jp z,varHeapPtr
-    ; cp "t"
-    ; jp z,varTIBPtr
-    ; cp "B"
-    ; jp z,constBufStart
-    ; cp "H"
-    ; jp z,constHeapStart
-    ; cp "T"
-    ; jp z,constTIBStart
-    ; jp error1
 
 constBufStart:
     ld de,BUF
