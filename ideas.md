@@ -1,6 +1,18 @@
 # Ideas
 
 type annotation
+polymorphic print
+any value can be a pointer. If it is not a pointer then it contains a number value
+the only way to tell if a stack item or a variable value is a pointer is to follow it 
+and see if it points to a known value type.
+Right now this is simply a byte where the lower nybble contains a type code. 
+The upper nybble could contain a magic number.
+If the probability of a false positive is seen as too high, the previous byte could also be magic
+This polymorphism is solely for printing so the chances of this running away are not high
+Probably the worst case would be a string printing until the first null is encountered.
+Also added to this is a NumBase variable which is also used for printing
+NumBase does not affect parsing because it uses prefixes
+
 
 every variable and every heap allocated item can have a type annotation. 
 Items on the stack cannot

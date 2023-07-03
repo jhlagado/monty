@@ -29,14 +29,15 @@ CTRL_P      equ     16
 CTRL_S      equ     19
 ESC         equ     27          
 
-TRESERV     equ     0           ; reserved
-TNUMBER     equ     1           ; number
-TSTRING     equ     2           ; string
-TPOINTER    equ     3           ; pointer
-TARRAY      equ     4           ; array
-TBLOCK      equ     5           ; block
-TLAMBDA     equ     6           ; lambda
-TARGLST     equ     7           ; arglist
+TMAGIC      equ     $AA         ; magic number
+TRESERV     equ     $A0         ; reserved
+TNUMBER     equ     $A1         ; number
+TSTRING     equ     $A2         ; string
+TPOINTER    equ     $A3         ; pointer
+TARRAY      equ     $A4         ; array
+TBLOCK      equ     $A5         ; block
+TLAMBDA     equ     $A6         ; lambda
+TARGLST     equ     $A7         ; arglist
 
 
 ; z80_RST8    equ     $CF
@@ -409,13 +410,16 @@ arrayEnd:
     srl h                       ; 
     rr l                        
     ld bc,hl                    ; bc = count
-    ld hl,(vHeapPtr)            ; hl = array[-3]
+    ld hl,(vHeapPtr)            ; hl = array[-4]
     ld (hl),c                   ; write num items in length word
     inc hl
     ld (hl),b
     inc hl                      ; hl = array[0], bc = count
                                 ; de = BP, hl = array[0], bc = count
-    ld a,TARRAY
+    ld a,TARRAY                 ; write type tag
+    ld (hl),a
+    inc hl
+    ld a,TMAGIC                 ; write magic byte
     ld (hl),a
     inc hl
 arrayEnd1:                        
@@ -446,6 +450,7 @@ arrayEnd2:
     pop de                      ; pop IP (discard)
     ld de,(vHeapPtr)            ; de = array[-4]
     inc de                      ; de = array[0]
+    inc de
     inc de
     inc de
     push de                     ; return array[0]
@@ -701,13 +706,16 @@ discard1:
     jp (ix)
 
 slash:
-    inc bc
-    ld a,(bc)
-    cp $5C
-    jp z,comment
-    cp "A"
-    jp nc,command
-    dec bc
+    jp command
+    ; inc bc
+    ; ld a,(bc)
+    ; cp $5C
+    ; jp z,comment
+    ; cp "A"
+    ; jp nc,command
+    ; dec bc
+
+div:
     pop de
     pop hl
     push bc                     ; preserve the IP    
@@ -718,19 +726,29 @@ slash:
     pop bc
     jp add3
 
-dot:  
-    inc bc
-    ld a,(bc)
-    cp "a"
-    jp z,dotArray
-    cp "h"
-    jp z,dotHex
-    cp "s"
-    jp z,dotStr
-    cp "c"
-    jp z,dotChar
-    dec bc
-    jp dotDec
+dot:
+    call jumpTable
+    db "a"
+    dw dotArray
+    db "h"
+    dw dotHex
+    db "s"
+    dw dotStr
+    db "c"
+    dw dotChar
+    db NUL
+    dw dotDec
+
+    ; cp "a"
+    ; jp z,dotArray
+    ; cp "h"
+    ; jp z,dotHex
+    ; cp "s"
+    ; jp z,dotStr
+    ; cp "c"
+    ; jp z,dotChar
+    ; dec bc
+    ; jp dotDec
 
 dotArray:
     call go
@@ -888,6 +906,7 @@ goLambda:				            ; execute lambda
     ld (vTemp2),hl              ; save bc,hl
     ex de,hl                    ; hl = partial_array*
     dec hl                      ; skip type byte
+    dec hl                      ; skip magic byte
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
@@ -895,7 +914,8 @@ goLambda:				            ; execute lambda
     inc hl                      ; hl = array data*
     inc hl
     inc hl
-    jr goLambda2                  ; push each item on stack
+    inc hl
+    jr goLambda2                ; push each item on stack
 goLambda1:
     ld e,(hl)                   ; de = partial item
     inc hl
@@ -1213,42 +1233,79 @@ sub1:
 ; bc points to command letter
 ;*******************************************************************
 command:
-    cp "/"                      ; // comment
-    jp z,comment
-    cp "a"                      ; /ab absolute /ad address of
-    jr z,command_a
-    cp "b"                      ; /ba buf array /bb buf block  
-                                ; /bd buf decimal /bp buf params 
-                                ; /bs buf string /br break
-    jp z,command_b
-    cp "c"                      ; /c chars
-    jp z,chars
-    cp "d"                      ; /d decimal
-    jp z,decimal
-    cp "f"                      ; /f false
-    jp z,false1
-    cp "h"                      ; /h hexadecimal
-    jp z,hexadecimal
-    cp "i"                      ; /in input iv invert
-    jp z,command_i
-    cp "k"                      ; /k key
-    jp z,key
-    cp "n"                      ; /n numbers
-    jp z,numbers
-    cp "o"                      ; /o output
-    jp z,output
-    cp "p"                      ; /pa partial /pc print chars /pk print stack 
-    jp z,command_p
-    cp "s"                      ; /s size
-    jp z,size
-    cp "t"                      ; /t true
-    jp z,true1
-    cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vb TIBPtr
-    jp z,command_v
-    cp "x"                      ; /x xor
-    jp z,xor
-    cp "z"                      ; /z
-    jp z,zprt
+    call jumpTable
+    db "/"
+    dw comment
+    db "a"
+    dw command_a
+    db "b"
+    dw command_b
+    db "c"
+    dw chars
+    db "d"
+    dw decimal
+    db "f"
+    dw false1
+    db "h"
+    dw hexadecimal
+    db "i"
+    dw command_i
+    db "k"
+    dw key
+    db "n"
+    dw numbers
+    db "o"
+    dw output
+    db "p"
+    dw command_p
+    db "s"
+    dw size
+    db "t"
+    dw true1
+    db "v"
+    dw command_v
+    db "x"
+    dw xor
+    db NUL
+    dw div
+
+
+    ; cp "/"                      ; // comment
+    ; jp z,comment
+    ; cp "a"                      ; /ab absolute /ad address of
+    ; jr z,command_a
+    ; cp "b"                      ; /ba buf array /bb buf block  
+    ;                             ; /bd buf decimal /bp buf params 
+    ;                             ; /bs buf string /br break
+    ; jp z,command_b
+    ; cp "c"                      ; /c chars
+    ; jp z,chars
+    ; cp "d"                      ; /d decimal
+    ; jp z,decimal
+    ; cp "f"                      ; /f false
+    ; jp z,false1
+    ; cp "h"                      ; /h hexadecimal
+    ; jp z,hexadecimal
+    ; cp "i"                      ; /in input iv invert
+    ; jp z,command_i
+    ; cp "k"                      ; /k key
+    ; jp z,key
+    ; cp "n"                      ; /n numbers
+    ; jp z,numbers
+    ; cp "o"                      ; /o output
+    ; jp z,output
+    ; cp "p"                      ; /pa partial /pc print chars /pk print stack 
+    ; jp z,command_p
+    ; cp "s"                      ; /s size
+    ; jp z,size
+    ; cp "t"                      ; /t true
+    ; jp z,true1
+    ; cp "v"                      ; /vH heap start vT TIB start /vh heapPtr /vb TIBPtr
+    ; jp z,command_v
+    ; cp "x"                      ; /x xor
+    ; jp z,xor
+    ; cp "z"                      ; /z
+    ; jp z,zprt
 error1:
     ld hl,1                     ; error 1: unknown command
     push hl
@@ -1263,13 +1320,21 @@ comment:
     jp (ix) 
 
 command_a:
-    inc bc
-    ld a,(bc)
-    cp "b"
-    jp z,absolute
-    cp "d"
-    jp z,addrOf
-    jp error1
+    call jumpTable
+    db "b"
+    dw absolute
+    db "d"
+    dw addrOf
+    db NUL
+    dw error1
+
+    ; inc bc
+    ; ld a,(bc)
+    ; cp "b"
+    ; jp z,absolute
+    ; cp "d"
+    ; jp z,addrOf
+    ; jp error1
 
 ; /ab absolute
 ; num -- num
@@ -1313,25 +1378,52 @@ addrOf2:
     jp (ix)
 
 command_b:
-    inc bc
-    ld a,(bc)
-    cp "a"                      ; /bc buffer array
-    jp z,bufferArray
-    cp "c"                      ; /bc buffer char
-    jp z,bufferChar
-    cp "d"                      ; /bd buffer decimal
-    jp z,bufferDec
-    cp "h"                      ; /bd buffer hexadecimal
-    jp z,bufferHex
-    cp "r"                      ; /br break
-    jp z,break
-    cp "s"                      ; /bs buffer string
-    jp z,bufferString
-    cp "x"                      ; /bx buffer x spaces
-    jp z,bufferXSpaces
-    jp error1
+    call jumpTable
+    db "a"
+    dw bufferArray
+    db "c"
+    dw bufferChar
+    db "d"
+    dw bufferDec
+    db "h"
+    dw bufferHex
+    db "r"
+    dw break
+    db "s"
+    dw bufferString
+    db "x"
+    dw bufferXSpaces
+    db NUL
+    dw error1
+
+    ; inc bc
+    ; ld a,(bc)
+    ; cp "a"                      ; /bc buffer array
+    ; jp z,bufferArray
+    ; cp "c"                      ; /bc buffer char
+    ; jp z,bufferChar
+    ; cp "d"                      ; /bd buffer decimal
+    ; jp z,bufferDec
+    ; cp "h"                      ; /bd buffer hexadecimal
+    ; jp z,bufferHex
+    ; cp "r"                      ; /br break
+    ; jp z,break
+    ; cp "s"                      ; /bs buffer string
+    ; jp z,bufferString
+    ; cp "x"                      ; /bx buffer x spaces
+    ; jp z,bufferXSpaces
+    ; jp error1
 
 bufferArray:
+    call go
+    dw NUL                      ; closure
+    dw bufferArray_block
+    dw args1A2L
+bufferArray_block:
+    .cstr "{$a/s$c= `[ `.s 0$b=($a$b%. $b++ $c$b==/b)^` ]`}"   ; block
+
+
+
     ld (vTemp1),bc
     ld (vTemp2),ix
     ld de,(vBufPtr)
@@ -1343,6 +1435,7 @@ bufferArray:
     inc de
     ld (vBufPtr),de
     pop hl
+    dec hl
     dec hl
     dec hl
     ld b,(hl)
@@ -1557,18 +1650,47 @@ bufferXSpaces2:
     ld (vBufPtr),hl             ; save buffer*'
     jp (ix)
 
+command_i:
+    call jumpTable
+    db "n"
+    dw input
+    db "v"
+    dw invert
+    db NUL
+    dw error1
+
+    ; inc bc
+    ; ld a,(bc)
+    ; cp "n"                      ; /in input
+    ; jp z,input
+    ; cp "v"                      ; /iv invert
+    ; jp z,invert
+    ; jp error1
+
 command_p:
-    inc bc
-    ld a,(bc)
-    cp "a"
-    jp z,partial
-    cp "c"
-    jp z,printChars
-    cp "k"
-    jp z,printStack
-    cp "x"
-    jp z,printX
-    jp error1
+    call jumpTable
+    db "a"
+    dw partial
+    db "c"
+    dw printChars
+    db "k"
+    dw printStack
+    db "x"
+    dw printX
+    db NUL
+    dw error1
+
+    ; inc bc
+    ; ld a,(bc)
+    ; cp "a"
+    ; jp z,partial
+    ; cp "c"
+    ; jp z,printChars
+    ; cp "k"
+    ; jp z,printStack
+    ; cp "x"
+    ; jp z,printX
+    ; jp error1
 
 ; partial
 ; array* lambda* -- lambda1*
@@ -1641,10 +1763,11 @@ printStack:
 
 size:
     pop hl
-    dec hl
-    dec hl
+    dec hl                      ; skip magic byte
+    dec hl                      ; skip type tag
+    dec hl                      ; msb size 
     ld d,(hl)
-    dec hl
+    dec hl                      ; lsb size 
     ld e,(hl)
     push de
     jp (ix)
@@ -1658,21 +1781,35 @@ printX_block:
     .cstr "{$a 1/bx+$a= /vb$a-/vb= /vb$a/pc}"   ; block
 
 command_v:
-    inc bc
-    ld a,(bc)
-    cp "b"
-    jp z,varBufPtr
-    cp "h"
-    jp z,varHeapPtr
-    cp "t"
-    jp z,varTIBPtr
-    cp "B"
-    jp z,constBufStart
-    cp "H"
-    jp z,constHeapStart
-    cp "T"
-    jp z,constTIBStart
-    jp error1
+    call jumpTable
+    db "b"
+    dw varBufPtr
+    db "h"
+    dw varHeapPtr
+    db "t"
+    dw varTIBPtr
+    db "B"
+    dw constBufStart
+    db "T"
+    dw constTIBStart
+    db NUL
+    dw error1
+
+    ; inc bc
+    ; ld a,(bc)
+    ; cp "b"
+    ; jp z,varBufPtr
+    ; cp "h"
+    ; jp z,varHeapPtr
+    ; cp "t"
+    ; jp z,varTIBPtr
+    ; cp "B"
+    ; jp z,constBufStart
+    ; cp "H"
+    ; jp z,constHeapStart
+    ; cp "T"
+    ; jp z,constTIBStart
+    ; jp error1
 
 constBufStart:
     ld de,BUF
@@ -1706,15 +1843,6 @@ variable:
 constant:
     push de
     jp (ix)
-
-command_i:
-    inc bc
-    ld a,(bc)
-    cp "n"                      ; /in input
-    jp z,input
-    cp "v"                      ; /iv invert
-    jp z,invert
-    jp error1
 
 
 chars:
@@ -1815,9 +1943,43 @@ args2A0L_:                      ; two args zero locals
 args2A0L:
     db "ab"
 
+args1A2L_:                      ; one arg two locals
+    db 3                        ; num args + locals
+    db 2                        ; num locals
+args1A2L:
+    db "abc"
+
 ;*******************************************************************
 ; general routines
 ;*******************************************************************
+
+; followed by a table
+; db char
+; dw addr
+; the final item must have char == NUL
+jumpTable:
+    inc bc
+    pop hl
+jumpTable0:
+    xor a
+    cp (hl)
+    jr z,jumpTable1
+    ld a,(bc)
+    cp (hl)
+    jr z,jumpTable2
+    inc hl
+    inc hl
+    inc hl
+    jr jumpTable0
+jumpTable1:
+    dec bc
+jumpTable2:
+    inc hl
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    ex de,hl
+    jp (hl)
 
 prtstr0:
     call putchar

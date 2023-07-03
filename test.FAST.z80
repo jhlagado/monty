@@ -14,6 +14,7 @@
 .align $100
 testsStart:
 
+    ; test "5 [4] :a{$a}; /pa ^", 4
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -132,7 +133,6 @@ testsStart:
     test "123/bd ` x `/bs 456/bd + + ", 9
     test "#4321 /bh", 4
     test "#4321 /bh/vB/c 0%", $34
-
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
