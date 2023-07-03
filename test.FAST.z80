@@ -14,10 +14,12 @@
 .align $100
 testsStart:
 
-    ; test "5 [4] :a{$a}; /pa ^", 4
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    test "{`x` .s}^", 0
+
+    ; test "[10 20 30] `[`.s :a:bc{$a/s$c= 0$b=( $a$b%. $b++ $b $c</br )^};^ `]`.s", 0
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -118,6 +120,7 @@ testsStart:
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1%", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
+    test "3 :a:bc{$a$c= ( $c $c-- $c/br )^ + +};^", 6
     test "'A' 1 - /ad", NUL
     test "'Z' 1 + /ad", NUL
     test "'a' 1 - /ad", NUL

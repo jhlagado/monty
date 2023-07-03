@@ -1331,7 +1331,7 @@ bufferArray:
     dw bufferArray_block
     dw args1A2L
 bufferArray_block:
-    .cstr "{$a/s$c= `[ `.s 0$b=($a$b%. $b++ $c$b==/b)^` ]`}"   ; block
+    .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 
 
