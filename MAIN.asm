@@ -769,42 +769,37 @@ dot:
 dotArray:
     call go
     dw NUL                      ; null closure
-    dw dotArray_block
+    dw $+4
     dw args1A0L
-dotArray_block:
-    .cstr "{$a/ba/px}"          ; block
+    .cstr "{$a/ba/pb}"          ; block
 
 dotHex:
     call go
     dw NUL                      ; null closure
-    dw dotHex_block
+    dw $+4
     dw args1A0L
-dotHex_block:
-    .cstr "{$a/bh/px}"          ; block
+    .cstr "{$a/bh/pb}"          ; block
 
 dotStr:
     call go
     dw NUL                      ; null closure
-    dw dotStr_block
+    dw $+4
     dw args1A0L
-dotStr_block:
-    .cstr "{$a/bs/px}"          ; block
+    .cstr "{$a/bs/pb}"          ; block
 
 dotChar:
     call go
     dw NUL                      ; null closure
-    dw dotChar_block
+    dw $+4
     dw args1A0L
-dotChar_block:
-    .cstr "{$a/bc/px}"          ; block
+    .cstr "{$a/bc/pb}"          ; block
 
 dotDec:
     call go
     dw NUL                      ; closure
-    dw dotDec_block
+    dw $+4
     dw args1A0L
-dotDec_block:
-    .cstr "{$a/bd/px}"          ; block
+    .cstr "{$a/bd/pb}"          ; block
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1316,8 +1311,6 @@ command_b:
     dw bufferDec
     db "h"
     dw bufferHex
-    db "i"
-    dw bufPtrInc
     db "r"
     dw break
     db "s"
@@ -1327,79 +1320,27 @@ command_b:
     db NUL
     dw error1
 
+; /ba buffer array             
+; array* -- 
 bufferArray:
     call go
-    dw NUL                      ; closure
-    dw bufferArray_block
+    dw NUL                      ; NUL closure
+    dw $+4                      
     dw args1A2L
-bufferArray_block:
-    .cstr "{$a/s$c= 0$b=( $a$b%/bd/bi $b++ $b $c</br )^}" ; block
-
-
-
-;     ld (vTemp1),bc
-;     ld (vTemp2),ix
-;     ld de,(vBufPtr)
-;     ld a,"["
-;     ld (de),a
-;     inc de
-;     ld a," "
-;     ld (de),a
-;     inc de
-;     ld (vBufPtr),de
-;     pop hl
-;     dec hl
-;     dec hl
-;     dec hl
-;     ld b,(hl)
-;     dec hl
-;     ld c,(hl)
-;     inc hl
-;     inc hl
-;     inc hl
-;     push hl
-;     ld ix,bufferArray3
-;     jp (ix)
-; bufferArray2:
-;     dec bc
-;     ld e,(hl)
-;     inc hl
-;     ld d,(hl)
-;     inc hl
-;     push hl
-;     push de
-;     jp bufferDec
-; bufferArray3:
-;     pop hl
-;     ld a,c
-;     or b
-;     jr nz,bufferArray2
-;     ld de,(vBufPtr)
-;     ld a," "
-;     ld (de),a
-;     inc de
-;     ld a,"]"
-;     ld (de),a
-;     inc de
-;     ld (vBufPtr),de
-;     ld bc,(vTemp1)
-;     ld ix,(vTemp2)
-;     jp (ix)
+    .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bc buffer char             
-; char -- length
+; char -- 
 bufferChar:
     pop de                      ; e = char
     ld hl,(vBufPtr)             ; hl = buffer*
     ld (hl),e                   ; e -> buffer*
     inc hl                      ; buffer*++
     ld (vBufPtr),hl             ; save buffer*' in pointer
-    ld de,1                     ; return 1 byte
-    push de
     jp (ix)
 
 ; /bd buffer decimal
-; value -- length               ; length can be used to rewind buffer*
+; value --                      ; length can be used to rewind buffer*
 bufferDec:        
     ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
@@ -1411,10 +1352,6 @@ bufferDec:
     inc de
     ld hl,(vBufPtr)             ; hl = buffer*
     ld (vBufPtr),de             ; update buffer* with buffer*'
-    ex de,hl                    ; hl = length
-    or a                        
-    sbc hl,de                   
-    push hl                     ; return length
     jp (ix)
 
 ; hl = value
@@ -1473,10 +1410,13 @@ bufferDec5:
     ret
 
 ; /bh buffer hex
-; value -- length               ; length can be used to rewind buffer*
+; value --                      ; length can be used to rewind buffer*
 bufferHex:                      
     pop hl                      ; hl = value
     ld de,(vBufPtr)
+    ld a,"#"                    ; # prefix
+    ld (de),a
+    inc de
     ld a,h
     call bufferHex1
     ld a,l
@@ -1484,12 +1424,7 @@ bufferHex:
     ld a," "                    ; append space to buffer
     ld (de),a
     inc de
-    ex de,hl
-    ld de,(vBufPtr)
-    ld (vBufPtr),hl
-    or a 
-    sbc hl,de
-    push hl
+    ld (vBufPtr),de
     jp (ix)
 
 bufferHex1:		     
@@ -1509,15 +1444,6 @@ bufferHex2:
 	ld (de),a
 	inc de
 	ret
-
-; /bi buf pointer increment             
-; length --
-bufPtrInc:
-    pop de                      ; de = length
-    ld hl,(vBufPtr)
-    add hl,de
-    ld (vBufPtr),hl
-    jp (ix)
 
 ; /br break from loop             
 ; --
@@ -1539,7 +1465,7 @@ break1:
     jp blockEnd
 
 ; /bs buffered string             
-; string* -- length
+; string* --
 bufferString:
     pop hl                      ; hl = string*
     ld de,(vBufPtr)             ; de = buffer*
@@ -1554,17 +1480,12 @@ bufferString1:
     jr nz,bufferString0
     ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
     ld (vBufPtr),de             ; save buffer*' in pointer
-    ex de,hl                    ; hl = length
-    or a
-    sbc hl,de
-    push hl                     ; return length
     jp (ix)
 
 ; /bx buffered x spaces             
-; length -- length
+; length --
 bufferXSpaces:
     pop de                      ; bc = length
-    push de                     ; return length
     ld hl,(vBufPtr)             ; hl = buffer*
     jr bufferXSpaces2
 bufferXSpaces1:
@@ -1597,8 +1518,6 @@ command_p:
     dw printChars
     db "k"
     dw printStack
-    db "x"
-    dw printX
     db NUL
     dw error1
 
@@ -1620,15 +1539,14 @@ partial:
     ld (hl),d
     jp (ix)
 
-; printBuffer
+; /pb printBuffer
 ; --
 ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
 printBuffer:
     call go
     dw NUL                      ; NUL closure
-    dw printBuffer_block        ; $+4?
+    dw $+4
     dw args1A0L
-printBuffer_block:
     .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
 
 
@@ -1682,14 +1600,6 @@ printStack:
 ;     call prompt
 ;     ld bc,(vTemp1)
     jp (ix)
-
-printX:
-    call go
-    dw NUL                      ; NUL closure
-    dw printX_block
-    dw args1A0L
-printX_block:
-    .cstr "{/vb$a-/vb= /vb $a /pc}"   ; block
 
 size:
     pop hl
@@ -1809,18 +1719,6 @@ filter:
 map:
 scan:
     jp (ix)
-
-zprt:
-    call go
-    dw NUL                      ; closure
-    dw zprt_block
-    dw zprt_args
-    db 2                        ; num args + locals
-    db 1                        ; num locals
-zprt_args:
-    db "ns"
-zprt_block:
-    .cstr "{$n/bd` `/bs +$s= /vb$s-/vb= /vb$s/pc}"   ; block
 
 ;*******************************************************************
 ; reusable arglists
