@@ -588,12 +588,12 @@ blockStart2:
 blockStart3:
     ld a,$80
     xor d
-    ld b,a
+    ld d,a
     jr nz, blockStart1
     jr blockStart5
 blockStart4:
     dec d
-    jr nz, blockStart1               ; get the next element
+    jr nz, blockStart1          ; get the next element
 blockStart5:
     ld hl,bc                    ; hl = IP
     ld de,HEAP                  ; is IP pointing to object in heap
@@ -1316,6 +1316,8 @@ command_b:
     dw bufferDec
     db "h"
     dw bufferHex
+    db "i"
+    dw bufPtrInc
     db "r"
     dw break
     db "s"
@@ -1331,7 +1333,7 @@ bufferArray:
     dw bufferArray_block
     dw args1A2L
 bufferArray_block:
-    .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
+    .cstr "{$a/s$c= 0$b=( $a$b%/bd/bi $b++ $b $c</br )^}" ; block
 
 
 
@@ -1404,6 +1406,9 @@ bufferDec:
     pop hl                      ; hl = value
     call bufferDec0
     exx                         ; de = buffer*' bc = IP
+    ld a," "                    ; append space to buffer
+    ld (de),a
+    inc de
     ld hl,(vBufPtr)             ; hl = buffer*
     ld (vBufPtr),de             ; update buffer* with buffer*'
     ex de,hl                    ; hl = length
@@ -1476,6 +1481,9 @@ bufferHex:
     call bufferHex1
     ld a,l
     call bufferHex1
+    ld a," "                    ; append space to buffer
+    ld (de),a
+    inc de
     ex de,hl
     ld de,(vBufPtr)
     ld (vBufPtr),hl
@@ -1501,6 +1509,15 @@ bufferHex2:
 	ld (de),a
 	inc de
 	ret
+
+; /bi buf pointer increment             
+; length --
+bufPtrInc:
+    pop de                      ; de = length
+    ld hl,(vBufPtr)
+    add hl,de
+    ld (vBufPtr),hl
+    jp (ix)
 
 ; /br break from loop             
 ; --
@@ -1574,6 +1591,8 @@ command_p:
     call jumpTable
     db "a"
     dw partial
+    db "b"
+    dw printBuffer
     db "c"
     dw printChars
     db "k"
@@ -1601,23 +1620,35 @@ partial:
     ld (hl),d
     jp (ix)
 
+; printBuffer
+; --
+; prints chars in buffer from /vB to /vb. Resets /vb to /vB
+printBuffer:
+    call go
+    dw NUL                      ; NUL closure
+    dw printBuffer_block        ; $+4?
+    dw args1A0L
+printBuffer_block:
+    .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
+
+
 ; printChars
 ; char* len --
 ; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
 printChars:
-    pop hl 
-    dec hl
-    pop de
+    pop hl                              ; hl = count - 1
+    dec hl                      
+    pop de                              ; de = char*
     jp printChars2
 printChars1:
-    inc de
-    dec hl
+    inc de                              ; char*++
+    dec hl                              ; count--
 printChars2:
-    ld a,(de)
+    ld a,(de)                           ; print char at char*
     call putchar
-    ld a,l
+    ld a,l                              ; count == 0?
     or h
-    jr nz,printChars1
+    jr nz,printChars1                   ; if not loop
     jp (ix)
 
 ; /pk print stack
@@ -1652,6 +1683,14 @@ printStack:
 ;     ld bc,(vTemp1)
     jp (ix)
 
+printX:
+    call go
+    dw NUL                      ; NUL closure
+    dw printX_block
+    dw args1A0L
+printX_block:
+    .cstr "{/vb$a-/vb= /vb $a /pc}"   ; block
+
 size:
     pop hl
     dec hl                      ; skip magic byte
@@ -1662,14 +1701,6 @@ size:
     ld e,(hl)
     push de
     jp (ix)
-
-printX:
-    call go
-    dw NUL                      ; closure
-    dw printX_block
-    dw args1A0L
-printX_block:
-    .cstr "{$a 1/bx+$a= /vb$a-/vb= /vb$a/pc}"   ; block
 
 command_v:
     call jumpTable
