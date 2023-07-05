@@ -1329,11 +1329,12 @@ bufferArray:
 ; /bc buffer char             
 ; char -- 
 bufferChar:
-    pop de                      ; e = char
-    ld hl,(vBufPtr)             ; hl = buffer*
-    ld (hl),e                   ; e -> buffer*
-    inc hl                      ; buffer*++
-    ld (vBufPtr),hl             ; save buffer*' in pointer
+    pop hl                      ; e = char
+    ld a,l
+    ld de,(vBufPtr)             ; hl = buffer*
+    ld (de),a                   ; e -> buffer*
+    inc e                       ; buffer*++, wraparound
+    ld (vBufPtr),de             ; save buffer*' in pointer
     jp (ix)
 
 ; /bd buffer decimal
@@ -1346,7 +1347,7 @@ bufferDec:
     exx                         ; de = buffer*' bc = IP
     ld a," "                    ; append space to buffer
     ld (de),a
-    inc de
+    inc e                       ; buffer*++, wraparound
     ld hl,(vBufPtr)             ; hl = buffer*
     ld (vBufPtr),de             ; update buffer* with buffer*'
     jp (ix)
@@ -1402,7 +1403,7 @@ bufferDec5:
     ld a,b
     exx
     ld (de),a
-    inc de
+    inc e
     exx
     ret
 
@@ -1413,14 +1414,14 @@ bufferHex:
     ld de,(vBufPtr)
     ld a,"#"                    ; # prefix
     ld (de),a
-    inc de
+    inc e                       ; buffer*++, wraparound
     ld a,h
     call bufferHex1
     ld a,l
     call bufferHex1
     ld a," "                    ; append space to buffer
     ld (de),a
-    inc de
+    inc e                       ; buffer*++, wraparound
     ld (vBufPtr),de
     jp (ix)
 
@@ -1439,7 +1440,7 @@ bufferHex2:
 	adc	a,0x40
 	daa
 	ld (de),a
-	inc de
+    inc e                       ; buffer*++, wraparound
 	ret
 
 ; /br break from loop             
@@ -1469,7 +1470,7 @@ bufferString:
     jr bufferString1
 bufferString0:
     ld (de),a                   ; a -> buffer*
-    inc de                      ; string*++ buffer++
+    inc e                       ; buffer*++, wraparound
     inc hl
 bufferString1:
     ld a,(hl)                   ; a <- string*
@@ -1482,16 +1483,17 @@ bufferString1:
 ; /bx buffered x spaces             
 ; length --
 bufferXSpaces:
-    pop de                      ; bc = length
-    ld hl,(vBufPtr)             ; hl = buffer*
+    pop hl                      ; bc = length
+    ld de,(vBufPtr)             ; hl = buffer*
     jr bufferXSpaces2
 bufferXSpaces1:
-    ld (hl)," "
-    inc hl
-    dec de
+    ld a," "
+    ld (de),a
+    inc e                       ; buffer*++, wraparound
+    dec hl
 bufferXSpaces2:
-    ld a,e
-    or d
+    ld a,l
+    or h
     jr nz,bufferXSpaces1
     ld (vBufPtr),hl             ; save buffer*'
     jp (ix)

@@ -524,8 +524,8 @@
 00C3                             ; 
 00C3                             ; 
 00C3   31 00 21               LD   sp,STACK   
-00C6   CD 87 0B               CALL   init   
-00C9   C3 A5 0B               JP   start   
+00C6   CD 8C 0B               CALL   init   
+00C9   C3 AA 0B               JP   start   
 00CC                             ; 
 00CC                             ; *************************************************************************
 00CC                             ; 
@@ -579,7 +579,7 @@
 0182   0A 00                  DW   10   ; vNumBase = 10
 0184   00 21                  DW   TIB   ; vTIBPtr pointer into TIB
 0186   00 22                  DW   BUF   ; vBUFPtr pointer into BUF
-0188   32 0C                  DW   next   ; nNext
+0188   37 0C                  DW   next   ; nNext
 018A   08 24                  DW   HEAP   ; vHeapPtr \h start of the free mem
 018C                          ALIGN   $100   
 0200                OPCODES:      ; still available ~ `
@@ -804,7 +804,7 @@
 0399                ADDR:        
 0399   ED 5B F2 23            LD   de,(vPointer)   
 039D   21 F2 23               LD   hl,vPointer   
-03A0   C3 CB 0A               JP   variable   
+03A0   C3 D0 0A               JP   variable   
 03A3                AMPER:       
 03A3                AND:         
 03A3   D1                     POP   de   ; Bitwise and the top 2 elements of the stack
@@ -1196,7 +1196,7 @@
 05BB                DISCARD1:      
 05BB   DD E9                  JP   (ix)   
 05BD                SLASH:       
-05BD   CD 1F 0B               CALL   jumpTable   
+05BD   CD 24 0B               CALL   jumpTable   
 05C0   2F                     DB   "/"   
 05C1   8E 08                  DW   comment   
 05C3   61                     DB   "a"   
@@ -1204,29 +1204,29 @@
 05C6   62                     DB   "b"   
 05C7   D1 08                  DW   command_b   
 05C9   63                     DB   "c"   
-05CA   D1 0A                  DW   chars   
+05CA   D6 0A                  DW   chars   
 05CC   64                     DB   "d"   
-05CD   D9 0A                  DW   decimal   
+05CD   DE 0A                  DW   decimal   
 05CF   66                     DB   "f"   
 05D0   AE 06                  DW   false1   
 05D2   68                     DB   "h"   
-05D3   E1 0A                  DW   hexadecimal   
+05D3   E6 0A                  DW   hexadecimal   
 05D5   69                     DB   "i"   
-05D6   FE 09                  DW   command_i   
+05D6   03 0A                  DW   command_i   
 05D8   6B                     DB   "k"   
-05D9   F2 0A                  DW   key   
+05D9   F7 0A                  DW   key   
 05DB   6E                     DB   "n"   
-05DC   04 0B                  DW   numbers   
+05DC   09 0B                  DW   numbers   
 05DE   6F                     DB   "o"   
-05DF   FB 0A                  DW   output   
+05DF   00 0B                  DW   output   
 05E1   70                     DB   "p"   
-05E2   0A 0A                  DW   command_p   
+05E2   0F 0A                  DW   command_p   
 05E4   73                     DB   "s"   
-05E5   82 0A                  DW   size   
+05E5   87 0A                  DW   size   
 05E7   74                     DB   "t"   
 05E8   A8 06                  DW   true1   
 05EA   76                     DB   "v"   
-05EB   8C 0A                  DW   command_v   
+05EB   91 0A                  DW   command_v   
 05ED   78                     DB   "x"   
 05EE   B7 03                  DW   xor   
 05F0   00                     DB   NUL   
@@ -1242,7 +1242,7 @@
 0600   C1                     POP   bc   
 0601   C3 96 03               JP   add3   
 0604                DOT:         
-0604   CD 1F 0B               CALL   jumpTable   
+0604   CD 24 0B               CALL   jumpTable   
 0607   61                     DB   "a"   
 0608   16 06                  DW   dotArray   
 060A   68                     DB   "h"   
@@ -1257,31 +1257,31 @@
 0616   CD B4 06               CALL   go   
 0619   00 00                  DW   NUL   ; null closure
 061B   1F 06                  DW   $+4   
-061D   11 0B                  DW   args1A0L   
+061D   16 0B                  DW   args1A0L   
 061F   7B 24 61 2F 62 61 2F 70 62 7D 00 .CSTR   "{$a/ba/pb}"   ; block
 062A                DOTHEX:      
 062A   CD B4 06               CALL   go   
 062D   00 00                  DW   NUL   ; null closure
 062F   33 06                  DW   $+4   
-0631   11 0B                  DW   args1A0L   
+0631   16 0B                  DW   args1A0L   
 0633   7B 24 61 2F 62 68 2F 70 62 7D 00 .CSTR   "{$a/bh/pb}"   ; block
 063E                DOTSTR:      
 063E   CD B4 06               CALL   go   
 0641   00 00                  DW   NUL   ; null closure
 0643   47 06                  DW   $+4   
-0645   11 0B                  DW   args1A0L   
+0645   16 0B                  DW   args1A0L   
 0647   7B 24 61 2F 62 73 2F 70 62 7D 00 .CSTR   "{$a/bs/pb}"   ; block
 0652                DOTCHAR:      
 0652   CD B4 06               CALL   go   
 0655   00 00                  DW   NUL   ; null closure
 0657   5B 06                  DW   $+4   
-0659   11 0B                  DW   args1A0L   
+0659   16 0B                  DW   args1A0L   
 065B   7B 24 61 2F 62 63 2F 70 62 7D 00 .CSTR   "{$a/bc/pb}"   ; block
 0666                DOTDEC:      
 0666   CD B4 06               CALL   go   
 0669   00 00                  DW   NUL   ; closure
 066B   6F 06                  DW   $+4   
-066D   11 0B                  DW   args1A0L   
+066D   16 0B                  DW   args1A0L   
 066F   7B 24 61 2F 62 64 2F 70 62 7D 00 .CSTR   "{$a/bd/pb}"   ; block
 067A                             ; division subroutine.
 067A                             ; bc: divisor, de: dividend, hl: remainder
@@ -1703,7 +1703,7 @@
 0887                ERROR1:      
 0887   21 01 00               LD   hl,1   ; error 1: unknown command
 088A   E5                     PUSH   hl   
-088B   C3 52 0C               JP   error   
+088B   C3 57 0C               JP   error   
 088E                COMMENT:      
 088E   03                     INC   bc   ; point to next char
 088F   0A                     LD   a,(bc)   
@@ -1712,7 +1712,7 @@
 0894   0B                     DEC   bc   
 0895   DD E9                  JP   (ix)   
 0897                COMMAND_A:      
-0897   CD 1F 0B               CALL   jumpTable   
+0897   CD 24 0B               CALL   jumpTable   
 089A   62                     DB   "b"   
 089B   A3 08                  DW   absolute   
 089D   64                     DB   "d"   
@@ -1759,21 +1759,21 @@
 08CF                ADDROF2:      
 08CF   DD E9                  JP   (ix)   
 08D1                COMMAND_B:      
-08D1   CD 1F 0B               CALL   jumpTable   
+08D1   CD 24 0B               CALL   jumpTable   
 08D4   61                     DB   "a"   
 08D5   EC 08                  DW   bufferArray   
 08D7   63                     DB   "c"   
 08D8   20 09                  DW   bufferChar   
 08DA   64                     DB   "d"   
-08DB   2B 09                  DW   bufferDec   
+08DB   2E 09                  DW   bufferDec   
 08DD   68                     DB   "h"   
-08DE   8B 09                  DW   bufferHex   
+08DE   8E 09                  DW   bufferHex   
 08E0   72                     DB   "r"   
-08E1   BA 09                  DW   break   
+08E1   BD 09                  DW   break   
 08E3   73                     DB   "s"   
-08E4   D4 09                  DW   bufferString   
+08E4   D7 09                  DW   bufferString   
 08E6   78                     DB   "x"   
-08E7   EB 09                  DW   bufferXSpaces   
+08E7   EE 09                  DW   bufferXSpaces   
 08E9   00                     DB   NUL   
 08EA   87 08                  DW   error1   
 08EC                             ; /ba buffer array
@@ -1782,803 +1782,805 @@
 08EC   CD B4 06               CALL   go   
 08EF   00 00                  DW   NUL   ; NUL closure
 08F1   F5 08                  DW   $+4   
-08F3   1C 0B                  DW   args1A2L   
+08F3   21 0B                  DW   args1A2L   
 08F5   7B 24 61 2F 73 24 63 3D 20 30 24 62 3D 28 20 24 61 24 62 25 2F 62 64 20 24 62 2B 2B 20 24 62 20 24 63 3C 2F 62 72 20 29 5E 7D 00 .CSTR   "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}"   ; block
 0920                             ; /bc buffer char
 0920                             ; char --
 0920                BUFFERCHAR:      
-0920   D1                     POP   de   ; e = char
-0921   2A EC 23               LD   hl,(vBufPtr)   ; hl = buffer*
-0924   73                     LD   (hl),e   ; e -> buffer*
-0925   23                     INC   hl   ; buffer*++
-0926   22 EC 23               LD   (vBufPtr),hl   ; save buffer*' in pointer
-0929   DD E9                  JP   (ix)   
-092B                             ; /bd buffer decimal
-092B                             ; value --                      ; length can be used to rewind buffer*
-092B                BUFFERDEC:      
-092B   ED 5B EC 23            LD   de,(vBufPtr)   ; de"= buffer* bc" = IP
-092F   D9                     EXX      
-0930   E1                     POP   hl   ; hl = value
-0931   CD 42 09               CALL   bufferDec0   
-0934   D9                     EXX      ; de = buffer*' bc = IP
-0935   3E 20                  LD   a," "   ; append space to buffer
-0937   12                     LD   (de),a   
-0938   13                     INC   de   
-0939   2A EC 23               LD   hl,(vBufPtr)   ; hl = buffer*
-093C   ED 53 EC 23            LD   (vBufPtr),de   ; update buffer* with buffer*'
-0940   DD E9                  JP   (ix)   
-0942                             ; hl = value
-0942                             ; de' = buffer*
-0942                             ; a, bc, de, hl destroyed
-0942                BUFFERDEC0:      
-0942   CB 7C                  BIT   7,h   
-0944   28 0C                  JR   z,bufferDec1   
-0946   D9                     EXX      
-0947   3E 2D                  LD   a,"-"   
-0949   12                     LD   (de),a   
-094A   13                     INC   de   
-094B   D9                     EXX      
-094C   AF                     XOR   a   
-094D   95                     SUB   l   
-094E   6F                     LD   l,a   
-094F   9F                     SBC   a,a   
-0950   94                     SUB   h   
-0951   67                     LD   h,a   
-0952                BUFFERDEC1:      
-0952   0E 00                  LD   c,0   ; leading zeros flag = false
-0954   11 F0 D8               LD   de,-10000   
-0957   CD 72 09               CALL   bufferDec2   
-095A   11 18 FC               LD   de,-1000   
-095D   CD 72 09               CALL   bufferDec2   
-0960   11 9C FF               LD   de,-100   
-0963   CD 72 09               CALL   bufferDec2   
-0966   1E F6                  LD   e,-10   
-0968   CD 72 09               CALL   bufferDec2   
-096B   0C                     INC   c   ; flag = true for at least digit
-096C   1E FF                  LD   e,-1   
-096E   CD 72 09               CALL   bufferDec2   
-0971   C9                     RET      
-0972                BUFFERDEC2:      
-0972   06 2F                  LD   b,"0"-1   
-0974                BUFFERDEC3:      
-0974   04                     INC   b   
-0975   19                     ADD   hl,de   
-0976   38 FC                  JR   c,bufferDec3   
-0978   ED 52                  SBC   hl,de   
-097A   3E 30                  LD   a,"0"   
-097C   B8                     CP   b   
-097D   20 05                  JR   nz,bufferDec4   
-097F   AF                     XOR   a   
-0980   B1                     OR   c   
-0981   C8                     RET   z   
-0982   18 01                  JR   bufferDec5   
-0984                BUFFERDEC4:      
-0984   0C                     INC   c   
-0985                BUFFERDEC5:      
-0985   78                     LD   a,b   
-0986   D9                     EXX      
-0987   12                     LD   (de),a   
-0988   13                     INC   de   
+0920   E1                     POP   hl   ; e = char
+0921   7D                     LD   a,l   
+0922   ED 5B EC 23            LD   de,(vBufPtr)   ; hl = buffer*
+0926   12                     LD   (de),a   ; e -> buffer*
+0927   1C                     INC   e   ; buffer*++, wraparound
+0928   ED 53 EC 23            LD   (vBufPtr),de   ; save buffer*' in pointer
+092C   DD E9                  JP   (ix)   
+092E                             ; /bd buffer decimal
+092E                             ; value --                      ; length can be used to rewind buffer*
+092E                BUFFERDEC:      
+092E   ED 5B EC 23            LD   de,(vBufPtr)   ; de"= buffer* bc" = IP
+0932   D9                     EXX      
+0933   E1                     POP   hl   ; hl = value
+0934   CD 45 09               CALL   bufferDec0   
+0937   D9                     EXX      ; de = buffer*' bc = IP
+0938   3E 20                  LD   a," "   ; append space to buffer
+093A   12                     LD   (de),a   
+093B   1C                     INC   e   ; buffer*++, wraparound
+093C   2A EC 23               LD   hl,(vBufPtr)   ; hl = buffer*
+093F   ED 53 EC 23            LD   (vBufPtr),de   ; update buffer* with buffer*'
+0943   DD E9                  JP   (ix)   
+0945                             ; hl = value
+0945                             ; de' = buffer*
+0945                             ; a, bc, de, hl destroyed
+0945                BUFFERDEC0:      
+0945   CB 7C                  BIT   7,h   
+0947   28 0C                  JR   z,bufferDec1   
+0949   D9                     EXX      
+094A   3E 2D                  LD   a,"-"   
+094C   12                     LD   (de),a   
+094D   13                     INC   de   
+094E   D9                     EXX      
+094F   AF                     XOR   a   
+0950   95                     SUB   l   
+0951   6F                     LD   l,a   
+0952   9F                     SBC   a,a   
+0953   94                     SUB   h   
+0954   67                     LD   h,a   
+0955                BUFFERDEC1:      
+0955   0E 00                  LD   c,0   ; leading zeros flag = false
+0957   11 F0 D8               LD   de,-10000   
+095A   CD 75 09               CALL   bufferDec2   
+095D   11 18 FC               LD   de,-1000   
+0960   CD 75 09               CALL   bufferDec2   
+0963   11 9C FF               LD   de,-100   
+0966   CD 75 09               CALL   bufferDec2   
+0969   1E F6                  LD   e,-10   
+096B   CD 75 09               CALL   bufferDec2   
+096E   0C                     INC   c   ; flag = true for at least digit
+096F   1E FF                  LD   e,-1   
+0971   CD 75 09               CALL   bufferDec2   
+0974   C9                     RET      
+0975                BUFFERDEC2:      
+0975   06 2F                  LD   b,"0"-1   
+0977                BUFFERDEC3:      
+0977   04                     INC   b   
+0978   19                     ADD   hl,de   
+0979   38 FC                  JR   c,bufferDec3   
+097B   ED 52                  SBC   hl,de   
+097D   3E 30                  LD   a,"0"   
+097F   B8                     CP   b   
+0980   20 05                  JR   nz,bufferDec4   
+0982   AF                     XOR   a   
+0983   B1                     OR   c   
+0984   C8                     RET   z   
+0985   18 01                  JR   bufferDec5   
+0987                BUFFERDEC4:      
+0987   0C                     INC   c   
+0988                BUFFERDEC5:      
+0988   78                     LD   a,b   
 0989   D9                     EXX      
-098A   C9                     RET      
-098B                             ; /bh buffer hex
-098B                             ; value --                      ; length can be used to rewind buffer*
-098B                BUFFERHEX:      
-098B   E1                     POP   hl   ; hl = value
-098C   ED 5B EC 23            LD   de,(vBufPtr)   
-0990   3E 23                  LD   a,"#"   ; # prefix
-0992   12                     LD   (de),a   
-0993   13                     INC   de   
-0994   7C                     LD   a,h   
-0995   CD A6 09               CALL   bufferHex1   
-0998   7D                     LD   a,l   
-0999   CD A6 09               CALL   bufferHex1   
-099C   3E 20                  LD   a," "   ; append space to buffer
-099E   12                     LD   (de),a   
-099F   13                     INC   de   
-09A0   ED 53 EC 23            LD   (vBufPtr),de   
-09A4   DD E9                  JP   (ix)   
-09A6                BUFFERHEX1:      
-09A6   F5                     PUSH   af   
-09A7   1F                     RRA      
-09A8   1F                     RRA      
-09A9   1F                     RRA      
+098A   12                     LD   (de),a   
+098B   1C                     INC   e   
+098C   D9                     EXX      
+098D   C9                     RET      
+098E                             ; /bh buffer hex
+098E                             ; value --                      ; length can be used to rewind buffer*
+098E                BUFFERHEX:      
+098E   E1                     POP   hl   ; hl = value
+098F   ED 5B EC 23            LD   de,(vBufPtr)   
+0993   3E 23                  LD   a,"#"   ; # prefix
+0995   12                     LD   (de),a   
+0996   1C                     INC   e   ; buffer*++, wraparound
+0997   7C                     LD   a,h   
+0998   CD A9 09               CALL   bufferHex1   
+099B   7D                     LD   a,l   
+099C   CD A9 09               CALL   bufferHex1   
+099F   3E 20                  LD   a," "   ; append space to buffer
+09A1   12                     LD   (de),a   
+09A2   1C                     INC   e   ; buffer*++, wraparound
+09A3   ED 53 EC 23            LD   (vBufPtr),de   
+09A7   DD E9                  JP   (ix)   
+09A9                BUFFERHEX1:      
+09A9   F5                     PUSH   af   
 09AA   1F                     RRA      
-09AB   CD AF 09               CALL   bufferHex2   
-09AE   F1                     POP   af   
-09AF                BUFFERHEX2:      
-09AF   E6 0F                  AND   0x0F   
-09B1   C6 90                  ADD   a,0x90   
-09B3   27                     DAA      
-09B4   CE 40                  ADC   a,0x40   
+09AB   1F                     RRA      
+09AC   1F                     RRA      
+09AD   1F                     RRA      
+09AE   CD B2 09               CALL   bufferHex2   
+09B1   F1                     POP   af   
+09B2                BUFFERHEX2:      
+09B2   E6 0F                  AND   0x0F   
+09B4   C6 90                  ADD   a,0x90   
 09B6   27                     DAA      
-09B7   12                     LD   (de),a   
-09B8   13                     INC   de   
-09B9   C9                     RET      
-09BA                             ; /br break from loop
-09BA                             ; --
-09BA                BREAK:       
-09BA   E1                     POP   hl   
-09BB   7D                     LD   a,l   
-09BC   B4                     OR   h   
-09BD   28 02                  JR   z,break1   
-09BF   DD E9                  JP   (ix)   
-09C1                BREAK1:      
-09C1   FD 5D                  LD   e,iyl   ; get block* just under stack frame
-09C3   FD 54                  LD   d,iyh   
-09C5   21 08 00               LD   hl,8   
-09C8   19                     ADD   hl,de   
-09C9   23                     INC   hl   
-09CA   23                     INC   hl   
-09CB   FD 75 02               LD   (iy+2),l   ; force first_arg* into this scope for clean up
-09CE   FD 74 03               LD   (iy+3),h   ; first_arg* = address of block*
-09D1   C3 3B 05               JP   blockEnd   
-09D4                             ; /bs buffered string
-09D4                             ; string* --
-09D4                BUFFERSTRING:      
-09D4   E1                     POP   hl   ; hl = string*
-09D5   ED 5B EC 23            LD   de,(vBufPtr)   ; de = buffer*
-09D9   18 03                  JR   bufferString1   
-09DB                BUFFERSTRING0:      
-09DB   12                     LD   (de),a   ; a -> buffer*
-09DC   13                     INC   de   ; string*++ buffer++
-09DD   23                     INC   hl   
-09DE                BUFFERSTRING1:      
-09DE   7E                     LD   a,(hl)   ; a <- string*
-09DF   B7                     OR   a   ; if NUL exit loop
-09E0   20 F9                  JR   nz,bufferString0   
-09E2   2A EC 23               LD   hl,(vBufPtr)   ; de = buffer*' hl = buffer*
-09E5   ED 53 EC 23            LD   (vBufPtr),de   ; save buffer*' in pointer
-09E9   DD E9                  JP   (ix)   
-09EB                             ; /bx buffered x spaces
-09EB                             ; length --
-09EB                BUFFERXSPACES:      
-09EB   D1                     POP   de   ; bc = length
-09EC   2A EC 23               LD   hl,(vBufPtr)   ; hl = buffer*
-09EF   18 04                  JR   bufferXSpaces2   
-09F1                BUFFERXSPACES1:      
-09F1   36 20                  LD   (hl)," "   
-09F3   23                     INC   hl   
-09F4   1B                     DEC   de   
-09F5                BUFFERXSPACES2:      
-09F5   7B                     LD   a,e   
-09F6   B2                     OR   d   
-09F7   20 F8                  JR   nz,bufferXSpaces1   
-09F9   22 EC 23               LD   (vBufPtr),hl   ; save buffer*'
-09FC   DD E9                  JP   (ix)   
-09FE                COMMAND_I:      
-09FE   CD 1F 0B               CALL   jumpTable   
-0A01   6E                     DB   "n"   
-0A02   E7 0A                  DW   input   
-0A04   76                     DB   "v"   
-0A05   C2 03                  DW   invert   
-0A07   00                     DB   NUL   
-0A08   87 08                  DW   error1   
-0A0A                COMMAND_P:      
-0A0A   CD 1F 0B               CALL   jumpTable   
-0A0D   61                     DB   "a"   
-0A0E   1C 0A                  DW   partial   
-0A10   62                     DB   "b"   
-0A11   3C 0A                  DW   printBuffer   
-0A13   63                     DB   "c"   
-0A14   6E 0A                  DW   printChars   
-0A16   6B                     DB   "k"   
-0A17   80 0A                  DW   printStack   
-0A19   00                     DB   NUL   
-0A1A   87 08                  DW   error1   
-0A1C                             ; partial
-0A1C                             ; array* lambda* -- lambda1*
-0A1C                PARTIAL:      
-0A1C   E1                     POP   hl   ; h1 = lambda*
-0A1D   ED 5B F0 23            LD   de,(vHeapPtr)   ; de = heap* = partial_array*
-0A21   ED 43 FE 23            LD   (vTemp1),bc   ; save IP
-0A25   01 06 00               LD   bc,6   ; bc = count
-0A28   ED B0                  LDIR      ; clone lambda
-0A2A   ED 4B FE 23            LD   bc,(vTemp1)   ; restore IP
-0A2E   2A F0 23               LD   hl,(vHeapPtr)   ; hl = heap* = partial_array*
-0A31   ED 53 F0 23            LD   (vHeapPtr),de   ; heap* += 6
-0A35   D1                     POP   de   ; de = array*
-0A36   E5                     PUSH   hl   ; return partial_array*
-0A37   73                     LD   (hl),e   ; compile array*
-0A38   23                     INC   hl   
-0A39   72                     LD   (hl),d   
-0A3A   DD E9                  JP   (ix)   
-0A3C                             ; /pb printBuffer
-0A3C                             ; --
-0A3C                             ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
-0A3C                PRINTBUFFER:      
-0A3C   CD B4 06               CALL   go   
-0A3F   00 00                  DW   NUL   ; NUL closure
-0A41   45 0A                  DW   $+4   
-0A43   11 0B                  DW   args1A0L   
-0A45   7B 2F 76 42 20 2F 76 62 2F 76 42 2D 20 2F 70 63 20 2F 76 42 2F 76 62 3D 7D 00 .CSTR   "{/vB /vb/vB- /pc /vB/vb=}"   ; block
-0A5F                             ; prints whatever in in buffer starting from BUF and ending at vBufPtr*
-0A5F                FLUSHBUFFER:      
-0A5F   2A EC 23               LD   hl,(vBufPtr)   
-0A62   11 00 22               LD   de,BUF   
-0A65   ED 53 EC 23            LD   (vBufPtr),de   
-0A69   B7                     OR   a   
-0A6A   ED 52                  SBC   hl,de   
-0A6C   18 0D                  JR   printChars2   
-0A6E                             ; printChars
-0A6E                             ; char* len --
-0A6E                PRINTCHARS:      
-0A6E   E1                     POP   hl   ; hl = count
-0A6F   D1                     POP   de   ; de = char*
-0A70   CD 7B 0A               CALL   printChars2   
-0A73   DD E9                  JP   (ix)   
-0A75                PRINTCHARS1:      
-0A75   1A                     LD   a,(de)   ; print char at char*
-0A76   CD 85 00               CALL   putchar   
-0A79   13                     INC   de   ; char*++
-0A7A   2B                     DEC   hl   ; count--
-0A7B                PRINTCHARS2:      
-0A7B   7D                     LD   a,l   ; count == 0?
-0A7C   B4                     OR   h   
-0A7D   C8                     RET   z   
-0A7E   18 F5                  JR   printChars1   ; if not loop
-0A80                             ; /pk print stack
-0A80                             ; --
-0A80                PRINTSTACK:      
-0A80                             ;     ld (vTemp1),bc
-0A80                             ;     call printStr
-0A80                             ;     .cstr "=> "
-0A80                             ;     ld hl,STACK
-0A80                             ;     sbc hl,sp
-0A80                             ;     srl h
-0A80                             ;     rr l
-0A80                             ;     ld bc,hl
-0A80                             ;     ld hl,STACK
-0A80                             ;     jr printStack2
-0A80                             ; printStack1:
-0A80                             ;     dec bc
-0A80                             ;     dec hl
-0A80                             ;     ld d,(hl)
-0A80                             ;     dec hl
-0A80                             ;     ld e,(hl)
-0A80                             ;     ex de,hl
-0A80                             ;     call prthex
-0A80                             ;     ex de,hl
-0A80                             ;     ld a," "
-0A80                             ;     call putchar
-0A80                             ; printStack2:
-0A80                             ;     ld a,c
-0A80                             ;     or b
-0A80                             ;     jr nz,printStack1
-0A80                             ;     call prompt
-0A80                             ;     ld bc,(vTemp1)
-0A80   DD E9                  JP   (ix)   
-0A82                SIZE:        
-0A82   E1                     POP   hl   
-0A83   2B                     DEC   hl   ; skip magic byte
-0A84   2B                     DEC   hl   ; skip type tag
-0A85   2B                     DEC   hl   ; msb size
-0A86   56                     LD   d,(hl)   
-0A87   2B                     DEC   hl   ; lsb size
-0A88   5E                     LD   e,(hl)   
-0A89   D5                     PUSH   de   
-0A8A   DD E9                  JP   (ix)   
-0A8C                COMMAND_V:      
-0A8C   CD 1F 0B               CALL   jumpTable   
-0A8F   62                     DB   "b"   
-0A90   B0 0A                  DW   varBufPtr   
-0A92   68                     DB   "h"   
-0A93   B9 0A                  DW   varHeapPtr   
-0A95   74                     DB   "t"   
-0A96   C2 0A                  DW   varTIBPtr   
-0A98   42                     DB   "B"   
-0A99   A1 0A                  DW   constBufStart   
-0A9B   54                     DB   "T"   
-0A9C   AB 0A                  DW   constTIBStart   
-0A9E   00                     DB   NUL   
-0A9F   87 08                  DW   error1   
-0AA1                CONSTBUFSTART:      
-0AA1   11 00 22               LD   de,BUF   
-0AA4   18 28                  JR   constant   
-0AA6                CONSTHEAPSTART:      
-0AA6   11 08 24               LD   de,HEAP   
-0AA9   18 23                  JR   constant   
-0AAB                CONSTTIBSTART:      
-0AAB   11 00 21               LD   de,TIB   
-0AAE   18 1E                  JR   constant   
-0AB0                VARBUFPTR:      
-0AB0   ED 5B EC 23            LD   de,(vBufPtr)   
-0AB4   21 EC 23               LD   hl,vBufPtr   
-0AB7   18 12                  JR   variable   
-0AB9                VARHEAPPTR:      
-0AB9   ED 5B F0 23            LD   de,(vHeapPtr)   
-0ABD   21 F0 23               LD   hl,vHeapPtr   
-0AC0   18 09                  JR   variable   
-0AC2                VARTIBPTR:      
-0AC2   ED 5B EA 23            LD   de,(vTIBPtr)   
-0AC6   21 EA 23               LD   hl,vTIBPtr   
-0AC9   18 00                  JR   variable   
-0ACB                VARIABLE:      
-0ACB   22 F2 23               LD   (vPointer),hl   
-0ACE                CONSTANT:      
-0ACE   D5                     PUSH   de   
-0ACF   DD E9                  JP   (ix)   
-0AD1                CHARS:       
-0AD1   21 01 00               LD   hl,1   
-0AD4                CHARS1:      
-0AD4   22 E6 23               LD   (vDataWidth),hl   
-0AD7   DD E9                  JP   (ix)   
-0AD9                DECIMAL:      
-0AD9   21 0A 00               LD   hl,10   
-0ADC                DECIMAL1:      
-0ADC   22 E8 23               LD   (vNumBase),hl   
-0ADF   DD E9                  JP   (ix)   
-0AE1                HEXADECIMAL:      
-0AE1   21 10 00               LD   hl,16   
-0AE4   C3 DC 0A               JP   decimal1   
-0AE7                             ; Z80 port input
-0AE7                             ; port -- value
-0AE7                INPUT:       
-0AE7   E1                     POP   hl   
-0AE8   59                     LD   e,c   ; save IP
-0AE9   4D                     LD   c,l   
-0AEA   ED 68                  IN   l,(c)   
-0AEC   26 00                  LD   h,0   
-0AEE   4B                     LD   c,e   ; restore IP
-0AEF   E5                     PUSH   hl   
-0AF0   DD E9                  JP   (ix)   
-0AF2                KEY:         
-0AF2   CD 81 00               CALL   getchar   
-0AF5   26 00                  LD   h,0   
-0AF7   6F                     LD   l,a   
-0AF8   E5                     PUSH   hl   
-0AF9   DD E9                  JP   (ix)   
-0AFB                             ; Z80 port output
-0AFB                             ; value port --
-0AFB                OUTPUT:      
-0AFB   E1                     POP   hl   
-0AFC   59                     LD   e,c   ; save IP
-0AFD   4D                     LD   c,l   
-0AFE   E1                     POP   hl   
-0AFF   ED 69                  OUT   (c),l   
-0B01   4B                     LD   c,e   ; restore IP
-0B02   DD E9                  JP   (ix)   
-0B04                NUMBERS:      
-0B04   21 02 00               LD   hl,2   
-0B07   C3 D4 0A               JP   chars1   
-0B0A                             ; 
-0B0A                             ; 
-0B0A                             ; 
-0B0A                             ; 
-0B0A                FILTER:      
-0B0A                MAP:         
-0B0A                SCAN:        
-0B0A   DD E9                  JP   (ix)   
-0B0C                             ;*******************************************************************
-0B0C                             ; reusable arglists
-0B0C                             ;*******************************************************************
-0B0C                ARGS0A1L_:      ; zero args one local
-0B0C   01                     DB   1   ; num args + locals
-0B0D   01                     DB   1   ; num locals
-0B0E                ARGS0A1L:      
-0B0E   61                     DB   "a"   
-0B0F                ARGS1A0L_:      ; one arg zero locals
-0B0F   01                     DB   1   ; num args + locals
-0B10   00                     DB   0   ; num locals
-0B11                ARGS1A0L:      
-0B11   61                     DB   "a"   
-0B12                ARGS1A1L_:      ; one arg one local
-0B12   02                     DB   2   ; num args + locals
-0B13   01                     DB   1   ; num locals
-0B14                ARGS1A1L:      
-0B14   61 62                  DB   "ab"   
-0B16                ARGS2A0L_:      ; two args zero locals
-0B16   02                     DB   2   ; num args + locals
-0B17   00                     DB   0   ; num locals
-0B18                ARGS2A0L:      
-0B18   61 62                  DB   "ab"   
-0B1A                ARGS1A2L_:      ; one arg two locals
-0B1A   03                     DB   3   ; num args + locals
-0B1B   02                     DB   2   ; num locals
-0B1C                ARGS1A2L:      
-0B1C   61 62 63               DB   "abc"   
-0B1F                             ;*******************************************************************
-0B1F                             ; general routines
-0B1F                             ;*******************************************************************
-0B1F                             ; followed by a table
-0B1F                             ; db char
-0B1F                             ; dw addr
-0B1F                             ; the final item must have char == NUL
-0B1F                JUMPTABLE:      
-0B1F   03                     INC   bc   
-0B20   E1                     POP   hl   
-0B21                JUMPTABLE0:      
-0B21   AF                     XOR   a   
-0B22   BE                     CP   (hl)   
-0B23   28 09                  JR   z,jumpTable1   
-0B25   0A                     LD   a,(bc)   
-0B26   BE                     CP   (hl)   
-0B27   28 06                  JR   z,jumpTable2   
-0B29   23                     INC   hl   
-0B2A   23                     INC   hl   
-0B2B   23                     INC   hl   
-0B2C   18 F3                  JR   jumpTable0   
-0B2E                JUMPTABLE1:      
-0B2E   0B                     DEC   bc   
-0B2F                JUMPTABLE2:      
+09B7   CE 40                  ADC   a,0x40   
+09B9   27                     DAA      
+09BA   12                     LD   (de),a   
+09BB   1C                     INC   e   ; buffer*++, wraparound
+09BC   C9                     RET      
+09BD                             ; /br break from loop
+09BD                             ; --
+09BD                BREAK:       
+09BD   E1                     POP   hl   
+09BE   7D                     LD   a,l   
+09BF   B4                     OR   h   
+09C0   28 02                  JR   z,break1   
+09C2   DD E9                  JP   (ix)   
+09C4                BREAK1:      
+09C4   FD 5D                  LD   e,iyl   ; get block* just under stack frame
+09C6   FD 54                  LD   d,iyh   
+09C8   21 08 00               LD   hl,8   
+09CB   19                     ADD   hl,de   
+09CC   23                     INC   hl   
+09CD   23                     INC   hl   
+09CE   FD 75 02               LD   (iy+2),l   ; force first_arg* into this scope for clean up
+09D1   FD 74 03               LD   (iy+3),h   ; first_arg* = address of block*
+09D4   C3 3B 05               JP   blockEnd   
+09D7                             ; /bs buffered string
+09D7                             ; string* --
+09D7                BUFFERSTRING:      
+09D7   E1                     POP   hl   ; hl = string*
+09D8   ED 5B EC 23            LD   de,(vBufPtr)   ; de = buffer*
+09DC   18 03                  JR   bufferString1   
+09DE                BUFFERSTRING0:      
+09DE   12                     LD   (de),a   ; a -> buffer*
+09DF   1C                     INC   e   ; buffer*++, wraparound
+09E0   23                     INC   hl   
+09E1                BUFFERSTRING1:      
+09E1   7E                     LD   a,(hl)   ; a <- string*
+09E2   B7                     OR   a   ; if NUL exit loop
+09E3   20 F9                  JR   nz,bufferString0   
+09E5   2A EC 23               LD   hl,(vBufPtr)   ; de = buffer*' hl = buffer*
+09E8   ED 53 EC 23            LD   (vBufPtr),de   ; save buffer*' in pointer
+09EC   DD E9                  JP   (ix)   
+09EE                             ; /bx buffered x spaces
+09EE                             ; length --
+09EE                BUFFERXSPACES:      
+09EE   E1                     POP   hl   ; bc = length
+09EF   ED 5B EC 23            LD   de,(vBufPtr)   ; hl = buffer*
+09F3   18 05                  JR   bufferXSpaces2   
+09F5                BUFFERXSPACES1:      
+09F5   3E 20                  LD   a," "   
+09F7   12                     LD   (de),a   
+09F8   1C                     INC   e   ; buffer*++, wraparound
+09F9   2B                     DEC   hl   
+09FA                BUFFERXSPACES2:      
+09FA   7D                     LD   a,l   
+09FB   B4                     OR   h   
+09FC   20 F7                  JR   nz,bufferXSpaces1   
+09FE   22 EC 23               LD   (vBufPtr),hl   ; save buffer*'
+0A01   DD E9                  JP   (ix)   
+0A03                COMMAND_I:      
+0A03   CD 24 0B               CALL   jumpTable   
+0A06   6E                     DB   "n"   
+0A07   EC 0A                  DW   input   
+0A09   76                     DB   "v"   
+0A0A   C2 03                  DW   invert   
+0A0C   00                     DB   NUL   
+0A0D   87 08                  DW   error1   
+0A0F                COMMAND_P:      
+0A0F   CD 24 0B               CALL   jumpTable   
+0A12   61                     DB   "a"   
+0A13   21 0A                  DW   partial   
+0A15   62                     DB   "b"   
+0A16   41 0A                  DW   printBuffer   
+0A18   63                     DB   "c"   
+0A19   73 0A                  DW   printChars   
+0A1B   6B                     DB   "k"   
+0A1C   85 0A                  DW   printStack   
+0A1E   00                     DB   NUL   
+0A1F   87 08                  DW   error1   
+0A21                             ; partial
+0A21                             ; array* lambda* -- lambda1*
+0A21                PARTIAL:      
+0A21   E1                     POP   hl   ; h1 = lambda*
+0A22   ED 5B F0 23            LD   de,(vHeapPtr)   ; de = heap* = partial_array*
+0A26   ED 43 FE 23            LD   (vTemp1),bc   ; save IP
+0A2A   01 06 00               LD   bc,6   ; bc = count
+0A2D   ED B0                  LDIR      ; clone lambda
+0A2F   ED 4B FE 23            LD   bc,(vTemp1)   ; restore IP
+0A33   2A F0 23               LD   hl,(vHeapPtr)   ; hl = heap* = partial_array*
+0A36   ED 53 F0 23            LD   (vHeapPtr),de   ; heap* += 6
+0A3A   D1                     POP   de   ; de = array*
+0A3B   E5                     PUSH   hl   ; return partial_array*
+0A3C   73                     LD   (hl),e   ; compile array*
+0A3D   23                     INC   hl   
+0A3E   72                     LD   (hl),d   
+0A3F   DD E9                  JP   (ix)   
+0A41                             ; /pb printBuffer
+0A41                             ; --
+0A41                             ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
+0A41                PRINTBUFFER:      
+0A41   CD B4 06               CALL   go   
+0A44   00 00                  DW   NUL   ; NUL closure
+0A46   4A 0A                  DW   $+4   
+0A48   16 0B                  DW   args1A0L   
+0A4A   7B 2F 76 42 20 2F 76 62 2F 76 42 2D 20 2F 70 63 20 2F 76 42 2F 76 62 3D 7D 00 .CSTR   "{/vB /vb/vB- /pc /vB/vb=}"   ; block
+0A64                             ; prints whatever in in buffer starting from BUF and ending at vBufPtr*
+0A64                FLUSHBUFFER:      
+0A64   2A EC 23               LD   hl,(vBufPtr)   
+0A67   11 00 22               LD   de,BUF   
+0A6A   ED 53 EC 23            LD   (vBufPtr),de   
+0A6E   B7                     OR   a   
+0A6F   ED 52                  SBC   hl,de   
+0A71   18 0D                  JR   printChars2   
+0A73                             ; printChars
+0A73                             ; char* len --
+0A73                PRINTCHARS:      
+0A73   E1                     POP   hl   ; hl = count
+0A74   D1                     POP   de   ; de = char*
+0A75   CD 80 0A               CALL   printChars2   
+0A78   DD E9                  JP   (ix)   
+0A7A                PRINTCHARS1:      
+0A7A   1A                     LD   a,(de)   ; print char at char*
+0A7B   CD 85 00               CALL   putchar   
+0A7E   13                     INC   de   ; char*++
+0A7F   2B                     DEC   hl   ; count--
+0A80                PRINTCHARS2:      
+0A80   7D                     LD   a,l   ; count == 0?
+0A81   B4                     OR   h   
+0A82   C8                     RET   z   
+0A83   18 F5                  JR   printChars1   ; if not loop
+0A85                             ; /pk print stack
+0A85                             ; --
+0A85                PRINTSTACK:      
+0A85                             ;     ld (vTemp1),bc
+0A85                             ;     call printStr
+0A85                             ;     .cstr "=> "
+0A85                             ;     ld hl,STACK
+0A85                             ;     sbc hl,sp
+0A85                             ;     srl h
+0A85                             ;     rr l
+0A85                             ;     ld bc,hl
+0A85                             ;     ld hl,STACK
+0A85                             ;     jr printStack2
+0A85                             ; printStack1:
+0A85                             ;     dec bc
+0A85                             ;     dec hl
+0A85                             ;     ld d,(hl)
+0A85                             ;     dec hl
+0A85                             ;     ld e,(hl)
+0A85                             ;     ex de,hl
+0A85                             ;     call prthex
+0A85                             ;     ex de,hl
+0A85                             ;     ld a," "
+0A85                             ;     call putchar
+0A85                             ; printStack2:
+0A85                             ;     ld a,c
+0A85                             ;     or b
+0A85                             ;     jr nz,printStack1
+0A85                             ;     call prompt
+0A85                             ;     ld bc,(vTemp1)
+0A85   DD E9                  JP   (ix)   
+0A87                SIZE:        
+0A87   E1                     POP   hl   
+0A88   2B                     DEC   hl   ; skip magic byte
+0A89   2B                     DEC   hl   ; skip type tag
+0A8A   2B                     DEC   hl   ; msb size
+0A8B   56                     LD   d,(hl)   
+0A8C   2B                     DEC   hl   ; lsb size
+0A8D   5E                     LD   e,(hl)   
+0A8E   D5                     PUSH   de   
+0A8F   DD E9                  JP   (ix)   
+0A91                COMMAND_V:      
+0A91   CD 24 0B               CALL   jumpTable   
+0A94   62                     DB   "b"   
+0A95   B5 0A                  DW   varBufPtr   
+0A97   68                     DB   "h"   
+0A98   BE 0A                  DW   varHeapPtr   
+0A9A   74                     DB   "t"   
+0A9B   C7 0A                  DW   varTIBPtr   
+0A9D   42                     DB   "B"   
+0A9E   A6 0A                  DW   constBufStart   
+0AA0   54                     DB   "T"   
+0AA1   B0 0A                  DW   constTIBStart   
+0AA3   00                     DB   NUL   
+0AA4   87 08                  DW   error1   
+0AA6                CONSTBUFSTART:      
+0AA6   11 00 22               LD   de,BUF   
+0AA9   18 28                  JR   constant   
+0AAB                CONSTHEAPSTART:      
+0AAB   11 08 24               LD   de,HEAP   
+0AAE   18 23                  JR   constant   
+0AB0                CONSTTIBSTART:      
+0AB0   11 00 21               LD   de,TIB   
+0AB3   18 1E                  JR   constant   
+0AB5                VARBUFPTR:      
+0AB5   ED 5B EC 23            LD   de,(vBufPtr)   
+0AB9   21 EC 23               LD   hl,vBufPtr   
+0ABC   18 12                  JR   variable   
+0ABE                VARHEAPPTR:      
+0ABE   ED 5B F0 23            LD   de,(vHeapPtr)   
+0AC2   21 F0 23               LD   hl,vHeapPtr   
+0AC5   18 09                  JR   variable   
+0AC7                VARTIBPTR:      
+0AC7   ED 5B EA 23            LD   de,(vTIBPtr)   
+0ACB   21 EA 23               LD   hl,vTIBPtr   
+0ACE   18 00                  JR   variable   
+0AD0                VARIABLE:      
+0AD0   22 F2 23               LD   (vPointer),hl   
+0AD3                CONSTANT:      
+0AD3   D5                     PUSH   de   
+0AD4   DD E9                  JP   (ix)   
+0AD6                CHARS:       
+0AD6   21 01 00               LD   hl,1   
+0AD9                CHARS1:      
+0AD9   22 E6 23               LD   (vDataWidth),hl   
+0ADC   DD E9                  JP   (ix)   
+0ADE                DECIMAL:      
+0ADE   21 0A 00               LD   hl,10   
+0AE1                DECIMAL1:      
+0AE1   22 E8 23               LD   (vNumBase),hl   
+0AE4   DD E9                  JP   (ix)   
+0AE6                HEXADECIMAL:      
+0AE6   21 10 00               LD   hl,16   
+0AE9   C3 E1 0A               JP   decimal1   
+0AEC                             ; Z80 port input
+0AEC                             ; port -- value
+0AEC                INPUT:       
+0AEC   E1                     POP   hl   
+0AED   59                     LD   e,c   ; save IP
+0AEE   4D                     LD   c,l   
+0AEF   ED 68                  IN   l,(c)   
+0AF1   26 00                  LD   h,0   
+0AF3   4B                     LD   c,e   ; restore IP
+0AF4   E5                     PUSH   hl   
+0AF5   DD E9                  JP   (ix)   
+0AF7                KEY:         
+0AF7   CD 81 00               CALL   getchar   
+0AFA   26 00                  LD   h,0   
+0AFC   6F                     LD   l,a   
+0AFD   E5                     PUSH   hl   
+0AFE   DD E9                  JP   (ix)   
+0B00                             ; Z80 port output
+0B00                             ; value port --
+0B00                OUTPUT:      
+0B00   E1                     POP   hl   
+0B01   59                     LD   e,c   ; save IP
+0B02   4D                     LD   c,l   
+0B03   E1                     POP   hl   
+0B04   ED 69                  OUT   (c),l   
+0B06   4B                     LD   c,e   ; restore IP
+0B07   DD E9                  JP   (ix)   
+0B09                NUMBERS:      
+0B09   21 02 00               LD   hl,2   
+0B0C   C3 D9 0A               JP   chars1   
+0B0F                             ; 
+0B0F                             ; 
+0B0F                             ; 
+0B0F                             ; 
+0B0F                FILTER:      
+0B0F                MAP:         
+0B0F                SCAN:        
+0B0F   DD E9                  JP   (ix)   
+0B11                             ;*******************************************************************
+0B11                             ; reusable arglists
+0B11                             ;*******************************************************************
+0B11                ARGS0A1L_:      ; zero args one local
+0B11   01                     DB   1   ; num args + locals
+0B12   01                     DB   1   ; num locals
+0B13                ARGS0A1L:      
+0B13   61                     DB   "a"   
+0B14                ARGS1A0L_:      ; one arg zero locals
+0B14   01                     DB   1   ; num args + locals
+0B15   00                     DB   0   ; num locals
+0B16                ARGS1A0L:      
+0B16   61                     DB   "a"   
+0B17                ARGS1A1L_:      ; one arg one local
+0B17   02                     DB   2   ; num args + locals
+0B18   01                     DB   1   ; num locals
+0B19                ARGS1A1L:      
+0B19   61 62                  DB   "ab"   
+0B1B                ARGS2A0L_:      ; two args zero locals
+0B1B   02                     DB   2   ; num args + locals
+0B1C   00                     DB   0   ; num locals
+0B1D                ARGS2A0L:      
+0B1D   61 62                  DB   "ab"   
+0B1F                ARGS1A2L_:      ; one arg two locals
+0B1F   03                     DB   3   ; num args + locals
+0B20   02                     DB   2   ; num locals
+0B21                ARGS1A2L:      
+0B21   61 62 63               DB   "abc"   
+0B24                             ;*******************************************************************
+0B24                             ; general routines
+0B24                             ;*******************************************************************
+0B24                             ; followed by a table
+0B24                             ; db char
+0B24                             ; dw addr
+0B24                             ; the final item must have char == NUL
+0B24                JUMPTABLE:      
+0B24   03                     INC   bc   
+0B25   E1                     POP   hl   
+0B26                JUMPTABLE0:      
+0B26   AF                     XOR   a   
+0B27   BE                     CP   (hl)   
+0B28   28 09                  JR   z,jumpTable1   
+0B2A   0A                     LD   a,(bc)   
+0B2B   BE                     CP   (hl)   
+0B2C   28 06                  JR   z,jumpTable2   
+0B2E   23                     INC   hl   
 0B2F   23                     INC   hl   
-0B30   5E                     LD   e,(hl)   
-0B31   23                     INC   hl   
-0B32   56                     LD   d,(hl)   
-0B33   EB                     EX   de,hl   
-0B34   E9                     JP   (hl)   
-0B35                PRTSTR0:      
-0B35   CD 85 00               CALL   putchar   
-0B38   23                     INC   hl   
-0B39                PRTSTR:      
-0B39   7E                     LD   a,(hl)   
-0B3A   B7                     OR   a   
-0B3B   20 F8                  JR   nz,prtstr0   
-0B3D   C9                     RET      
-0B3E                             ; **************************************************************************
-0B3E                             ; calculate nesting value
-0B3E                             ; a is char to be tested,
-0B3E                             ; e is the nesting value (initially 0)
-0B3E                             ; e is increased by ( and [
-0B3E                             ; e is decreased by ) and ]
-0B3E                             ; e has its bit 7 toggled by `
-0B3E                             ; limited to 127 levels
-0B3E                             ; **************************************************************************
-0B3E                NESTING:      
-0B3E   FE 22                  CP   DQUOTE   ; quote char
-0B40   28 06                  JR   z,nesting0   
-0B42   FE 60                  CP   "`"   ; quote char
-0B44   28 02                  JR   z,nesting0   
-0B46   18 0A                  JR   nesting1   
-0B48                NESTING0:      
-0B48   CB 7B                  BIT   7,e   
-0B4A   28 03                  JR   z,nesting1a   
-0B4C   CB BB                  RES   7,e   
-0B4E   C9                     RET      
-0B4F                NESTING1A:      
-0B4F   CB FB                  SET   7,e   
-0B51   C9                     RET      
-0B52                NESTING1:      
-0B52   CB 7B                  BIT   7,e   
-0B54   C0                     RET   nz   
-0B55   FE 7B                  CP   "{"   
-0B57   28 08                  JR   z,nesting2   
-0B59   FE 5B                  CP   "["   
-0B5B   28 04                  JR   z,nesting2   
-0B5D   FE 28                  CP   "("   
-0B5F   20 02                  JR   nz,nesting3   
-0B61                NESTING2:      
-0B61   1C                     INC   e   
-0B62   C9                     RET      
-0B63                NESTING3:      
-0B63   FE 7D                  CP   "}"   
-0B65   28 07                  JR   z,nesting4   
-0B67   FE 5D                  CP   "]"   
-0B69   28 03                  JR   z,nesting4   
-0B6B   FE 29                  CP   ")"   
-0B6D   C0                     RET   nz   
-0B6E                NESTING4:      
-0B6E   1D                     DEC   e   
-0B6F   C9                     RET      
-0B70                PROMPT:      
-0B70   CD 80 0B               CALL   printStr   
-0B73   0D 0A 3E 20 00         .CSTR   "\r\n> "   
-0B78   C9                     RET      
-0B79                CRLF:        
-0B79   CD 80 0B               CALL   printStr   
-0B7C   0D 0A 00               .CSTR   "\r\n"   
-0B7F   C9                     RET      
-0B80                             ; prints a null teminated string
-0B80                             ; the string should be immediately following the call
-0B80                PRINTSTR:      
-0B80   E3                     EX   (sp),hl   ; swap			
-0B81   CD 39 0B               CALL   prtstr   
-0B84   23                     INC   hl   ; inc past NUL
-0B85   E3                     EX   (sp),hl   ; put it back	
-0B86   C9                     RET      
-0B87                INIT:        
-0B87   DD 2A EE 23            LD   ix,(vNext)   
-0B8B   FD 21 00 21            LD   iy,STACK   
-0B8F   21 80 01               LD   hl,isysVars   
-0B92   11 E6 23               LD   de,sysVars   
-0B95   01 10 00               LD   bc,8 * 2   
-0B98   ED B0                  LDIR      
-0B9A   21 00 23               LD   hl,vars   ; 52 vars LO HI
-0B9D   06 34                  LD   b,26*2   
-0B9F   AF                     XOR   a   
-0BA0                INIT0:       
-0BA0   77                     LD   (hl),a   
-0BA1   23                     INC   hl   
-0BA2   10 FC                  DJNZ   init0   
-0BA4   C9                     RET      
-0BA5                START:       
-0BA5   31 00 21               LD   sp,STACK   ; start Monty
-0BA8   CD 87 0B               CALL   init   ; setups
-0BAB   CD 80 0B               CALL   printStr   ; prog count to stack, put code line 235 on stack then call print
-0BAE   1B 5B 32 4A 4D 6F 6E 74 79 20 56 30 2E 30 0D 0A 00 .CSTR   $1b,"[2JMonty V0.0\r\n"   
-0BBF                INTERPRET:      
-0BBF   CD 5F 0A               CALL   flushBuffer   
-0BC2   CD 70 0B               CALL   prompt   
-0BC5   01 00 00               LD   bc,0   ; load TIB length, decide char into tib or execute or control
-0BC8   21 00 21               LD   hl,TIB   
-0BCB   22 EA 23               LD   (vTIBPtr),hl   ; no chars in TIB so set end pointer to beginning
-0BCE                INTERPRET2:      ; calculate nesting
-0BCE   1E 00                  LD   e,0   ; initilize nesting value
-0BD0   C5                     PUSH   bc   ; save offset into TIB,
-0BD1                             ; bc is also the count of chars in TIB
-0BD1   21 00 21               LD   hl,TIB   ; hl is start of TIB
-0BD4   18 06                  JR   interpret4   
-0BD6                INTERPRET3:      
-0BD6   7E                     LD   a,(hl)   ; a = char in TIB
-0BD7   23                     INC   hl   ; inc pointer into TIB
-0BD8   0B                     DEC   bc   ; dec count of chars in TIB
-0BD9   CD 3E 0B               CALL   nesting   ; update nesting value
-0BDC                INTERPRET4:      
-0BDC   79                     LD   a,c   ; is count zero?
-0BDD   B0                     OR   b   
-0BDE   20 F6                  JR   nz,interpret3   ; if not loop
-0BE0   C1                     POP   bc   ; restore offset into TIB
-0BE1                INTERPRET5:      
-0BE1   CD 81 00               CALL   getchar   ; loop around waiting for character from serial port
-0BE4   FE 20                  CP   $20   ; compare to space
-0BE6   30 1E                  JR   nc,interpret6   ; if >= space, if below 20 set cary flag
-0BE8   FE 00                  CP   NUL   ; is it end of string? NUL end of string
-0BEA                             ; ???? NEEDED?
-0BEA   28 3B                  JR   z,interpret8   
-0BEC   FE 0D                  CP   "\r"   ; carriage return? ascii 13
-0BEE   28 24                  JR   z,interpret7   ; if anything else its macro/control
-0BF0   FE 05                  CP   CTRL_E   
-0BF2   CA 75 0C               JP   z,edit_   
-0BF5   FE 08                  CP   CTRL_H   
-0BF7   CA 65 0C               JP   z,backSpace_   
-0BFA   FE 0A                  CP   CTRL_J   
-0BFC   CA 8D 0C               JP   z,reEdit_   
-0BFF   FE 13                  CP   CTRL_S   
-0C01   CA 90 0C               JP   z,printStack_   
-0C04                             ; DB     lsb(edit_)       ; ENQ ^E  5
-0C04                             ; DB     lsb(reedit_)     ; LF  ^J 10
-0C04                             ; DB     lsb(list_)       ; FF  ^L 12
-0C04                             ; DB     lsb(printStack_) ; DLE ^P 16
-0C04                             ; DB lsb(depth_)      ;\#3    ( -- val )    depth of data stack
-0C04                             ; DB lsb(printStack_)   ;\#4    ( -- )        non-destructively prints stack
-0C04                             ; DB lsb(prompt_)     ;\#5    ( -- )        print MINT prompt
-0C04                             ; DB lsb(editDef_)    ;\#6    ( char -- )   edit command
-0C04                             ; DB lsb(aDup_)       ;\#7    ( adr -- )    dupe (used in asm tests)
-0C04                             ; DB     lsb(newln_)      ;a4    \$  prints a newline to output	
-0C04                             ; reedit_: DB "\\e\\@\\#6;"			; lastDef, edit. remembers last line edited
-0C04                             ; edit_: .cstr "`?`?\\#5\\#6;"      ; ?,key,prompt,edit
-0C04                             ; list_: .cstr "\\$26(\\i@65+\\#6\\c@0>(\\$))\\#5;" newln, loop 26 (index + "A", edit tib* > 0, newln),prompt
-0C04                             ; printStack_: .cstr "\\#4\\#5;"  ; print stack, prompt
-0C04                INTERPRET5A:      
-0C04                             ; ld (vTIBPtr),bc
-0C04                             ; ld bc,(vTIBPtr)
-0C04   18 C8                  JR   interpret2   
-0C06                INTERPRET6:      
-0C06   21 00 21               LD   hl,TIB   
-0C09   09                     ADD   hl,bc   
-0C0A   77                     LD   (hl),a   ; store the character in textbuf
-0C0B   03                     INC   bc   
-0C0C   CD 85 00               CALL   putchar   ; echo character to screen
-0C0F   CD 3E 0B               CALL   nesting   
-0C12   18 CD                  JR   interpret5   ; wait for next character
-0C14                INTERPRET7:      
-0C14   21 00 21               LD   hl,TIB   
-0C17   09                     ADD   hl,bc   
-0C18   36 0D                  LD   (hl),"\r"   ; store the crlf in textbuf
-0C1A   23                     INC   hl   
-0C1B   36 0A                  LD   (hl),"\n"   
-0C1D   23                     INC   hl   
-0C1E   03                     INC   bc   
-0C1F   03                     INC   bc   
-0C20   CD 79 0B               CALL   crlf   ; echo character to screen
-0C23   7B                     LD   a,e   ; if zero nesting append and ETX after \r
-0C24   B7                     OR   a   
-0C25   20 BA                  JR   nz,interpret5   
-0C27                INTERPRET8:      
-0C27   21 00 21               LD   hl,TIB   
-0C2A   09                     ADD   hl,bc   
-0C2B   22 EA 23               LD   (vTIBPtr),hl   
-0C2E   01 00 21               LD   bc,TIB   ; Instructions stored on heap at address HERE,
-0C31                             ; we pressed enter
-0C31   0B                     DEC   bc   
-0C32                NEXT:        
-0C32   03                     INC   bc   ; Increment the IP
-0C33   0A                     LD   a,(bc)   ; Get the next character and dispatch
-0C34   FE 20                  CP   " "   ; whitespace?
-0C36   28 FA                  JR   z,next   ; space? ignore
-0C38   38 09                  JR   c,next1   
-0C3A   D6 20                  SUB   " "   
-0C3C   6F                     LD   l,a   ; index into table
-0C3D   26 02                  LD   h,msb(opcodes)   ; start address of jump table
-0C3F   6E                     LD   l,(hl)   ; get low jump address
-0C40   26 03                  LD   h,msb(page4)   ; Load h with the 1st page address
-0C42   E9                     JP   (hl)   ; Jump to routine
-0C43                NEXT1:       
-0C43   FE 00                  CP   NUL   ; end of input string?
-0C45   28 03                  JR   z,exit   
-0C47   C3 BF 0B               JP   interpret   ; no, other whitespace, macros?
-0C4A                EXIT:        
-0C4A   03                     INC   bc   
-0C4B   60 69                  LD   hl,bc   
-0C4D   E9                     JP   (hl)   
-0C4E                RUN:         
-0C4E   C1                     POP   bc   
-0C4F   0B                     DEC   bc   
-0C50   DD E9                  JP   (ix)   
-0C52                ERROR:       
-0C52   CD 4E 0C               CALL   run   
-0C55   22 45 72 72 6F 72 20 22 2E 73 20 2E 00 DB   DQUOTE,"Error ",DQUOTE,".s .",0   
-0C62   C3 BF 0B               JP   interpret   
-0C65                BACKSPACE_:      
-0C65   79                     LD   a,c   
-0C66   B0                     OR   b   
-0C67   CA CE 0B               JP   z,interpret2   
-0C6A   0B                     DEC   bc   
-0C6B   CD 80 0B               CALL   printStr   
-0C6E   08 20 08 00            .CSTR   "\b \b"   
-0C72   C3 CE 0B               JP   interpret2   
-0C75                             ; edit
-0C75                EDIT_:       
-0C75   CD 4E 0C               CALL   run   
-0C78   22 76 61 72 3F 22 2E 73 20 2F 6B 2F 61 64 20 2E 68 00 DB   DQUOTE,"var?",DQUOTE,".s /k/ad .h",0   
-0C8A   C3 BF 0B               JP   interpret   
-0C8D                REEDIT_:      
-0C8D   C3 BF 0B               JP   interpret   
-0C90                PRINTSTACK_:      
-0C90   CD 4E 0C               CALL   run   
-0C93   2F 70 6B 00            .CSTR   "/pk"   
-0C97   C3 BF 0B               JP   interpret   
-0C9A                             ; editDef:
-0C9A                             ;     pop hl                      ; pop ret address
-0C9A                             ;     ex (sp),hl                  ; swap with TOS
-0C9A                             ;     push hl                     ; dup TOS
-0C9A                             ;     ld a,l                      ; a = ident
-0C9A                             ;     ld de,TIB                   ; de = start of TIB
-0C9A                             ;     ld (vTIBPtr),de             ; update TIB*
-0C9A                             ;     push ix                     ; save NEXT
-0C9A                             ;     ld ix,editDef0              ; NEXT = editDef0
-0C9A                             ;     jp lookupRef                ; convert letter into address
-0C9A                             ; editDef0:
-0C9A                             ;     ld e,(hl)                   ; de = (hl++)
-0C9A                             ;     inc hl
-0C9A                             ;     ld d,(hl)
-0C9A                             ;     ld a,d                      ; de == 0 ?
-0C9A                             ;     or e
-0C9A                             ;     jr z,editDef4
-0C9A                             ;     ld ix,editDef3              ; NEXT = editDef3
-0C9A                             ;     ex de,hl
-0C9A                             ;     ld a,(hl)
-0C9A                             ;     cp "{"
-0C9A                             ;     jr nz,editDef1
-0C9A                             ;     jp editBlock0               ; convert letter into address
-0C9A                             ; editDef1:
-0C9A                             ;     cp "("
-0C9A                             ;     jr nz,editDef2
-0C9A                             ;     jp editBlock0               ; convert letter into address
-0C9A                             ; editDef2:
-0C9A                             ;     jp editLambda
-0C9A                             ; editDef3:
-0C9A                             ;     ld a," "                    ; write assign
-0C9A                             ;     call writeChar
-0C9A                             ;     pop hl                      ; a = ident
-0C9A                             ;     ld a,l
-0C9A                             ;     call writeChar
-0C9A                             ;     ld a,"="                    ; write assign
-0C9A                             ;     call writeChar
-0C9A                             ;     ld ix,editDef4              ; NEXT = editDef4
-0C9A                             ;     jp printTIB
-0C9A                             ; editDef4:
-0C9A                             ;     pop ix                      ; restore NEXT
-0C9A                             ;     jp (ix)
-0C9A                             ; writeChar:
-0C9A                             ;     ld de,(vTIBPtr)             ; de = TIB*
-0C9A                             ;     ld (de),a                   ; write ident
-0C9A                             ;     inc de
-0C9A                             ;     ld (vTIBPtr),de             ; update TIB* to point to end of string
-0C9A                             ;     ret
-0C9A                             ; ; printTIB
-0C9A                             ; printTIB:
-0C9A                             ;     ld hl,(vTIBPtr)
-0C9A                             ;     ld de,TIB
-0C9A                             ;     or a
-0C9A                             ;     sbc hl,de
-0C9A                             ;     jp printTIB2
-0C9A                             ; printTIB1:
-0C9A                             ;     ld a,(de)
-0C9A                             ;     call putchar
-0C9A                             ; printTIB2:
-0C9A                             ;     ld a,l
-0C9A                             ;     or h
-0C9A                             ;     jr nz,printTIB1
-0C9A                             ;     jp (ix)
-0C9A                             ; editBlock:
-0C9A                             ;     pop hl                      ; hl = block*
-0C9A                             ; editBlock0:
-0C9A                             ;     push ix                     ; save next
-0C9A                             ;     push hl                     ; push block*
-0C9A                             ;     push hl                     ; push block*
-0C9A                             ;     ld ix,(editBlock2)
-0C9A                             ;     jp blockLength
-0C9A                             ; editBlock1:
-0C9A                             ;     pop hl                      ; bc = length, (sp) = IP
-0C9A                             ;     pop de                      ; de = block*
-0C9A                             ;     ld a,l
-0C9A                             ;     or h
-0C9A                             ;     jr z,editBlock2
-0C9A                             ;     push bc
-0C9A                             ;     ld bc,hl
-0C9A                             ;     ex de,hl                    ; hl = block*
-0C9A                             ;     ld de,(vTIBPtr)              ; de = TIB*
-0C9A                             ;     ldir                        ; copy block to TIB
-0C9A                             ;     ld (vTIBPtr),de              ; save TIB*
-0C9A                             ;     pop bc
-0C9A                             ; editBlock2:
-0C9A                             ;     pop ix                      ; restore next
-0C9A                             ;     jp (ix)
-0C9A                             ; editLambda:
-0C9A                             ;     jp (ix)
-0C9A                             ; editArray:
-0C9A                             ;     jp (ix)
-0C9A                             ; editArglist:
-0C9A                             ;     jp (ix)
-0C9A                             ; ; blockLength
-0C9A                             ; ; addr1 -- length
-0C9A                             ; blockLength:
-0C9A                             ;     pop hl                      ; block*
-0C9A                             ;     push hl                     ; save block*
-0C9A                             ;     inc hl                      ; skip first char
-0C9A                             ;     ld d,1                      ; increase nesting
-0C9A                             ; blockLength1:                   ; Skip to end of definition
-0C9A                             ;     ld a,(hl)                   ; Get the next character
-0C9A                             ;     inc hl                      ; Point to next character
-0C9A                             ;     cp " " + 1                  ; ignore whitespace
-0C9A                             ;     jr c,blockLength1
-0C9A                             ;     cp ")"
-0C9A                             ;     jr z,blockLength4
-0C9A                             ;     cp "}"
-0C9A                             ;     jr z,blockLength4
-0C9A                             ;     cp "]"
-0C9A                             ;     jr z,blockLength4
-0C9A                             ;     cp "("
-0C9A                             ;     jr z,blockLength2
-0C9A                             ;     cp "{"
-0C9A                             ;     jr z,blockLength2
-0C9A                             ;     cp "["
-0C9A                             ;     jr z,blockLength2
-0C9A                             ;     cp "'"
-0C9A                             ;     jr z,blockLength3
-0C9A                             ;     cp "`"
-0C9A                             ;     jr z,blockLength3
-0C9A                             ;     cp DQUOTE
-0C9A                             ;     jr z,blockLength3
-0C9A                             ;     jr blockLength1
-0C9A                             ; blockLength2:
-0C9A                             ;     inc d
-0C9A                             ;     jr blockLength1
-0C9A                             ; blockLength4:
-0C9A                             ;     dec d
-0C9A                             ;     jr nz, blockLength1         ; get the next element
-0C9A                             ; blockLength3:
-0C9A                             ;     ld a,$80
-0C9A                             ;     xor d
-0C9A                             ;     ld d,a
-0C9A                             ;     jr nz, blockLength1
-0C9A                             ;     pop hl                      ; hl = block*
-0C9A                             ;     or a
-0C9A                             ;     sbc hl,de
-0C9A                             ;     push hl
-0C9A                             ;     jp (ix)
-0C9A                             ; "`=> `\\a@2-\\#3 1-(",$22,"@\\b@(,)(.)2-)'\\$"
-0C9A                             ; \a start of stack \#3 depth \b base \$ prompt
-0C9A                             ; DW dStack               ; a vS0 start of datastack			
-0C9A                             ; DW FALSE                ; b vBase16
-0C9A                             ; DW 0                    ; c vTIBPtr an offset to the tib
-0C9A                             ; DW 0                    ; d
-0C9A                             ; DW 65                   ; e vLastDef "A" last command u defined
-0C9A                             ; DW 0                    ; f
-0C9A                             ; DW page6                ; g 256 bytes limits
-0C9A                             ; DW HEAP                 ; h vHeapPtr \h start of the free mem
-0C9A                             ; 
+0B30   23                     INC   hl   
+0B31   18 F3                  JR   jumpTable0   
+0B33                JUMPTABLE1:      
+0B33   0B                     DEC   bc   
+0B34                JUMPTABLE2:      
+0B34   23                     INC   hl   
+0B35   5E                     LD   e,(hl)   
+0B36   23                     INC   hl   
+0B37   56                     LD   d,(hl)   
+0B38   EB                     EX   de,hl   
+0B39   E9                     JP   (hl)   
+0B3A                PRTSTR0:      
+0B3A   CD 85 00               CALL   putchar   
+0B3D   23                     INC   hl   
+0B3E                PRTSTR:      
+0B3E   7E                     LD   a,(hl)   
+0B3F   B7                     OR   a   
+0B40   20 F8                  JR   nz,prtstr0   
+0B42   C9                     RET      
+0B43                             ; **************************************************************************
+0B43                             ; calculate nesting value
+0B43                             ; a is char to be tested,
+0B43                             ; e is the nesting value (initially 0)
+0B43                             ; e is increased by ( and [
+0B43                             ; e is decreased by ) and ]
+0B43                             ; e has its bit 7 toggled by `
+0B43                             ; limited to 127 levels
+0B43                             ; **************************************************************************
+0B43                NESTING:      
+0B43   FE 22                  CP   DQUOTE   ; quote char
+0B45   28 06                  JR   z,nesting0   
+0B47   FE 60                  CP   "`"   ; quote char
+0B49   28 02                  JR   z,nesting0   
+0B4B   18 0A                  JR   nesting1   
+0B4D                NESTING0:      
+0B4D   CB 7B                  BIT   7,e   
+0B4F   28 03                  JR   z,nesting1a   
+0B51   CB BB                  RES   7,e   
+0B53   C9                     RET      
+0B54                NESTING1A:      
+0B54   CB FB                  SET   7,e   
+0B56   C9                     RET      
+0B57                NESTING1:      
+0B57   CB 7B                  BIT   7,e   
+0B59   C0                     RET   nz   
+0B5A   FE 7B                  CP   "{"   
+0B5C   28 08                  JR   z,nesting2   
+0B5E   FE 5B                  CP   "["   
+0B60   28 04                  JR   z,nesting2   
+0B62   FE 28                  CP   "("   
+0B64   20 02                  JR   nz,nesting3   
+0B66                NESTING2:      
+0B66   1C                     INC   e   
+0B67   C9                     RET      
+0B68                NESTING3:      
+0B68   FE 7D                  CP   "}"   
+0B6A   28 07                  JR   z,nesting4   
+0B6C   FE 5D                  CP   "]"   
+0B6E   28 03                  JR   z,nesting4   
+0B70   FE 29                  CP   ")"   
+0B72   C0                     RET   nz   
+0B73                NESTING4:      
+0B73   1D                     DEC   e   
+0B74   C9                     RET      
+0B75                PROMPT:      
+0B75   CD 85 0B               CALL   printStr   
+0B78   0D 0A 3E 20 00         .CSTR   "\r\n> "   
+0B7D   C9                     RET      
+0B7E                CRLF:        
+0B7E   CD 85 0B               CALL   printStr   
+0B81   0D 0A 00               .CSTR   "\r\n"   
+0B84   C9                     RET      
+0B85                             ; prints a null teminated string
+0B85                             ; the string should be immediately following the call
+0B85                PRINTSTR:      
+0B85   E3                     EX   (sp),hl   ; swap			
+0B86   CD 3E 0B               CALL   prtstr   
+0B89   23                     INC   hl   ; inc past NUL
+0B8A   E3                     EX   (sp),hl   ; put it back	
+0B8B   C9                     RET      
+0B8C                INIT:        
+0B8C   DD 2A EE 23            LD   ix,(vNext)   
+0B90   FD 21 00 21            LD   iy,STACK   
+0B94   21 80 01               LD   hl,isysVars   
+0B97   11 E6 23               LD   de,sysVars   
+0B9A   01 10 00               LD   bc,8 * 2   
+0B9D   ED B0                  LDIR      
+0B9F   21 00 23               LD   hl,vars   ; 52 vars LO HI
+0BA2   06 34                  LD   b,26*2   
+0BA4   AF                     XOR   a   
+0BA5                INIT0:       
+0BA5   77                     LD   (hl),a   
+0BA6   23                     INC   hl   
+0BA7   10 FC                  DJNZ   init0   
+0BA9   C9                     RET      
+0BAA                START:       
+0BAA   31 00 21               LD   sp,STACK   ; start Monty
+0BAD   CD 8C 0B               CALL   init   ; setups
+0BB0   CD 85 0B               CALL   printStr   ; prog count to stack, put code line 235 on stack then call print
+0BB3   1B 5B 32 4A 4D 6F 6E 74 79 20 56 30 2E 30 0D 0A 00 .CSTR   $1b,"[2JMonty V0.0\r\n"   
+0BC4                INTERPRET:      
+0BC4   CD 64 0A               CALL   flushBuffer   
+0BC7   CD 75 0B               CALL   prompt   
+0BCA   01 00 00               LD   bc,0   ; load TIB length, decide char into tib or execute or control
+0BCD   21 00 21               LD   hl,TIB   
+0BD0   22 EA 23               LD   (vTIBPtr),hl   ; no chars in TIB so set end pointer to beginning
+0BD3                INTERPRET2:      ; calculate nesting
+0BD3   1E 00                  LD   e,0   ; initilize nesting value
+0BD5   C5                     PUSH   bc   ; save offset into TIB,
+0BD6                             ; bc is also the count of chars in TIB
+0BD6   21 00 21               LD   hl,TIB   ; hl is start of TIB
+0BD9   18 06                  JR   interpret4   
+0BDB                INTERPRET3:      
+0BDB   7E                     LD   a,(hl)   ; a = char in TIB
+0BDC   23                     INC   hl   ; inc pointer into TIB
+0BDD   0B                     DEC   bc   ; dec count of chars in TIB
+0BDE   CD 43 0B               CALL   nesting   ; update nesting value
+0BE1                INTERPRET4:      
+0BE1   79                     LD   a,c   ; is count zero?
+0BE2   B0                     OR   b   
+0BE3   20 F6                  JR   nz,interpret3   ; if not loop
+0BE5   C1                     POP   bc   ; restore offset into TIB
+0BE6                INTERPRET5:      
+0BE6   CD 81 00               CALL   getchar   ; loop around waiting for character from serial port
+0BE9   FE 20                  CP   $20   ; compare to space
+0BEB   30 1E                  JR   nc,interpret6   ; if >= space, if below 20 set cary flag
+0BED   FE 00                  CP   NUL   ; is it end of string? NUL end of string
+0BEF                             ; ???? NEEDED?
+0BEF   28 3B                  JR   z,interpret8   
+0BF1   FE 0D                  CP   "\r"   ; carriage return? ascii 13
+0BF3   28 24                  JR   z,interpret7   ; if anything else its macro/control
+0BF5   FE 05                  CP   CTRL_E   
+0BF7   CA 7A 0C               JP   z,edit_   
+0BFA   FE 08                  CP   CTRL_H   
+0BFC   CA 6A 0C               JP   z,backSpace_   
+0BFF   FE 0A                  CP   CTRL_J   
+0C01   CA 92 0C               JP   z,reEdit_   
+0C04   FE 13                  CP   CTRL_S   
+0C06   CA 95 0C               JP   z,printStack_   
+0C09                             ; DB     lsb(edit_)       ; ENQ ^E  5
+0C09                             ; DB     lsb(reedit_)     ; LF  ^J 10
+0C09                             ; DB     lsb(list_)       ; FF  ^L 12
+0C09                             ; DB     lsb(printStack_) ; DLE ^P 16
+0C09                             ; DB lsb(depth_)      ;\#3    ( -- val )    depth of data stack
+0C09                             ; DB lsb(printStack_)   ;\#4    ( -- )        non-destructively prints stack
+0C09                             ; DB lsb(prompt_)     ;\#5    ( -- )        print MINT prompt
+0C09                             ; DB lsb(editDef_)    ;\#6    ( char -- )   edit command
+0C09                             ; DB lsb(aDup_)       ;\#7    ( adr -- )    dupe (used in asm tests)
+0C09                             ; DB     lsb(newln_)      ;a4    \$  prints a newline to output	
+0C09                             ; reedit_: DB "\\e\\@\\#6;"			; lastDef, edit. remembers last line edited
+0C09                             ; edit_: .cstr "`?`?\\#5\\#6;"      ; ?,key,prompt,edit
+0C09                             ; list_: .cstr "\\$26(\\i@65+\\#6\\c@0>(\\$))\\#5;" newln, loop 26 (index + "A", edit tib* > 0, newln),prompt
+0C09                             ; printStack_: .cstr "\\#4\\#5;"  ; print stack, prompt
+0C09                INTERPRET5A:      
+0C09                             ; ld (vTIBPtr),bc
+0C09                             ; ld bc,(vTIBPtr)
+0C09   18 C8                  JR   interpret2   
+0C0B                INTERPRET6:      
+0C0B   21 00 21               LD   hl,TIB   
+0C0E   09                     ADD   hl,bc   
+0C0F   77                     LD   (hl),a   ; store the character in textbuf
+0C10   03                     INC   bc   
+0C11   CD 85 00               CALL   putchar   ; echo character to screen
+0C14   CD 43 0B               CALL   nesting   
+0C17   18 CD                  JR   interpret5   ; wait for next character
+0C19                INTERPRET7:      
+0C19   21 00 21               LD   hl,TIB   
+0C1C   09                     ADD   hl,bc   
+0C1D   36 0D                  LD   (hl),"\r"   ; store the crlf in textbuf
+0C1F   23                     INC   hl   
+0C20   36 0A                  LD   (hl),"\n"   
+0C22   23                     INC   hl   
+0C23   03                     INC   bc   
+0C24   03                     INC   bc   
+0C25   CD 7E 0B               CALL   crlf   ; echo character to screen
+0C28   7B                     LD   a,e   ; if zero nesting append and ETX after \r
+0C29   B7                     OR   a   
+0C2A   20 BA                  JR   nz,interpret5   
+0C2C                INTERPRET8:      
+0C2C   21 00 21               LD   hl,TIB   
+0C2F   09                     ADD   hl,bc   
+0C30   22 EA 23               LD   (vTIBPtr),hl   
+0C33   01 00 21               LD   bc,TIB   ; Instructions stored on heap at address HERE,
+0C36                             ; we pressed enter
+0C36   0B                     DEC   bc   
+0C37                NEXT:        
+0C37   03                     INC   bc   ; Increment the IP
+0C38   0A                     LD   a,(bc)   ; Get the next character and dispatch
+0C39   FE 20                  CP   " "   ; whitespace?
+0C3B   28 FA                  JR   z,next   ; space? ignore
+0C3D   38 09                  JR   c,next1   
+0C3F   D6 20                  SUB   " "   
+0C41   6F                     LD   l,a   ; index into table
+0C42   26 02                  LD   h,msb(opcodes)   ; start address of jump table
+0C44   6E                     LD   l,(hl)   ; get low jump address
+0C45   26 03                  LD   h,msb(page4)   ; Load h with the 1st page address
+0C47   E9                     JP   (hl)   ; Jump to routine
+0C48                NEXT1:       
+0C48   FE 00                  CP   NUL   ; end of input string?
+0C4A   28 03                  JR   z,exit   
+0C4C   C3 C4 0B               JP   interpret   ; no, other whitespace, macros?
+0C4F                EXIT:        
+0C4F   03                     INC   bc   
+0C50   60 69                  LD   hl,bc   
+0C52   E9                     JP   (hl)   
+0C53                RUN:         
+0C53   C1                     POP   bc   
+0C54   0B                     DEC   bc   
+0C55   DD E9                  JP   (ix)   
+0C57                ERROR:       
+0C57   CD 53 0C               CALL   run   
+0C5A   22 45 72 72 6F 72 20 22 2E 73 20 2E 00 DB   DQUOTE,"Error ",DQUOTE,".s .",0   
+0C67   C3 C4 0B               JP   interpret   
+0C6A                BACKSPACE_:      
+0C6A   79                     LD   a,c   
+0C6B   B0                     OR   b   
+0C6C   CA D3 0B               JP   z,interpret2   
+0C6F   0B                     DEC   bc   
+0C70   CD 85 0B               CALL   printStr   
+0C73   08 20 08 00            .CSTR   "\b \b"   
+0C77   C3 D3 0B               JP   interpret2   
+0C7A                             ; edit
+0C7A                EDIT_:       
+0C7A   CD 53 0C               CALL   run   
+0C7D   22 76 61 72 3F 22 2E 73 20 2F 6B 2F 61 64 20 2E 68 00 DB   DQUOTE,"var?",DQUOTE,".s /k/ad .h",0   
+0C8F   C3 C4 0B               JP   interpret   
+0C92                REEDIT_:      
+0C92   C3 C4 0B               JP   interpret   
+0C95                PRINTSTACK_:      
+0C95   CD 53 0C               CALL   run   
+0C98   2F 70 6B 00            .CSTR   "/pk"   
+0C9C   C3 C4 0B               JP   interpret   
+0C9F                             ; editDef:
+0C9F                             ;     pop hl                      ; pop ret address
+0C9F                             ;     ex (sp),hl                  ; swap with TOS
+0C9F                             ;     push hl                     ; dup TOS
+0C9F                             ;     ld a,l                      ; a = ident
+0C9F                             ;     ld de,TIB                   ; de = start of TIB
+0C9F                             ;     ld (vTIBPtr),de             ; update TIB*
+0C9F                             ;     push ix                     ; save NEXT
+0C9F                             ;     ld ix,editDef0              ; NEXT = editDef0
+0C9F                             ;     jp lookupRef                ; convert letter into address
+0C9F                             ; editDef0:
+0C9F                             ;     ld e,(hl)                   ; de = (hl++)
+0C9F                             ;     inc hl
+0C9F                             ;     ld d,(hl)
+0C9F                             ;     ld a,d                      ; de == 0 ?
+0C9F                             ;     or e
+0C9F                             ;     jr z,editDef4
+0C9F                             ;     ld ix,editDef3              ; NEXT = editDef3
+0C9F                             ;     ex de,hl
+0C9F                             ;     ld a,(hl)
+0C9F                             ;     cp "{"
+0C9F                             ;     jr nz,editDef1
+0C9F                             ;     jp editBlock0               ; convert letter into address
+0C9F                             ; editDef1:
+0C9F                             ;     cp "("
+0C9F                             ;     jr nz,editDef2
+0C9F                             ;     jp editBlock0               ; convert letter into address
+0C9F                             ; editDef2:
+0C9F                             ;     jp editLambda
+0C9F                             ; editDef3:
+0C9F                             ;     ld a," "                    ; write assign
+0C9F                             ;     call writeChar
+0C9F                             ;     pop hl                      ; a = ident
+0C9F                             ;     ld a,l
+0C9F                             ;     call writeChar
+0C9F                             ;     ld a,"="                    ; write assign
+0C9F                             ;     call writeChar
+0C9F                             ;     ld ix,editDef4              ; NEXT = editDef4
+0C9F                             ;     jp printTIB
+0C9F                             ; editDef4:
+0C9F                             ;     pop ix                      ; restore NEXT
+0C9F                             ;     jp (ix)
+0C9F                             ; writeChar:
+0C9F                             ;     ld de,(vTIBPtr)             ; de = TIB*
+0C9F                             ;     ld (de),a                   ; write ident
+0C9F                             ;     inc de
+0C9F                             ;     ld (vTIBPtr),de             ; update TIB* to point to end of string
+0C9F                             ;     ret
+0C9F                             ; ; printTIB
+0C9F                             ; printTIB:
+0C9F                             ;     ld hl,(vTIBPtr)
+0C9F                             ;     ld de,TIB
+0C9F                             ;     or a
+0C9F                             ;     sbc hl,de
+0C9F                             ;     jp printTIB2
+0C9F                             ; printTIB1:
+0C9F                             ;     ld a,(de)
+0C9F                             ;     call putchar
+0C9F                             ; printTIB2:
+0C9F                             ;     ld a,l
+0C9F                             ;     or h
+0C9F                             ;     jr nz,printTIB1
+0C9F                             ;     jp (ix)
+0C9F                             ; editBlock:
+0C9F                             ;     pop hl                      ; hl = block*
+0C9F                             ; editBlock0:
+0C9F                             ;     push ix                     ; save next
+0C9F                             ;     push hl                     ; push block*
+0C9F                             ;     push hl                     ; push block*
+0C9F                             ;     ld ix,(editBlock2)
+0C9F                             ;     jp blockLength
+0C9F                             ; editBlock1:
+0C9F                             ;     pop hl                      ; bc = length, (sp) = IP
+0C9F                             ;     pop de                      ; de = block*
+0C9F                             ;     ld a,l
+0C9F                             ;     or h
+0C9F                             ;     jr z,editBlock2
+0C9F                             ;     push bc
+0C9F                             ;     ld bc,hl
+0C9F                             ;     ex de,hl                    ; hl = block*
+0C9F                             ;     ld de,(vTIBPtr)              ; de = TIB*
+0C9F                             ;     ldir                        ; copy block to TIB
+0C9F                             ;     ld (vTIBPtr),de              ; save TIB*
+0C9F                             ;     pop bc
+0C9F                             ; editBlock2:
+0C9F                             ;     pop ix                      ; restore next
+0C9F                             ;     jp (ix)
+0C9F                             ; editLambda:
+0C9F                             ;     jp (ix)
+0C9F                             ; editArray:
+0C9F                             ;     jp (ix)
+0C9F                             ; editArglist:
+0C9F                             ;     jp (ix)
+0C9F                             ; ; blockLength
+0C9F                             ; ; addr1 -- length
+0C9F                             ; blockLength:
+0C9F                             ;     pop hl                      ; block*
+0C9F                             ;     push hl                     ; save block*
+0C9F                             ;     inc hl                      ; skip first char
+0C9F                             ;     ld d,1                      ; increase nesting
+0C9F                             ; blockLength1:                   ; Skip to end of definition
+0C9F                             ;     ld a,(hl)                   ; Get the next character
+0C9F                             ;     inc hl                      ; Point to next character
+0C9F                             ;     cp " " + 1                  ; ignore whitespace
+0C9F                             ;     jr c,blockLength1
+0C9F                             ;     cp ")"
+0C9F                             ;     jr z,blockLength4
+0C9F                             ;     cp "}"
+0C9F                             ;     jr z,blockLength4
+0C9F                             ;     cp "]"
+0C9F                             ;     jr z,blockLength4
+0C9F                             ;     cp "("
+0C9F                             ;     jr z,blockLength2
+0C9F                             ;     cp "{"
+0C9F                             ;     jr z,blockLength2
+0C9F                             ;     cp "["
+0C9F                             ;     jr z,blockLength2
+0C9F                             ;     cp "'"
+0C9F                             ;     jr z,blockLength3
+0C9F                             ;     cp "`"
+0C9F                             ;     jr z,blockLength3
+0C9F                             ;     cp DQUOTE
+0C9F                             ;     jr z,blockLength3
+0C9F                             ;     jr blockLength1
+0C9F                             ; blockLength2:
+0C9F                             ;     inc d
+0C9F                             ;     jr blockLength1
+0C9F                             ; blockLength4:
+0C9F                             ;     dec d
+0C9F                             ;     jr nz, blockLength1         ; get the next element
+0C9F                             ; blockLength3:
+0C9F                             ;     ld a,$80
+0C9F                             ;     xor d
+0C9F                             ;     ld d,a
+0C9F                             ;     jr nz, blockLength1
+0C9F                             ;     pop hl                      ; hl = block*
+0C9F                             ;     or a
+0C9F                             ;     sbc hl,de
+0C9F                             ;     push hl
+0C9F                             ;     jp (ix)
+0C9F                             ; "`=> `\\a@2-\\#3 1-(",$22,"@\\b@(,)(.)2-)'\\$"
+0C9F                             ; \a start of stack \#3 depth \b base \$ prompt
+0C9F                             ; DW dStack               ; a vS0 start of datastack			
+0C9F                             ; DW FALSE                ; b vBase16
+0C9F                             ; DW 0                    ; c vTIBPtr an offset to the tib
+0C9F                             ; DW 0                    ; d
+0C9F                             ; DW 65                   ; e vLastDef "A" last command u defined
+0C9F                             ; DW 0                    ; f
+0C9F                             ; DW page6                ; g 256 bytes limits
+0C9F                             ; DW HEAP                 ; h vHeapPtr \h start of the free mem
+0C9F                             ; 
 2000                          .ORG   RAMSTART   
 2000                STKSIZE:   EQU   $100   ; Stack size
 2000                TIBSIZE:   EQU   $100   ; 256 bytes
@@ -2688,7 +2690,7 @@ OVRN:               0005 DEFINED AT LINE 66 IN IOSerial.asm
 PE:                 0006 DEFINED AT LINE 67 IN IOSerial.asm
 IRQ:                0007 DEFINED AT LINE 68 IN IOSerial.asm
 KEYBUF:             0000 DEFINED AT LINE 76 IN IOSerial.asm
-SCAN:               0B0A DEFINED AT LINE 1725 IN MAIN.asm
+SCAN:               0B0F DEFINED AT LINE 1727 IN MAIN.asm
 DISPLY:             0002 DEFINED AT LINE 78 IN IOSerial.asm
 PORT3:              0003 DEFINED AT LINE 79 IN IOSerial.asm
 PORT4:              0004 DEFINED AT LINE 80 IN IOSerial.asm
@@ -2717,12 +2719,12 @@ RXDATA:             0078 DEFINED AT LINE 315 IN IOSerial.asm
 RXCHAR:             0078 DEFINED AT LINE 316 IN IOSerial.asm
                     > USED AT LINE 320 IN IOSerial.asm
 GETCHAR:            0081 DEFINED AT LINE 440 IN IOSerial.asm
-                    > USED AT LINE 1697 IN MAIN.asm
-                    > USED AT LINE 1918 IN MAIN.asm
+                    > USED AT LINE 1699 IN MAIN.asm
+                    > USED AT LINE 1920 IN MAIN.asm
 PUTCHAR:            0085 DEFINED AT LINE 444 IN IOSerial.asm
-                    > USED AT LINE 1568 IN MAIN.asm
-                    > USED AT LINE 1794 IN MAIN.asm
-                    > USED AT LINE 1963 IN MAIN.asm
+                    > USED AT LINE 1570 IN MAIN.asm
+                    > USED AT LINE 1796 IN MAIN.asm
+                    > USED AT LINE 1965 IN MAIN.asm
 RESET:              008B DEFINED AT LINE 450 IN IOSerial.asm
                     > USED AT LINE 103 IN IOSerial.asm
 TRUE:               00-1 DEFINED AT LINE 16 IN MAIN.asm
@@ -2741,29 +2743,29 @@ NUL:                0000 DEFINED AT LINE 18 IN MAIN.asm
                     > USED AT LINE 1257 IN MAIN.asm
                     > USED AT LINE 1317 IN MAIN.asm
                     > USED AT LINE 1324 IN MAIN.asm
-                    > USED AT LINE 1505 IN MAIN.asm
-                    > USED AT LINE 1518 IN MAIN.asm
-                    > USED AT LINE 1544 IN MAIN.asm
-                    > USED AT LINE 1632 IN MAIN.asm
-                    > USED AT LINE 1921 IN MAIN.asm
-                    > USED AT LINE 2002 IN MAIN.asm
+                    > USED AT LINE 1507 IN MAIN.asm
+                    > USED AT LINE 1520 IN MAIN.asm
+                    > USED AT LINE 1546 IN MAIN.asm
+                    > USED AT LINE 1634 IN MAIN.asm
+                    > USED AT LINE 1923 IN MAIN.asm
+                    > USED AT LINE 2004 IN MAIN.asm
 DQUOTE:             0022 DEFINED AT LINE 19 IN MAIN.asm
                     > USED AT LINE 579 IN MAIN.asm
                     > USED AT LINE 1194 IN MAIN.asm
-                    > USED AT LINE 1813 IN MAIN.asm
-                    > USED AT LINE 2016 IN MAIN.asm
-                    > USED AT LINE 2031 IN MAIN.asm
+                    > USED AT LINE 1815 IN MAIN.asm
+                    > USED AT LINE 2018 IN MAIN.asm
+                    > USED AT LINE 2033 IN MAIN.asm
 CTRL_C:             0003 DEFINED AT LINE 20 IN MAIN.asm
 CTRL_E:             0005 DEFINED AT LINE 21 IN MAIN.asm
-                    > USED AT LINE 1927 IN MAIN.asm
-CTRL_H:             0008 DEFINED AT LINE 22 IN MAIN.asm
                     > USED AT LINE 1929 IN MAIN.asm
-CTRL_J:             000A DEFINED AT LINE 23 IN MAIN.asm
+CTRL_H:             0008 DEFINED AT LINE 22 IN MAIN.asm
                     > USED AT LINE 1931 IN MAIN.asm
+CTRL_J:             000A DEFINED AT LINE 23 IN MAIN.asm
+                    > USED AT LINE 1933 IN MAIN.asm
 CTRL_L:             000C DEFINED AT LINE 24 IN MAIN.asm
 CTRL_P:             0010 DEFINED AT LINE 25 IN MAIN.asm
 CTRL_S:             0013 DEFINED AT LINE 26 IN MAIN.asm
-                    > USED AT LINE 1933 IN MAIN.asm
+                    > USED AT LINE 1935 IN MAIN.asm
 TMAGIC:             00AA DEFINED AT LINE 29 IN MAIN.asm
                     > USED AT LINE 419 IN MAIN.asm
 TRESERV:            00A0 DEFINED AT LINE 30 IN MAIN.asm
@@ -2777,7 +2779,7 @@ TLAMBDA:            00A6 DEFINED AT LINE 36 IN MAIN.asm
 TARGLST:            00A7 DEFINED AT LINE 37 IN MAIN.asm
 MACROS:             0180 DEFINED AT LINE 51 IN MAIN.asm
 ISYSVARS:           0180 DEFINED AT LINE 56 IN MAIN.asm
-                    > USED AT LINE 1871 IN MAIN.asm
+                    > USED AT LINE 1873 IN MAIN.asm
 OPCODES:            0200 DEFINED AT LINE 66 IN MAIN.asm
 PAGE4:              0300 DEFINED AT LINE 169 IN MAIN.asm
 PLUS_:              0300 DEFINED AT LINE 171 IN MAIN.asm
@@ -2846,7 +2848,7 @@ XOR:                03B7 DEFINED AT LINE 321 IN MAIN.asm
 XOR1:               03B8 DEFINED AT LINE 323 IN MAIN.asm
                     > USED AT LINE 335 IN MAIN.asm
 INVERT:             03C2 DEFINED AT LINE 333 IN MAIN.asm
-                    > USED AT LINE 1504 IN MAIN.asm
+                    > USED AT LINE 1506 IN MAIN.asm
 DOLLAR:             03C7 DEFINED AT LINE 340 IN MAIN.asm
                     > USED AT LINE 178 IN MAIN.asm
 ARG:                03C7 DEFINED AT LINE 341 IN MAIN.asm
@@ -2928,7 +2930,7 @@ BLOCKSTART6:        0538 DEFINED AT LINE 613 IN MAIN.asm
 RBRACE:             053B DEFINED AT LINE 617 IN MAIN.asm
                     > USED AT LINE 191 IN MAIN.asm
 BLOCKEND:           053B DEFINED AT LINE 618 IN MAIN.asm
-                    > USED AT LINE 1462 IN MAIN.asm
+                    > USED AT LINE 1463 IN MAIN.asm
 BLOCKEND1:          056D DEFINED AT LINE 640 IN MAIN.asm
                     > USED AT LINE 633 IN MAIN.asm
 BLOCKEND2:          0579 DEFINED AT LINE 647 IN MAIN.asm
@@ -3001,7 +3003,7 @@ GO:                 06B4 DEFINED AT LINE 862 IN MAIN.asm
                     > USED AT LINE 788 IN MAIN.asm
                     > USED AT LINE 795 IN MAIN.asm
                     > USED AT LINE 1323 IN MAIN.asm
-                    > USED AT LINE 1543 IN MAIN.asm
+                    > USED AT LINE 1545 IN MAIN.asm
 GO1:                06B5 DEFINED AT LINE 864 IN MAIN.asm
                     > USED AT LINE 1044 IN MAIN.asm
                     > USED AT LINE 1046 IN MAIN.asm
@@ -3106,9 +3108,9 @@ SUB1:               087E DEFINED AT LINE 1230 IN MAIN.asm
 ERROR1:             0887 DEFINED AT LINE 1238 IN MAIN.asm
                     > USED AT LINE 1258 IN MAIN.asm
                     > USED AT LINE 1318 IN MAIN.asm
-                    > USED AT LINE 1506 IN MAIN.asm
-                    > USED AT LINE 1519 IN MAIN.asm
-                    > USED AT LINE 1633 IN MAIN.asm
+                    > USED AT LINE 1508 IN MAIN.asm
+                    > USED AT LINE 1521 IN MAIN.asm
+                    > USED AT LINE 1635 IN MAIN.asm
 COMMENT:            088E DEFINED AT LINE 1243 IN MAIN.asm
                     > USED AT LINE 708 IN MAIN.asm
                     > USED AT LINE 1247 IN MAIN.asm
@@ -3130,224 +3132,224 @@ BUFFERARRAY:        08EC DEFINED AT LINE 1322 IN MAIN.asm
                     > USED AT LINE 1304 IN MAIN.asm
 BUFFERCHAR:         0920 DEFINED AT LINE 1331 IN MAIN.asm
                     > USED AT LINE 1306 IN MAIN.asm
-BUFFERDEC:          092B DEFINED AT LINE 1341 IN MAIN.asm
+BUFFERDEC:          092E DEFINED AT LINE 1342 IN MAIN.asm
                     > USED AT LINE 1308 IN MAIN.asm
-BUFFERDEC0:         0942 DEFINED AT LINE 1357 IN MAIN.asm
-                    > USED AT LINE 1345 IN MAIN.asm
-BUFFERDEC1:         0952 DEFINED AT LINE 1371 IN MAIN.asm
-                    > USED AT LINE 1359 IN MAIN.asm
-BUFFERDEC2:         0972 DEFINED AT LINE 1385 IN MAIN.asm
-                    > USED AT LINE 1374 IN MAIN.asm
-                    > USED AT LINE 1376 IN MAIN.asm
-                    > USED AT LINE 1378 IN MAIN.asm
-                    > USED AT LINE 1380 IN MAIN.asm
-                    > USED AT LINE 1383 IN MAIN.asm
-BUFFERDEC3:         0974 DEFINED AT LINE 1387 IN MAIN.asm
-                    > USED AT LINE 1390 IN MAIN.asm
-BUFFERDEC4:         0984 DEFINED AT LINE 1399 IN MAIN.asm
-                    > USED AT LINE 1394 IN MAIN.asm
-BUFFERDEC5:         0985 DEFINED AT LINE 1401 IN MAIN.asm
-                    > USED AT LINE 1398 IN MAIN.asm
-BUFFERHEX:          098B DEFINED AT LINE 1411 IN MAIN.asm
+BUFFERDEC0:         0945 DEFINED AT LINE 1358 IN MAIN.asm
+                    > USED AT LINE 1346 IN MAIN.asm
+BUFFERDEC1:         0955 DEFINED AT LINE 1372 IN MAIN.asm
+                    > USED AT LINE 1360 IN MAIN.asm
+BUFFERDEC2:         0975 DEFINED AT LINE 1386 IN MAIN.asm
+                    > USED AT LINE 1375 IN MAIN.asm
+                    > USED AT LINE 1377 IN MAIN.asm
+                    > USED AT LINE 1379 IN MAIN.asm
+                    > USED AT LINE 1381 IN MAIN.asm
+                    > USED AT LINE 1384 IN MAIN.asm
+BUFFERDEC3:         0977 DEFINED AT LINE 1388 IN MAIN.asm
+                    > USED AT LINE 1391 IN MAIN.asm
+BUFFERDEC4:         0987 DEFINED AT LINE 1400 IN MAIN.asm
+                    > USED AT LINE 1395 IN MAIN.asm
+BUFFERDEC5:         0988 DEFINED AT LINE 1402 IN MAIN.asm
+                    > USED AT LINE 1399 IN MAIN.asm
+BUFFERHEX:          098E DEFINED AT LINE 1412 IN MAIN.asm
                     > USED AT LINE 1310 IN MAIN.asm
-BUFFERHEX1:         09A6 DEFINED AT LINE 1427 IN MAIN.asm
-                    > USED AT LINE 1418 IN MAIN.asm
-                    > USED AT LINE 1420 IN MAIN.asm
-BUFFERHEX2:         09AF DEFINED AT LINE 1435 IN MAIN.asm
-                    > USED AT LINE 1433 IN MAIN.asm
-BREAK:              09BA DEFINED AT LINE 1447 IN MAIN.asm
+BUFFERHEX1:         09A9 DEFINED AT LINE 1428 IN MAIN.asm
+                    > USED AT LINE 1419 IN MAIN.asm
+                    > USED AT LINE 1421 IN MAIN.asm
+BUFFERHEX2:         09B2 DEFINED AT LINE 1436 IN MAIN.asm
+                    > USED AT LINE 1434 IN MAIN.asm
+BREAK:              09BD DEFINED AT LINE 1448 IN MAIN.asm
                     > USED AT LINE 1312 IN MAIN.asm
-BREAK1:             09C1 DEFINED AT LINE 1453 IN MAIN.asm
-                    > USED AT LINE 1451 IN MAIN.asm
-BUFFERSTRING:       09D4 DEFINED AT LINE 1466 IN MAIN.asm
+BREAK1:             09C4 DEFINED AT LINE 1454 IN MAIN.asm
+                    > USED AT LINE 1452 IN MAIN.asm
+BUFFERSTRING:       09D7 DEFINED AT LINE 1467 IN MAIN.asm
                     > USED AT LINE 1314 IN MAIN.asm
-BUFFERSTRING0:      09DB DEFINED AT LINE 1470 IN MAIN.asm
-                    > USED AT LINE 1477 IN MAIN.asm
-BUFFERSTRING1:      09DE DEFINED AT LINE 1474 IN MAIN.asm
-                    > USED AT LINE 1469 IN MAIN.asm
-BUFFERXSPACES:      09EB DEFINED AT LINE 1484 IN MAIN.asm
+BUFFERSTRING0:      09DE DEFINED AT LINE 1471 IN MAIN.asm
+                    > USED AT LINE 1478 IN MAIN.asm
+BUFFERSTRING1:      09E1 DEFINED AT LINE 1475 IN MAIN.asm
+                    > USED AT LINE 1470 IN MAIN.asm
+BUFFERXSPACES:      09EE DEFINED AT LINE 1485 IN MAIN.asm
                     > USED AT LINE 1316 IN MAIN.asm
-BUFFERXSPACES1:     09F1 DEFINED AT LINE 1488 IN MAIN.asm
-                    > USED AT LINE 1495 IN MAIN.asm
-BUFFERXSPACES2:     09F5 DEFINED AT LINE 1492 IN MAIN.asm
-                    > USED AT LINE 1487 IN MAIN.asm
-COMMAND_I:          09FE DEFINED AT LINE 1499 IN MAIN.asm
+BUFFERXSPACES1:     09F5 DEFINED AT LINE 1489 IN MAIN.asm
+                    > USED AT LINE 1497 IN MAIN.asm
+BUFFERXSPACES2:     09FA DEFINED AT LINE 1494 IN MAIN.asm
+                    > USED AT LINE 1488 IN MAIN.asm
+COMMAND_I:          0A03 DEFINED AT LINE 1501 IN MAIN.asm
                     > USED AT LINE 722 IN MAIN.asm
-COMMAND_P:          0A0A DEFINED AT LINE 1508 IN MAIN.asm
+COMMAND_P:          0A0F DEFINED AT LINE 1510 IN MAIN.asm
                     > USED AT LINE 730 IN MAIN.asm
-PARTIAL:            0A1C DEFINED AT LINE 1523 IN MAIN.asm
-                    > USED AT LINE 1511 IN MAIN.asm
-PRINTBUFFER:        0A3C DEFINED AT LINE 1542 IN MAIN.asm
+PARTIAL:            0A21 DEFINED AT LINE 1525 IN MAIN.asm
                     > USED AT LINE 1513 IN MAIN.asm
-FLUSHBUFFER:        0A5F DEFINED AT LINE 1550 IN MAIN.asm
-                    > USED AT LINE 1891 IN MAIN.asm
-PRINTCHARS:         0A6E DEFINED AT LINE 1560 IN MAIN.asm
+PRINTBUFFER:        0A41 DEFINED AT LINE 1544 IN MAIN.asm
                     > USED AT LINE 1515 IN MAIN.asm
-PRINTCHARS1:        0A75 DEFINED AT LINE 1566 IN MAIN.asm
-                    > USED AT LINE 1575 IN MAIN.asm
-PRINTCHARS2:        0A7B DEFINED AT LINE 1571 IN MAIN.asm
-                    > USED AT LINE 1556 IN MAIN.asm
-                    > USED AT LINE 1563 IN MAIN.asm
-PRINTSTACK:         0A80 DEFINED AT LINE 1579 IN MAIN.asm
+FLUSHBUFFER:        0A64 DEFINED AT LINE 1552 IN MAIN.asm
+                    > USED AT LINE 1893 IN MAIN.asm
+PRINTCHARS:         0A73 DEFINED AT LINE 1562 IN MAIN.asm
                     > USED AT LINE 1517 IN MAIN.asm
-SIZE:               0A82 DEFINED AT LINE 1609 IN MAIN.asm
+PRINTCHARS1:        0A7A DEFINED AT LINE 1568 IN MAIN.asm
+                    > USED AT LINE 1577 IN MAIN.asm
+PRINTCHARS2:        0A80 DEFINED AT LINE 1573 IN MAIN.asm
+                    > USED AT LINE 1558 IN MAIN.asm
+                    > USED AT LINE 1565 IN MAIN.asm
+PRINTSTACK:         0A85 DEFINED AT LINE 1581 IN MAIN.asm
+                    > USED AT LINE 1519 IN MAIN.asm
+SIZE:               0A87 DEFINED AT LINE 1611 IN MAIN.asm
                     > USED AT LINE 732 IN MAIN.asm
-COMMAND_V:          0A8C DEFINED AT LINE 1620 IN MAIN.asm
+COMMAND_V:          0A91 DEFINED AT LINE 1622 IN MAIN.asm
                     > USED AT LINE 736 IN MAIN.asm
-CONSTBUFSTART:      0AA1 DEFINED AT LINE 1635 IN MAIN.asm
-                    > USED AT LINE 1629 IN MAIN.asm
-CONSTHEAPSTART:     0AA6 DEFINED AT LINE 1639 IN MAIN.asm
-CONSTTIBSTART:      0AAB DEFINED AT LINE 1643 IN MAIN.asm
+CONSTBUFSTART:      0AA6 DEFINED AT LINE 1637 IN MAIN.asm
                     > USED AT LINE 1631 IN MAIN.asm
-VARBUFPTR:          0AB0 DEFINED AT LINE 1647 IN MAIN.asm
-                    > USED AT LINE 1623 IN MAIN.asm
-VARHEAPPTR:         0AB9 DEFINED AT LINE 1652 IN MAIN.asm
+CONSTHEAPSTART:     0AAB DEFINED AT LINE 1641 IN MAIN.asm
+CONSTTIBSTART:      0AB0 DEFINED AT LINE 1645 IN MAIN.asm
+                    > USED AT LINE 1633 IN MAIN.asm
+VARBUFPTR:          0AB5 DEFINED AT LINE 1649 IN MAIN.asm
                     > USED AT LINE 1625 IN MAIN.asm
-VARTIBPTR:          0AC2 DEFINED AT LINE 1657 IN MAIN.asm
+VARHEAPPTR:         0ABE DEFINED AT LINE 1654 IN MAIN.asm
                     > USED AT LINE 1627 IN MAIN.asm
-VARIABLE:           0ACB DEFINED AT LINE 1662 IN MAIN.asm
+VARTIBPTR:          0AC7 DEFINED AT LINE 1659 IN MAIN.asm
+                    > USED AT LINE 1629 IN MAIN.asm
+VARIABLE:           0AD0 DEFINED AT LINE 1664 IN MAIN.asm
                     > USED AT LINE 294 IN MAIN.asm
-                    > USED AT LINE 1650 IN MAIN.asm
-                    > USED AT LINE 1655 IN MAIN.asm
-                    > USED AT LINE 1660 IN MAIN.asm
-CONSTANT:           0ACE DEFINED AT LINE 1664 IN MAIN.asm
-                    > USED AT LINE 1637 IN MAIN.asm
-                    > USED AT LINE 1641 IN MAIN.asm
-                    > USED AT LINE 1645 IN MAIN.asm
-CHARS:              0AD1 DEFINED AT LINE 1669 IN MAIN.asm
+                    > USED AT LINE 1652 IN MAIN.asm
+                    > USED AT LINE 1657 IN MAIN.asm
+                    > USED AT LINE 1662 IN MAIN.asm
+CONSTANT:           0AD3 DEFINED AT LINE 1666 IN MAIN.asm
+                    > USED AT LINE 1639 IN MAIN.asm
+                    > USED AT LINE 1643 IN MAIN.asm
+                    > USED AT LINE 1647 IN MAIN.asm
+CHARS:              0AD6 DEFINED AT LINE 1671 IN MAIN.asm
                     > USED AT LINE 714 IN MAIN.asm
-CHARS1:             0AD4 DEFINED AT LINE 1671 IN MAIN.asm
-                    > USED AT LINE 1716 IN MAIN.asm
-DECIMAL:            0AD9 DEFINED AT LINE 1675 IN MAIN.asm
+CHARS1:             0AD9 DEFINED AT LINE 1673 IN MAIN.asm
+                    > USED AT LINE 1718 IN MAIN.asm
+DECIMAL:            0ADE DEFINED AT LINE 1677 IN MAIN.asm
                     > USED AT LINE 716 IN MAIN.asm
-DECIMAL1:           0ADC DEFINED AT LINE 1677 IN MAIN.asm
-                    > USED AT LINE 1682 IN MAIN.asm
-HEXADECIMAL:        0AE1 DEFINED AT LINE 1680 IN MAIN.asm
+DECIMAL1:           0AE1 DEFINED AT LINE 1679 IN MAIN.asm
+                    > USED AT LINE 1684 IN MAIN.asm
+HEXADECIMAL:        0AE6 DEFINED AT LINE 1682 IN MAIN.asm
                     > USED AT LINE 720 IN MAIN.asm
-INPUT:              0AE7 DEFINED AT LINE 1686 IN MAIN.asm
-                    > USED AT LINE 1502 IN MAIN.asm
-KEY:                0AF2 DEFINED AT LINE 1696 IN MAIN.asm
+INPUT:              0AEC DEFINED AT LINE 1688 IN MAIN.asm
+                    > USED AT LINE 1504 IN MAIN.asm
+KEY:                0AF7 DEFINED AT LINE 1698 IN MAIN.asm
                     > USED AT LINE 724 IN MAIN.asm
-OUTPUT:             0AFB DEFINED AT LINE 1705 IN MAIN.asm
+OUTPUT:             0B00 DEFINED AT LINE 1707 IN MAIN.asm
                     > USED AT LINE 728 IN MAIN.asm
-NUMBERS:            0B04 DEFINED AT LINE 1714 IN MAIN.asm
+NUMBERS:            0B09 DEFINED AT LINE 1716 IN MAIN.asm
                     > USED AT LINE 726 IN MAIN.asm
-FILTER:             0B0A DEFINED AT LINE 1723 IN MAIN.asm
-MAP:                0B0A DEFINED AT LINE 1724 IN MAIN.asm
-ARGS0A1L_:          0B0C DEFINED AT LINE 1731 IN MAIN.asm
-ARGS0A1L:           0B0E DEFINED AT LINE 1734 IN MAIN.asm
-ARGS1A0L_:          0B0F DEFINED AT LINE 1737 IN MAIN.asm
-ARGS1A0L:           0B11 DEFINED AT LINE 1740 IN MAIN.asm
+FILTER:             0B0F DEFINED AT LINE 1725 IN MAIN.asm
+MAP:                0B0F DEFINED AT LINE 1726 IN MAIN.asm
+ARGS0A1L_:          0B11 DEFINED AT LINE 1733 IN MAIN.asm
+ARGS0A1L:           0B13 DEFINED AT LINE 1736 IN MAIN.asm
+ARGS1A0L_:          0B14 DEFINED AT LINE 1739 IN MAIN.asm
+ARGS1A0L:           0B16 DEFINED AT LINE 1742 IN MAIN.asm
                     > USED AT LINE 770 IN MAIN.asm
                     > USED AT LINE 777 IN MAIN.asm
                     > USED AT LINE 784 IN MAIN.asm
                     > USED AT LINE 791 IN MAIN.asm
                     > USED AT LINE 798 IN MAIN.asm
-                    > USED AT LINE 1546 IN MAIN.asm
-ARGS1A1L_:          0B12 DEFINED AT LINE 1743 IN MAIN.asm
-ARGS1A1L:           0B14 DEFINED AT LINE 1746 IN MAIN.asm
-ARGS2A0L_:          0B16 DEFINED AT LINE 1749 IN MAIN.asm
-ARGS2A0L:           0B18 DEFINED AT LINE 1752 IN MAIN.asm
-ARGS1A2L_:          0B1A DEFINED AT LINE 1755 IN MAIN.asm
-ARGS1A2L:           0B1C DEFINED AT LINE 1758 IN MAIN.asm
+                    > USED AT LINE 1548 IN MAIN.asm
+ARGS1A1L_:          0B17 DEFINED AT LINE 1745 IN MAIN.asm
+ARGS1A1L:           0B19 DEFINED AT LINE 1748 IN MAIN.asm
+ARGS2A0L_:          0B1B DEFINED AT LINE 1751 IN MAIN.asm
+ARGS2A0L:           0B1D DEFINED AT LINE 1754 IN MAIN.asm
+ARGS1A2L_:          0B1F DEFINED AT LINE 1757 IN MAIN.asm
+ARGS1A2L:           0B21 DEFINED AT LINE 1760 IN MAIN.asm
                     > USED AT LINE 1326 IN MAIN.asm
-JUMPTABLE:          0B1F DEFINED AT LINE 1769 IN MAIN.asm
+JUMPTABLE:          0B24 DEFINED AT LINE 1771 IN MAIN.asm
                     > USED AT LINE 706 IN MAIN.asm
                     > USED AT LINE 754 IN MAIN.asm
                     > USED AT LINE 1252 IN MAIN.asm
                     > USED AT LINE 1302 IN MAIN.asm
-                    > USED AT LINE 1500 IN MAIN.asm
-                    > USED AT LINE 1509 IN MAIN.asm
-                    > USED AT LINE 1621 IN MAIN.asm
-JUMPTABLE0:         0B21 DEFINED AT LINE 1772 IN MAIN.asm
-                    > USED AT LINE 1782 IN MAIN.asm
-JUMPTABLE1:         0B2E DEFINED AT LINE 1783 IN MAIN.asm
-                    > USED AT LINE 1775 IN MAIN.asm
-JUMPTABLE2:         0B2F DEFINED AT LINE 1785 IN MAIN.asm
-                    > USED AT LINE 1778 IN MAIN.asm
-PRTSTR0:            0B35 DEFINED AT LINE 1793 IN MAIN.asm
-                    > USED AT LINE 1799 IN MAIN.asm
-PRTSTR:             0B39 DEFINED AT LINE 1796 IN MAIN.asm
-                    > USED AT LINE 1863 IN MAIN.asm
-NESTING:            0B3E DEFINED AT LINE 1812 IN MAIN.asm
-                    > USED AT LINE 1909 IN MAIN.asm
-                    > USED AT LINE 1964 IN MAIN.asm
-NESTING0:           0B48 DEFINED AT LINE 1818 IN MAIN.asm
-                    > USED AT LINE 1814 IN MAIN.asm
+                    > USED AT LINE 1502 IN MAIN.asm
+                    > USED AT LINE 1511 IN MAIN.asm
+                    > USED AT LINE 1623 IN MAIN.asm
+JUMPTABLE0:         0B26 DEFINED AT LINE 1774 IN MAIN.asm
+                    > USED AT LINE 1784 IN MAIN.asm
+JUMPTABLE1:         0B33 DEFINED AT LINE 1785 IN MAIN.asm
+                    > USED AT LINE 1777 IN MAIN.asm
+JUMPTABLE2:         0B34 DEFINED AT LINE 1787 IN MAIN.asm
+                    > USED AT LINE 1780 IN MAIN.asm
+PRTSTR0:            0B3A DEFINED AT LINE 1795 IN MAIN.asm
+                    > USED AT LINE 1801 IN MAIN.asm
+PRTSTR:             0B3E DEFINED AT LINE 1798 IN MAIN.asm
+                    > USED AT LINE 1865 IN MAIN.asm
+NESTING:            0B43 DEFINED AT LINE 1814 IN MAIN.asm
+                    > USED AT LINE 1911 IN MAIN.asm
+                    > USED AT LINE 1966 IN MAIN.asm
+NESTING0:           0B4D DEFINED AT LINE 1820 IN MAIN.asm
                     > USED AT LINE 1816 IN MAIN.asm
-NESTING1A:          0B4F DEFINED AT LINE 1823 IN MAIN.asm
-                    > USED AT LINE 1820 IN MAIN.asm
-NESTING1:           0B52 DEFINED AT LINE 1826 IN MAIN.asm
-                    > USED AT LINE 1817 IN MAIN.asm
-NESTING2:           0B61 DEFINED AT LINE 1835 IN MAIN.asm
-                    > USED AT LINE 1830 IN MAIN.asm
+                    > USED AT LINE 1818 IN MAIN.asm
+NESTING1A:          0B54 DEFINED AT LINE 1825 IN MAIN.asm
+                    > USED AT LINE 1822 IN MAIN.asm
+NESTING1:           0B57 DEFINED AT LINE 1828 IN MAIN.asm
+                    > USED AT LINE 1819 IN MAIN.asm
+NESTING2:           0B66 DEFINED AT LINE 1837 IN MAIN.asm
                     > USED AT LINE 1832 IN MAIN.asm
-NESTING3:           0B63 DEFINED AT LINE 1838 IN MAIN.asm
                     > USED AT LINE 1834 IN MAIN.asm
-NESTING4:           0B6E DEFINED AT LINE 1845 IN MAIN.asm
-                    > USED AT LINE 1840 IN MAIN.asm
+NESTING3:           0B68 DEFINED AT LINE 1840 IN MAIN.asm
+                    > USED AT LINE 1836 IN MAIN.asm
+NESTING4:           0B73 DEFINED AT LINE 1847 IN MAIN.asm
                     > USED AT LINE 1842 IN MAIN.asm
-PROMPT:             0B70 DEFINED AT LINE 1849 IN MAIN.asm
-                    > USED AT LINE 1892 IN MAIN.asm
-CRLF:               0B79 DEFINED AT LINE 1854 IN MAIN.asm
-                    > USED AT LINE 1976 IN MAIN.asm
-PRINTSTR:           0B80 DEFINED AT LINE 1861 IN MAIN.asm
-                    > USED AT LINE 1850 IN MAIN.asm
-                    > USED AT LINE 1855 IN MAIN.asm
-                    > USED AT LINE 1887 IN MAIN.asm
-                    > USED AT LINE 2024 IN MAIN.asm
-INIT:               0B87 DEFINED AT LINE 1868 IN MAIN.asm
+                    > USED AT LINE 1844 IN MAIN.asm
+PROMPT:             0B75 DEFINED AT LINE 1851 IN MAIN.asm
+                    > USED AT LINE 1894 IN MAIN.asm
+CRLF:               0B7E DEFINED AT LINE 1856 IN MAIN.asm
+                    > USED AT LINE 1978 IN MAIN.asm
+PRINTSTR:           0B85 DEFINED AT LINE 1863 IN MAIN.asm
+                    > USED AT LINE 1852 IN MAIN.asm
+                    > USED AT LINE 1857 IN MAIN.asm
+                    > USED AT LINE 1889 IN MAIN.asm
+                    > USED AT LINE 2026 IN MAIN.asm
+INIT:               0B8C DEFINED AT LINE 1870 IN MAIN.asm
                     > USED AT LINE 7
-                    > USED AT LINE 1886 IN MAIN.asm
-INIT0:              0BA0 DEFINED AT LINE 1878 IN MAIN.asm
-                    > USED AT LINE 1881 IN MAIN.asm
-START:              0BA5 DEFINED AT LINE 1884 IN MAIN.asm
+                    > USED AT LINE 1888 IN MAIN.asm
+INIT0:              0BA5 DEFINED AT LINE 1880 IN MAIN.asm
+                    > USED AT LINE 1883 IN MAIN.asm
+START:              0BAA DEFINED AT LINE 1886 IN MAIN.asm
                     > USED AT LINE 8
-INTERPRET:          0BBF DEFINED AT LINE 1890 IN MAIN.asm
-                    > USED AT LINE 2004 IN MAIN.asm
+INTERPRET:          0BC4 DEFINED AT LINE 1892 IN MAIN.asm
+                    > USED AT LINE 2006 IN MAIN.asm
+                    > USED AT LINE 2019 IN MAIN.asm
+                    > USED AT LINE 2034 IN MAIN.asm
+                    > USED AT LINE 2037 IN MAIN.asm
+                    > USED AT LINE 2042 IN MAIN.asm
+INTERPRET2:         0BD3 DEFINED AT LINE 1900 IN MAIN.asm
+                    > USED AT LINE 1958 IN MAIN.asm
+                    > USED AT LINE 2024 IN MAIN.asm
+                    > USED AT LINE 2028 IN MAIN.asm
+INTERPRET3:         0BDB DEFINED AT LINE 1907 IN MAIN.asm
+                    > USED AT LINE 1916 IN MAIN.asm
+INTERPRET4:         0BE1 DEFINED AT LINE 1913 IN MAIN.asm
+                    > USED AT LINE 1905 IN MAIN.asm
+INTERPRET5:         0BE6 DEFINED AT LINE 1919 IN MAIN.asm
+                    > USED AT LINE 1967 IN MAIN.asm
+                    > USED AT LINE 1981 IN MAIN.asm
+INTERPRET5A:        0C09 DEFINED AT LINE 1955 IN MAIN.asm
+INTERPRET6:         0C0B DEFINED AT LINE 1960 IN MAIN.asm
+                    > USED AT LINE 1922 IN MAIN.asm
+INTERPRET7:         0C19 DEFINED AT LINE 1969 IN MAIN.asm
+                    > USED AT LINE 1927 IN MAIN.asm
+INTERPRET8:         0C2C DEFINED AT LINE 1983 IN MAIN.asm
+                    > USED AT LINE 1925 IN MAIN.asm
+NEXT:               0C37 DEFINED AT LINE 1991 IN MAIN.asm
+                    > USED AT LINE 61 IN MAIN.asm
+                    > USED AT LINE 1995 IN MAIN.asm
+NEXT1:              0C48 DEFINED AT LINE 2003 IN MAIN.asm
+                    > USED AT LINE 1996 IN MAIN.asm
+EXIT:               0C4F DEFINED AT LINE 2007 IN MAIN.asm
+                    > USED AT LINE 2005 IN MAIN.asm
+RUN:                0C53 DEFINED AT LINE 2011 IN MAIN.asm
                     > USED AT LINE 2017 IN MAIN.asm
                     > USED AT LINE 2032 IN MAIN.asm
-                    > USED AT LINE 2035 IN MAIN.asm
                     > USED AT LINE 2040 IN MAIN.asm
-INTERPRET2:         0BCE DEFINED AT LINE 1898 IN MAIN.asm
-                    > USED AT LINE 1956 IN MAIN.asm
-                    > USED AT LINE 2022 IN MAIN.asm
-                    > USED AT LINE 2026 IN MAIN.asm
-INTERPRET3:         0BD6 DEFINED AT LINE 1905 IN MAIN.asm
-                    > USED AT LINE 1914 IN MAIN.asm
-INTERPRET4:         0BDC DEFINED AT LINE 1911 IN MAIN.asm
-                    > USED AT LINE 1903 IN MAIN.asm
-INTERPRET5:         0BE1 DEFINED AT LINE 1917 IN MAIN.asm
-                    > USED AT LINE 1965 IN MAIN.asm
-                    > USED AT LINE 1979 IN MAIN.asm
-INTERPRET5A:        0C04 DEFINED AT LINE 1953 IN MAIN.asm
-INTERPRET6:         0C06 DEFINED AT LINE 1958 IN MAIN.asm
-                    > USED AT LINE 1920 IN MAIN.asm
-INTERPRET7:         0C14 DEFINED AT LINE 1967 IN MAIN.asm
-                    > USED AT LINE 1925 IN MAIN.asm
-INTERPRET8:         0C27 DEFINED AT LINE 1981 IN MAIN.asm
-                    > USED AT LINE 1923 IN MAIN.asm
-NEXT:               0C32 DEFINED AT LINE 1989 IN MAIN.asm
-                    > USED AT LINE 61 IN MAIN.asm
-                    > USED AT LINE 1993 IN MAIN.asm
-NEXT1:              0C43 DEFINED AT LINE 2001 IN MAIN.asm
-                    > USED AT LINE 1994 IN MAIN.asm
-EXIT:               0C4A DEFINED AT LINE 2005 IN MAIN.asm
-                    > USED AT LINE 2003 IN MAIN.asm
-RUN:                0C4E DEFINED AT LINE 2009 IN MAIN.asm
-                    > USED AT LINE 2015 IN MAIN.asm
-                    > USED AT LINE 2030 IN MAIN.asm
-                    > USED AT LINE 2038 IN MAIN.asm
-ERROR:              0C52 DEFINED AT LINE 2014 IN MAIN.asm
+ERROR:              0C57 DEFINED AT LINE 2016 IN MAIN.asm
                     > USED AT LINE 1241 IN MAIN.asm
-BACKSPACE_:         0C65 DEFINED AT LINE 2019 IN MAIN.asm
-                    > USED AT LINE 1930 IN MAIN.asm
-EDIT_:              0C75 DEFINED AT LINE 2029 IN MAIN.asm
-                    > USED AT LINE 1928 IN MAIN.asm
-REEDIT_:            0C8D DEFINED AT LINE 2034 IN MAIN.asm
+BACKSPACE_:         0C6A DEFINED AT LINE 2021 IN MAIN.asm
                     > USED AT LINE 1932 IN MAIN.asm
-PRINTSTACK_:        0C90 DEFINED AT LINE 2037 IN MAIN.asm
+EDIT_:              0C7A DEFINED AT LINE 2031 IN MAIN.asm
+                    > USED AT LINE 1930 IN MAIN.asm
+REEDIT_:            0C92 DEFINED AT LINE 2036 IN MAIN.asm
                     > USED AT LINE 1934 IN MAIN.asm
+PRINTSTACK_:        0C95 DEFINED AT LINE 2039 IN MAIN.asm
+                    > USED AT LINE 1936 IN MAIN.asm
 STKSIZE:            0100 DEFINED AT LINE 1 IN ram.asm
                     > USED AT LINE 6 IN ram.asm
 TIBSIZE:            0100 DEFINED AT LINE 2 IN ram.asm
@@ -3358,24 +3360,24 @@ STACK:              2100 DEFINED AT LINE 7 IN ram.asm
                     > USED AT LINE 451 IN IOSerial.asm
                     > USED AT LINE 6
                     > USED AT LINE 880 IN MAIN.asm
-                    > USED AT LINE 1870 IN MAIN.asm
-                    > USED AT LINE 1885 IN MAIN.asm
+                    > USED AT LINE 1872 IN MAIN.asm
+                    > USED AT LINE 1887 IN MAIN.asm
 TIB:                2100 DEFINED AT LINE 10 IN ram.asm
                     > USED AT LINE 59 IN MAIN.asm
-                    > USED AT LINE 1644 IN MAIN.asm
-                    > USED AT LINE 1895 IN MAIN.asm
-                    > USED AT LINE 1902 IN MAIN.asm
-                    > USED AT LINE 1959 IN MAIN.asm
-                    > USED AT LINE 1968 IN MAIN.asm
-                    > USED AT LINE 1982 IN MAIN.asm
-                    > USED AT LINE 1985 IN MAIN.asm
+                    > USED AT LINE 1646 IN MAIN.asm
+                    > USED AT LINE 1897 IN MAIN.asm
+                    > USED AT LINE 1904 IN MAIN.asm
+                    > USED AT LINE 1961 IN MAIN.asm
+                    > USED AT LINE 1970 IN MAIN.asm
+                    > USED AT LINE 1984 IN MAIN.asm
+                    > USED AT LINE 1987 IN MAIN.asm
 BUF:                2200 DEFINED AT LINE 13 IN ram.asm
                     > USED AT LINE 60 IN MAIN.asm
-                    > USED AT LINE 1552 IN MAIN.asm
-                    > USED AT LINE 1636 IN MAIN.asm
+                    > USED AT LINE 1554 IN MAIN.asm
+                    > USED AT LINE 1638 IN MAIN.asm
 VARS:               2300 DEFINED AT LINE 16 IN ram.asm
                     > USED AT LINE 1291 IN MAIN.asm
-                    > USED AT LINE 1875 IN MAIN.asm
+                    > USED AT LINE 1877 IN MAIN.asm
 RESTARTS:           23D0 DEFINED AT LINE 18 IN ram.asm
 RST08:              23D0 DEFINED AT LINE 20 IN ram.asm
                     > USED AT LINE 107 IN IOSerial.asm
@@ -3409,38 +3411,38 @@ PUTCVEC:            23E4 DEFINED AT LINE 30 IN ram.asm
                     > USED AT LINE 446 IN IOSerial.asm
                     > USED AT LINE 465 IN IOSerial.asm
 SYSVARS:            23E6 DEFINED AT LINE 32 IN ram.asm
-                    > USED AT LINE 1872 IN MAIN.asm
+                    > USED AT LINE 1874 IN MAIN.asm
 VDATAWIDTH:         23E6 DEFINED AT LINE 36 IN ram.asm
                     > USED AT LINE 426 IN MAIN.asm
                     > USED AT LINE 464 IN MAIN.asm
                     > USED AT LINE 491 IN MAIN.asm
-                    > USED AT LINE 1672 IN MAIN.asm
+                    > USED AT LINE 1674 IN MAIN.asm
 VNUMBASE:           23E8 DEFINED AT LINE 37 IN ram.asm
-                    > USED AT LINE 1678 IN MAIN.asm
+                    > USED AT LINE 1680 IN MAIN.asm
 VTIBPTR:            23EA DEFINED AT LINE 38 IN ram.asm
-                    > USED AT LINE 1658 IN MAIN.asm
-                    > USED AT LINE 1659 IN MAIN.asm
-                    > USED AT LINE 1896 IN MAIN.asm
-                    > USED AT LINE 1984 IN MAIN.asm
+                    > USED AT LINE 1660 IN MAIN.asm
+                    > USED AT LINE 1661 IN MAIN.asm
+                    > USED AT LINE 1898 IN MAIN.asm
+                    > USED AT LINE 1986 IN MAIN.asm
 VBUFPTR:            23EC DEFINED AT LINE 39 IN ram.asm
-                    > USED AT LINE 1333 IN MAIN.asm
-                    > USED AT LINE 1336 IN MAIN.asm
-                    > USED AT LINE 1342 IN MAIN.asm
-                    > USED AT LINE 1350 IN MAIN.asm
+                    > USED AT LINE 1334 IN MAIN.asm
+                    > USED AT LINE 1337 IN MAIN.asm
+                    > USED AT LINE 1343 IN MAIN.asm
                     > USED AT LINE 1351 IN MAIN.asm
-                    > USED AT LINE 1413 IN MAIN.asm
-                    > USED AT LINE 1424 IN MAIN.asm
-                    > USED AT LINE 1468 IN MAIN.asm
-                    > USED AT LINE 1478 IN MAIN.asm
+                    > USED AT LINE 1352 IN MAIN.asm
+                    > USED AT LINE 1414 IN MAIN.asm
+                    > USED AT LINE 1425 IN MAIN.asm
+                    > USED AT LINE 1469 IN MAIN.asm
                     > USED AT LINE 1479 IN MAIN.asm
-                    > USED AT LINE 1486 IN MAIN.asm
-                    > USED AT LINE 1496 IN MAIN.asm
-                    > USED AT LINE 1551 IN MAIN.asm
+                    > USED AT LINE 1480 IN MAIN.asm
+                    > USED AT LINE 1487 IN MAIN.asm
+                    > USED AT LINE 1498 IN MAIN.asm
                     > USED AT LINE 1553 IN MAIN.asm
-                    > USED AT LINE 1648 IN MAIN.asm
-                    > USED AT LINE 1649 IN MAIN.asm
+                    > USED AT LINE 1555 IN MAIN.asm
+                    > USED AT LINE 1650 IN MAIN.asm
+                    > USED AT LINE 1651 IN MAIN.asm
 VNEXT:              23EE DEFINED AT LINE 40 IN ram.asm
-                    > USED AT LINE 1869 IN MAIN.asm
+                    > USED AT LINE 1871 IN MAIN.asm
 VHEAPPTR:           23F0 DEFINED AT LINE 41 IN ram.asm
                     > USED AT LINE 410 IN MAIN.asm
                     > USED AT LINE 448 IN MAIN.asm
@@ -3454,11 +3456,11 @@ VHEAPPTR:           23F0 DEFINED AT LINE 41 IN ram.asm
                     > USED AT LINE 1139 IN MAIN.asm
                     > USED AT LINE 1182 IN MAIN.asm
                     > USED AT LINE 1202 IN MAIN.asm
-                    > USED AT LINE 1525 IN MAIN.asm
-                    > USED AT LINE 1530 IN MAIN.asm
-                    > USED AT LINE 1531 IN MAIN.asm
-                    > USED AT LINE 1653 IN MAIN.asm
-                    > USED AT LINE 1654 IN MAIN.asm
+                    > USED AT LINE 1527 IN MAIN.asm
+                    > USED AT LINE 1532 IN MAIN.asm
+                    > USED AT LINE 1533 IN MAIN.asm
+                    > USED AT LINE 1655 IN MAIN.asm
+                    > USED AT LINE 1656 IN MAIN.asm
 VPOINTER:           23F2 DEFINED AT LINE 45 IN ram.asm
                     > USED AT LINE 292 IN MAIN.asm
                     > USED AT LINE 293 IN MAIN.asm
@@ -3466,7 +3468,7 @@ VPOINTER:           23F2 DEFINED AT LINE 45 IN ram.asm
                     > USED AT LINE 471 IN MAIN.asm
                     > USED AT LINE 489 IN MAIN.asm
                     > USED AT LINE 1016 IN MAIN.asm
-                    > USED AT LINE 1663 IN MAIN.asm
+                    > USED AT LINE 1665 IN MAIN.asm
 VREMAIN:            23F4 DEFINED AT LINE 46 IN ram.asm
                     > USED AT LINE 749 IN MAIN.asm
                     > USED AT LINE 1110 IN MAIN.asm
@@ -3487,8 +3489,8 @@ VTEMP1:             23FE DEFINED AT LINE 55 IN ram.asm
                     > USED AT LINE 938 IN MAIN.asm
                     > USED AT LINE 945 IN MAIN.asm
                     > USED AT LINE 951 IN MAIN.asm
-                    > USED AT LINE 1526 IN MAIN.asm
-                    > USED AT LINE 1529 IN MAIN.asm
+                    > USED AT LINE 1528 IN MAIN.asm
+                    > USED AT LINE 1531 IN MAIN.asm
 VTEMP2:             2400 DEFINED AT LINE 56 IN ram.asm
                     > USED AT LINE 624 IN MAIN.asm
                     > USED AT LINE 664 IN MAIN.asm
@@ -3500,4 +3502,4 @@ TBPTR:              2406 DEFINED AT LINE 59 IN ram.asm
 HEAP:               2408 DEFINED AT LINE 61 IN ram.asm
                     > USED AT LINE 62 IN MAIN.asm
                     > USED AT LINE 596 IN MAIN.asm
-                    > USED AT LINE 1640 IN MAIN.asm
+                    > USED AT LINE 1642 IN MAIN.asm
