@@ -36,6 +36,7 @@
     ; call printStr
     ; .cstr ")\r\n"
 
+    call flushBuffer
     halt
     .cstr
 expect%%M:
@@ -47,6 +48,7 @@ expect%%M:
     call init
     call execStr
     .cstr code1
+    call flushBuffer
     expect code1,val1
 .endm
 

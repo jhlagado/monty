@@ -753,50 +753,15 @@ div:
 dot:
     call jumpTable
     db "a"
-    dw dotArray
-    db "h"
-    dw dotHex
-    db "s"
-    dw dotStr
+    dw bufferArray
     db "c"
-    dw dotChar
+    dw bufferChar
+    db "s"
+    dw bufferString
+    db "x"
+    dw bufferXChars
     db NUL
-    dw dotDec
-
-dotArray:
-    call go
-    dw NUL                      ; null closure
-    dw $+4
-    dw args1A0L
-    .cstr "{$a/ba/pb}"          ; block
-
-dotHex:
-    call go
-    dw NUL                      ; null closure
-    dw $+4
-    dw args1A0L
-    .cstr "{$a/bh/pb}"          ; block
-
-dotStr:
-    call go
-    dw NUL                      ; null closure
-    dw $+4
-    dw args1A0L
-    .cstr "{$a/bs/pb}"          ; block
-
-dotChar:
-    call go
-    dw NUL                      ; null closure
-    dw $+4
-    dw args1A0L
-    .cstr "{$a/bc/pb}"          ; block
-
-dotDec:
-    call go
-    dw NUL                      ; closure
-    dw $+4
-    dw args1A0L
-    .cstr "{$a/bd/pb}"          ; block
+    dw bufferNumber
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -1304,16 +1269,14 @@ command_b:
     dw bufferArray
     db "c"
     dw bufferChar
-    db "d"
-    dw bufferDec
-    db "h"
-    dw bufferHex
+    db "n"
+    dw bufferNumber
     db "r"
     dw break
     db "s"
     dw bufferString
     db "x"
-    dw bufferXSpaces
+    dw bufferXChars
     db NUL
     dw error1
 
@@ -1326,19 +1289,15 @@ bufferArray:
     dw args1A2L
     .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
-; /bc buffer char             
-; char -- 
-bufferChar:
-    pop hl                      ; e = char
-    ld a,l
-    ld de,(vBufPtr)             ; hl = buffer*
-    ld (de),a                   ; e -> buffer*
-    inc e                       ; buffer*++, wraparound
-    ld (vBufPtr),de             ; save buffer*' in pointer
-    jp (ix)
+; /bd buffer decimal
+; value --                      
+bufferNumber:        
+    ld a,(vNumBase)
+    cp 16
+    jr z,bufferHex              ; else falls through
 
 ; /bd buffer decimal
-; value --                      ; length can be used to rewind buffer*
+; value --                      
 bufferDec:        
     ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
@@ -1348,6 +1307,7 @@ bufferDec:
     ld a," "                    ; append space to buffer
     ld (de),a
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
     ld hl,(vBufPtr)             ; hl = buffer*
     ld (vBufPtr),de             ; update buffer* with buffer*'
     jp (ix)
@@ -1404,17 +1364,19 @@ bufferDec5:
     exx
     ld (de),a
     inc e
+    call z,flushBuffer
     exx
     ret
 
 ; /bh buffer hex
-; value --                      ; length can be used to rewind buffer*
+; value --                      
 bufferHex:                      
     pop hl                      ; hl = value
     ld de,(vBufPtr)
     ld a,"#"                    ; # prefix
     ld (de),a
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
     ld a,h
     call bufferHex1
     ld a,l
@@ -1422,6 +1384,7 @@ bufferHex:
     ld a," "                    ; append space to buffer
     ld (de),a
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
     ld (vBufPtr),de
     jp (ix)
 
@@ -1441,6 +1404,7 @@ bufferHex2:
 	daa
 	ld (de),a
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
 	ret
 
 ; /br break from loop             
@@ -1471,6 +1435,7 @@ bufferString:
 bufferString0:
     ld (de),a                   ; a -> buffer*
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
     inc hl
 bufferString1:
     ld a,(hl)                   ; a <- string*
@@ -1480,22 +1445,34 @@ bufferString1:
     ld (vBufPtr),de             ; save buffer*' in pointer
     jp (ix)
 
-; /bx buffered x spaces             
-; length --
-bufferXSpaces:
-    pop hl                      ; bc = length
-    ld de,(vBufPtr)             ; hl = buffer*
-    jr bufferXSpaces2
-bufferXSpaces1:
-    ld a," "
+; /bc buffer char             
+; char -- 
+bufferChar:
+    ld hl,1
+    jr bufferXChars0
+
+; /bx buffered x chars             
+; char length --
+bufferXChars:
+    pop hl                      ; hl = length
+bufferXChars0:
+    pop de                      ; a' = char
+    ld a,e
+    ex af,af'
+    ld de,(vBufPtr)             ; de = buffer*
+    jr bufferXChars2
+bufferXChars1:
+    ex af,af'
     ld (de),a
+    ex af,af'
     inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
     dec hl
-bufferXSpaces2:
+bufferXChars2:
     ld a,l
     or h
-    jr nz,bufferXSpaces1
-    ld (vBufPtr),hl             ; save buffer*'
+    jr nz,bufferXChars1
+    ld (vBufPtr),de             ; save buffer*'
     jp (ix)
 
 command_i:
@@ -1547,15 +1524,6 @@ printBuffer:
     dw $+4
     dw args1A0L
     .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
-
-; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
-flushBuffer:
-    ld hl,(vBufPtr)
-    ld de,BUF
-    ld (vBufPtr),de
-    or a
-    sbc hl,de
-    jr printChars2
 
 ; printChars
 ; char* len --
@@ -1763,6 +1731,22 @@ args1A2L:
 ;*******************************************************************
 ; general routines
 ;*******************************************************************
+
+; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
+flushBuffer:
+    push af
+    push de
+    push hl
+    ld hl,(vBufPtr)
+    ld de,BUF
+    ld (vBufPtr),de
+    or a
+    sbc hl,de
+    call printChars2
+    pop hl
+    pop de
+    pop af
+    ret
 
 ; followed by a table
 ; db char
