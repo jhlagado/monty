@@ -13,9 +13,6 @@
 ;
 ; *****************************************************************************
 
-STKSIZE     equ     $80         ; Stack size
-TIBSIZE     equ     $100	    ; 256 bytes , along line!
-BUFSIZE     equ     $100	    ; 256 bytes , along line!
 TRUE        equ     -1		    ; C-style true
 FALSE       equ     0
 NUL         equ     0           ; exit code
@@ -1549,25 +1546,33 @@ printBuffer:
     dw args1A0L
     .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
 
+; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
+flushBuffer:
+    ld hl,(vBufPtr)
+    ld de,BUF
+    ld (vBufPtr),de
+    or a
+    sbc hl,de
+    jr printChars2
 
 ; printChars
 ; char* len --
-; prints whatever in in buffer starting from TIB and ending at vTIBPtr* 
 printChars:
-    pop hl                              ; hl = count - 1
-    dec hl                      
+    pop hl                              ; hl = count
     pop de                              ; de = char*
-    jp printChars2
+    call printChars2
+    jp (ix)
+
 printChars1:
+    ld a,(de)                           ; print char at char*
+    call putchar
     inc de                              ; char*++
     dec hl                              ; count--
 printChars2:
-    ld a,(de)                           ; print char at char*
-    call putchar
     ld a,l                              ; count == 0?
     or h
-    jr nz,printChars1                   ; if not loop
-    jp (ix)
+    ret z
+    jr printChars1                      ; if not loop
 
 ; /pk print stack
 ; -- 
@@ -1880,9 +1885,10 @@ start:
     ld sp,STACK		            ; start Monty
     call init		            ; setups
     call printStr		        ; prog count to stack, put code line 235 on stack then call print
-    .cstr "Monty V0.0\r\n"
+    .cstr $1b,"[2JMonty V0.0\r\n"
 
 interpret:
+    call flushBuffer
     call prompt
 
     ld bc,0                     ; load TIB length, decide char into tib or execute or control    

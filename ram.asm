@@ -1,11 +1,19 @@
-.align $100
+STKSIZE     equ     $100        ; Stack size
+TIBSIZE     equ     $100	    ; 256 bytes
+BUFSIZE     equ     $100	    ; 256 bytes, wraps
 
+.align $100
             ds STKSIZE
 STACK:
 
 .align $100
+TIB:        ds TIBSIZE          ; must be one page, lsb of vTIBPtr is length and wraps around
 
-vars:
+.align $100
+BUF:        ds BUFSIZE          ; must be one page, lsb of vBufPtr is length and wraps around
+
+.align $100
+VARS:
             ds 26 * 2 * 4       ; 52 vars, 3 bytes, RST LO HI CHAR
 restarts:
 
@@ -49,12 +57,5 @@ vTemp2:     ds 2                ;
 vLastDef:   ds 2                ; 
 vHashStr:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
-
-.align $100
-TIB:        ds TIBSIZE
-BUF:        ds BUFSIZE
-
-.align $100
-pad:        ds $100
 
 HEAP:         
