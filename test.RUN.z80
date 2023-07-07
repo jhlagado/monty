@@ -13,7 +13,7 @@ buf2%%M:
 .endm
 
 LD sp,STACK
-CALL init
+CALL coldBoot
 ld hl,testGetCharImpl                       ; change getchar implmentation to use tbuf
 LD (GETCVEC),hl
 

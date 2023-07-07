@@ -1855,6 +1855,31 @@ titleStr:
     .cstr ESC,"[2JMonty V0.0\r\n",0,0,0
 
 init:
+    ld hl,titleStr
+    ld de,warmBuf
+    ld b,20
+init1:
+    ld a,(de)
+    cp (hl)
+    jr nz,coldBoot0
+    inc de
+    inc hl
+    djnz init1
+
+warmBoot:
+    ld bc,(vSavedIP)            ; restore IP
+    ld sp,(vSavedSP)            ; restore SP
+    ld ix,(vSavedNext)          ; restore Next
+    ld iy,(vSavedBP)            ; restore BP
+    jp start1
+
+coldBoot0:    
+    ld hl,titleStr              ; copy titleStr to warmBuf
+    ld de,warmBuf
+    ld b,20
+    ldir
+
+coldBoot:    
     ld hl,isysVars
     ld de,sysVars
     ld bc,8 * 2
@@ -1863,10 +1888,10 @@ init:
     ld hl,vars                  ; 52 vars LO HI 
     ld b,26*2                       
     xor a
-init0:
+coldBoot1:
     ld (hl),a
     inc hl
-    djnz init0
+    djnz coldBoot1
 
     ld ix,(vNext)
     ld iy,STACK
@@ -1875,9 +1900,9 @@ init0:
 start:
     ld sp,STACK		            ; start Monty
     call init		            ; setups
-    call printStr		        ; prog count to stack, put code line 235 on stack then call print
-    .cstr $1b,"[2JMonty V0.0\r\n"
 start1:
+    ld hl,warmBuf
+    call prtstr 		        ; prog count to stack, put code line 235 on stack then call print
 
 interpret:
 
@@ -1984,10 +2009,14 @@ interpret8:
     ld hl,TIB
     add hl,bc
     ld (vTIBPtr),hl
-    ld bc,TIB                   ; Instructions stored on heap at address HERE, 
-                                ; we pressed enter
-    dec bc
+    ld bc,TIB                   
 
+    ld (vSavedIP),bc            ; save IP
+    ld (vSavedSP),sp            ; save SP
+    ld (vSavedNext),ix          ; save Next
+    ld (vSavedBP),iy            ; save BP
+                                
+    dec bc
 next:        
     inc bc                      ; Increment the IP
     ld a,(bc)                   ; Get the next character and dispatch

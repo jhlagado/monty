@@ -5,8 +5,8 @@
 
 .include "IOSerial.asm"
 
-    ld SP,STACK
-    call init
+    ; ld SP,STACK
+    ; call coldBoot
     jp testsStart
 
 .include "MAIN.asm"

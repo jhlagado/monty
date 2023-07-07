@@ -47,6 +47,7 @@ vRemain:    ds 2                ;
 
 vSavedIP:   ds 2                ;
 vSavedSP:   ds 2                ;
+vSavedNext: ds 2                ;
 vSavedBP:   ds 2                ;
 vChecksum:  ds 2                ;
 
@@ -57,5 +58,7 @@ vTemp2:     ds 2                ;
 vLastDef:   ds 2                ; 
 vHashStr:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
+
+warmBuf:    ds 20
 
 HEAP:         
