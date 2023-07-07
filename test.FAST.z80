@@ -12,14 +12,10 @@
 .align $100
 testsStart:
 
-    test "1", 1
 
-    ; test "100 :a:bc{`[ `/bs 10 /bd 20 /bd 30 /bd `]`/bs}; ^ /pb", 0
-    ; test "[10 20 30 40] :a:bc{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}; ^ /px", 0
-    ; test "[10 20 30] `[`.s :a:bc{$a/s$c= 0$b=( $a$b%. $b++ $b $c</br )^};^ `]`.s", 0
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -129,13 +125,10 @@ testsStart:
     test "'a' /ad", VARS + ("Z"-"A"+1)*2
     test "'Z' /ad", VARS + ("Z"-"A")*2
     test "'A' /ad", VARS
-    test "-1 /bd/vB/c 0%", $2D
-    test "`A` /bs/vB/c 0%", 65
-    test "123 /bd", 3
-    test "123 /bd/vB/c 1%", $32
-    test "123/bd ` x `/bs 456/bd + + ", 9
-    test "#4321 /bh", 4
-    test "#4321 /bh/vB/c 0%", $34
+    test "-1. /c/vB 0%", $2D
+    test "`A`.s /c/vB 0%", 65
+    test "123. /c/vB 1%", $32
+    test "#4321 /h. /c/vB 0%", $23
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

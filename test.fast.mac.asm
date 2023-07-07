@@ -15,30 +15,23 @@
     call printStr
     .cstr "\r\n\r\nExpected: "
     ld hl,val1
-    ; call prtdec
+    push hl
     push hl
     call run
-    .cstr "."
+    .cstr ". /h./d"
+    ; .cstr ". `(`.s /h./d `)\r\n`.s"
+    call flushBuffer
 
     call printStr
     .cstr "\r\n\r\nActual: "
     pop hl
-    ; push hl
-    ; call prtdec
     push hl
     push hl
     call run
-    .cstr ". `(#`.s .h `)\r\n`.s"
-    ; pop hl
-    ; call printStr
-    ; .cstr " (#"
-    ; call prthex
-    ; call printStr
-    ; .cstr ")\r\n"
-
+    .cstr ". /h./d `\r\n`.s"
     call flushBuffer
+
     halt
-    .cstr
 expect%%M:
     pop HL
 .endm
@@ -48,6 +41,7 @@ expect%%M:
     call coldInit
     call execStr
     .cstr code1
+    
     call flushBuffer
     expect code1,val1
 .endm
