@@ -2,13 +2,21 @@
 
 _I'd like to have an argument, please._
 
-## What is Monthy?
+## What is Monty?
 
-Monty is a minimalist RPN based language "concatenative" interpreter but one which aims at readability and use of use. It is written for the Z80 miroprocessor and takes about 4K.
+Monty is a minimalist RPN based language "concatenative" interpreter but one
+which aims at readability and use of use. It is written for the Z80 miroprocessor
+and takes about 4K.
 
-Unlike other interpreters, Monty does not use obscure symbols. Instead it uses well-known symbols and conventions to do expected things. Sometimes an operations is made of two symbols like <= which means "less than or equal to". Where possible Monty follows the conventions laid out in the C programming language so the meanings of Monty operations should be recognisable to programmers of other languages.
+Unlike other interpreters, Monty does not use obscure symbols. Instead it uses
+well-known symbols and conventions to do expected things. Sometimes an operations
+is made of two symbols like <= which means "less than or equal to". Where possible
+Monty follows the conventions laid out in the C programming language so the meanings
+of Monty operations should be recognisable to programmers of other languages.
 
-Monty has functions and you pass values to them by name just like in the C language. Unlike Forth, There are no built in stack manipulation words in Monty. There is still a stack, just one stack, but the user doesn't normally care about it.
+Monty has functions and you pass values to them by name just like in the C language.
+Unlike Forth, There are no built in stack manipulation words in Monty. There is
+still a stack, just one stack, but the user doesn't normally care about it.
 
 Example, a function to square a value a
 
@@ -16,7 +24,8 @@ Example, a function to square a value a
 :a { $a $a * } ;
 ```
 
-The function is a value like any other and you can store it in a variable and call it with ^. Here I'm storing it in a variable F
+The function is a value like any other and you can store it in a variable and call
+it with ^. Here I'm storing it in a variable F
 
 ```
 :a { $a $a * } ; F=
@@ -29,7 +38,8 @@ And calling it
 >100
 ```
 
-There are 52 variables A..Z, a..z and they are simpler to use. Upper and lowercase variable names can be used to store anything, functions, numbers, arrays etc.
+There are 52 variables A..Z, a..z and they are simpler to use. Upper and lower case
+variable names can be used to store anything, functions, numbers, arrays etc.
 
 To put something in a variable, use = to assign.
 
@@ -46,8 +56,8 @@ To access a value in a variable, just use the name.
 >13
 ```
 
-You can put any code inside { } block which means "execute this later". You execute it with ^
-Here's an immediately executed block of code
+You can put any code inside { } block which means "execute this later". You execute
+it with ^. Here's an immediately executed block of code.
 
 ```
 { 1 2 + . }^
@@ -61,9 +71,10 @@ Here's an "if" condition
 ```
 
 If 3 is greater than 2 then print hello
-.s means print string
-? Means if the condition is true then execute the block.
-if..else is done with ??
+
+- .s means print string
+- ? Means if the condition is true then execute the block.
+- if..else is done with ??
 
 ```
 3 2 > { "greater" .s } { "less than" .s } ??
@@ -79,7 +90,8 @@ Counting to 10
 > 1 2 3 4 5 6 7 8 9 10
 ```
 
-There are other commands in Monty which do not use symbols. These use a / followed by one or two letters. Example, to xor two values:
+There are other commands in Monty which do not use symbols. These use a / followed
+by one or two letters. Example, to `xor` two values:
 
 ```
 #55 #FF /x .
