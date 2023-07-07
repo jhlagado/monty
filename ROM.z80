@@ -3,9 +3,8 @@
 .include "constants.asm"
 .include "IOSerial.asm"
 
-    ld sp,STACK
-    call init
-    jp   start
+    ld sp,STACK		            ; start Monty
+    jp start
 
 .include "MAIN.asm"
 

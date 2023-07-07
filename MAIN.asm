@@ -1851,13 +1851,15 @@ printStr:
     ex (sp),hl		            ; put it back	
     ret
 
+titleStr:
+    .cstr ESC,"[2JMonty V0.0\r\n",0,0,0
+
 init:
-    ld ix,(vNext)
-    ld iy,STACK
     ld hl,isysVars
     ld de,sysVars
     ld bc,8 * 2
     ldir
+
     ld hl,vars                  ; 52 vars LO HI 
     ld b,26*2                       
     xor a
@@ -1865,6 +1867,9 @@ init0:
     ld (hl),a
     inc hl
     djnz init0
+
+    ld ix,(vNext)
+    ld iy,STACK
     ret
 
 start:
@@ -1872,8 +1877,10 @@ start:
     call init		            ; setups
     call printStr		        ; prog count to stack, put code line 235 on stack then call print
     .cstr $1b,"[2JMonty V0.0\r\n"
+start1:
 
 interpret:
+
     call flushBuffer
     call prompt
 
@@ -1882,6 +1889,7 @@ interpret:
     ld (vTIBPtr),hl             ; no chars in TIB so set end pointer to beginning           
 
 interpret2:                     ; calculate nesting 
+
     ld e,0                      ; initilize nesting value
     push bc                     ; save offset into TIB, 
                                 ; bc is also the count of chars in TIB
@@ -1889,18 +1897,23 @@ interpret2:                     ; calculate nesting
     jr interpret4
 
 interpret3:
+    ld a,"3"
+    call putchar		        
+
     ld a,(hl)                   ; a = char in TIB
     inc hl                      ; inc pointer into TIB
     dec bc                      ; dec count of chars in TIB
     call nesting                ; update nesting value
 
 interpret4:
+
     ld a,c                      ; is count zero?
     or b
     jr nz, interpret3           ; if not loop
     pop bc                      ; restore offset into TIB
     
 interpret5:    
+
     call getchar                ; loop around waiting for character from serial port
     cp $20			            ; compare to space
     jr nc,interpret6		        ; if >= space, if below 20 set cary flag
@@ -1942,6 +1955,7 @@ interpret5a:
     jr interpret2
 
 interpret6:
+
     ld hl,TIB
     add hl,bc
     ld (hl),a                   ; store the character in textbuf
@@ -1951,6 +1965,7 @@ interpret6:
     jr  interpret5                ; wait for next character
 
 interpret7:
+
     ld hl,TIB
     add hl,bc
     ld (hl),"\r"                ; store the crlf in textbuf
@@ -1965,6 +1980,7 @@ interpret7:
     jr nz,interpret5
 
 interpret8:
+
     ld hl,TIB
     add hl,bc
     ld (vTIBPtr),hl

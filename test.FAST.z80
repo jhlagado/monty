@@ -14,7 +14,7 @@
 .align $100
 testsStart:
 
-    test "'A' 3 .x", false
+    test "1", 1
 
     ; test "100 :a:bc{`[ `/bs 10 /bd 20 /bd 30 /bd `]`/bs}; ^ /pb", 0
     ; test "[10 20 30 40] :a:bc{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}; ^ /px", 0
