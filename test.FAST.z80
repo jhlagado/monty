@@ -12,7 +12,6 @@
 .align $100
 testsStart:
 
-
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -136,12 +135,6 @@ testsStart:
     .cstr "Done!"
     HALT
     
-.align 2
-; printer:
-;     pop hl
-;     call prtdec
-;     jp (ix)
-
 ; executes a null teminated string (null executes exit_)
 ; the string should be immedaitely following the call
 execStr:                       ; create a root stack frame
@@ -153,6 +146,5 @@ execStr:                       ; create a root stack frame
     push de                    ; push null first_arg*
     push de                    ; push fake BP
     jp (ix) 
-
 
 .include "ram.asm"

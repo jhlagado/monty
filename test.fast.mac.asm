@@ -19,7 +19,6 @@
     push hl
     call run
     .cstr ". /h./d"
-    ; .cstr ". `(`.s /h./d `)\r\n`.s"
     call flushBuffer
 
     call printStr
