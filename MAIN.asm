@@ -1277,6 +1277,8 @@ command_b:
     dw bufferString
     db "x"
     dw bufferXChars
+    db "y"
+    dw coldStart
     db NUL
     dw error1
 
@@ -1866,7 +1868,7 @@ init1:
     inc hl
     djnz init1
 
-warmBoot:
+warmInit:
     ld bc,(vSavedIP)            ; restore IP
     ld sp,(vSavedSP)            ; restore SP
     ld ix,(vSavedNext)          ; restore Next
@@ -1879,7 +1881,7 @@ coldBoot0:
     ld b,20
     ldir
 
-coldBoot:    
+coldInit:    
     ld hl,isysVars
     ld de,sysVars
     ld bc,8 * 2
@@ -1897,6 +1899,10 @@ coldBoot1:
     ld iy,STACK
     ret
 
+coldStart:
+    ld sp,STACK
+    call coldBoot0
+    jp start1
 start:
     ld sp,STACK		            ; start Monty
     call init		            ; setups

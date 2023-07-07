@@ -45,7 +45,7 @@ expect%%M:
 
 .macro test,code1,val1
     ld SP,STACK
-    call coldBoot
+    call coldInit
     call execStr
     .cstr code1
     call flushBuffer
