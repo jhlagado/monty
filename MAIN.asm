@@ -1856,7 +1856,7 @@ printStr:
     ret
 
 titleStr:
-    .cstr ESC,"[2JMonty V0.0\r\n",0,0,0
+    .cstr ESC,"[2JMonty V0.1\r\n",0,0,0
 
 init:
     ld hl,titleStr
