@@ -59,6 +59,6 @@ vLastDef:   ds 2                ;
 vHashStr:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
 
-warmBuf:    ds 20
+titleBuf:    ds 20
 
 HEAP:         
