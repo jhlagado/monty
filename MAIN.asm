@@ -419,6 +419,7 @@ arrayEnd:
     ld a,TMAGIC                 ; write magic byte
     ld (hl),a
     inc hl
+    jr arrayEnd3
 arrayEnd1:                        
     ld a,(iy-2)                 ; a = lsb of stack item
     ld (hl),a                   ; write lsb of array item
@@ -433,6 +434,7 @@ arrayEnd2:
     dec iy                      ; move to next word on stack
     dec iy
     dec bc                      ; dec items count
+arrayEnd3:
     ld a,c                      ; if not zero loop
     or b
     jr nz,arrayEnd1
