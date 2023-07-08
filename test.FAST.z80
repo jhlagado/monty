@@ -1,4 +1,4 @@
-; .engine mycomputer
+.engine mycomputer
 
 .include "constants.asm"
 .include "test.fast.mac.asm"
@@ -12,7 +12,7 @@
 .align $100
 testsStart:
 
-    test "()^", 0
+    test "(1.)^", 0
     call printStr
     .cstr "Done!"
     HALT

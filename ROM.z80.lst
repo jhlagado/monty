@@ -2270,10 +2270,10 @@
 0B47   E3                     EX   (sp),hl   ; put it back	
 0B48   C9                     RET      
 0B49                TITLESTR:      
-0B49   1B 5B 32 4A 4D 6F 6E 74 79 20 56 30 2E 30 0D 0A 00 00 00 00 .CSTR   ESC,"[2JMonty V0.0\r\n",0,0,0   
+0B49   1B 5B 32 4A 4D 6F 6E 74 79 20 56 30 2E 31 0D 0A 00 00 00 00 .CSTR   ESC,"[2JMonty V0.1\r\n",0,0,0   
 0B5D                INIT:        
 0B5D   21 49 0B               LD   hl,titleStr   
-0B60   11 0A 24               LD   de,warmBuf   
+0B60   11 0A 24               LD   de,titleBuf   
 0B63   06 14                  LD   b,20   
 0B65                INIT1:       
 0B65   1A                     LD   a,(de)   
@@ -2289,8 +2289,8 @@
 0B79   FD 2A FC 23            LD   iy,(vSavedBP)   ; restore BP
 0B7D   C3 B7 0B               JP   start1   
 0B80                COLDBOOT0:      
-0B80   21 49 0B               LD   hl,titleStr   ; copy titleStr to warmBuf
-0B83   11 0A 24               LD   de,warmBuf   
+0B80   21 49 0B               LD   hl,titleStr   ; copy titleStr to titleBuf
+0B83   11 0A 24               LD   de,titleBuf   
 0B86   06 14                  LD   b,20   
 0B88   ED B0                  LDIR      
 0B8A                COLDINIT:      
@@ -2316,7 +2316,7 @@
 0BB1   31 00 21               LD   sp,STACK   ; start Monty
 0BB4   CD 5D 0B               CALL   init   ; setups
 0BB7                START1:      
-0BB7   21 0A 24               LD   hl,warmBuf   
+0BB7   21 0A 24               LD   hl,titleBuf   
 0BBA   CD FB 0A               CALL   prtstr   ; prog count to stack, put code line 235 on stack then call print
 0BBD                INTERPRET:      
 0BBD   CD CA 0A               CALL   flushBuffer   
@@ -2654,7 +2654,7 @@
 2404                VLASTDEF:   DS   2   ; 
 2406                VHASHSTR:   DS   2   ; 
 2408                TBPTR:    DS   2   ; reserved for tests
-240A                WARMBUF:   DS   20   
+240A                TITLEBUF:   DS   20   
 241E                HEAP:        
 
 
@@ -3543,7 +3543,7 @@ VTEMP2:             2402 DEFINED AT LINE 57 IN ram.asm
 VLASTDEF:           2404 DEFINED AT LINE 58 IN ram.asm
 VHASHSTR:           2406 DEFINED AT LINE 59 IN ram.asm
 TBPTR:              2408 DEFINED AT LINE 60 IN ram.asm
-WARMBUF:            240A DEFINED AT LINE 62 IN ram.asm
+TITLEBUF:           240A DEFINED AT LINE 62 IN ram.asm
                     > USED AT LINE 1863 IN MAIN.asm
                     > USED AT LINE 1882 IN MAIN.asm
                     > USED AT LINE 1912 IN MAIN.asm

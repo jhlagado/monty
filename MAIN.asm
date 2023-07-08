@@ -839,7 +839,7 @@ go2:
     jr z,goBlock1
     cp "("
     jp nz,goLambda
-    inc de                      ; de is the address to jump back to
+    ; inc de                      ; de is the address to jump back to
     push de                     ; push de just before stack frame
 goBlock:
 goBlock1:    
@@ -1860,7 +1860,7 @@ titleStr:
 
 init:
     ld hl,titleStr
-    ld de,warmBuf
+    ld de,titleBuf
     ld b,20
 init1:
     ld a,(de)
@@ -1878,8 +1878,8 @@ warmInit:
     jp start1
 
 coldBoot0:    
-    ld hl,titleStr              ; copy titleStr to warmBuf
-    ld de,warmBuf
+    ld hl,titleStr              ; copy titleStr to titleBuf
+    ld de,titleBuf
     ld b,20
     ldir
 
@@ -1909,7 +1909,7 @@ start:
     ld sp,STACK		            ; start Monty
     call init		            ; setups
 start1:
-    ld hl,warmBuf
+    ld hl,titleBuf
     call prtstr 		        ; prog count to stack, put code line 235 on stack then call print
 
 interpret:
