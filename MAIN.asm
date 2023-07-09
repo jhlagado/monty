@@ -26,16 +26,6 @@ CTRL_P      equ     16
 CTRL_S      equ     19
 ESC         equ     27          
 
-TMAGIC      equ     $AA         ; magic number
-TRESERV     equ     $A0         ; reserved
-TNUMBER     equ     $A1         ; number
-TSTRING     equ     $A2         ; string
-TPOINTER    equ     $A3         ; pointer
-TARRAY      equ     $A4         ; array
-TBLOCK      equ     $A5         ; block
-TLAMBDA     equ     $A6         ; lambda
-TARGLST     equ     $A7         ; arglist
-
 ; macros for inlining a onty function in assembly
 ; follow immediately with a null terminated block of Monty code
 .macro FUNC,name,numLocals,argsStr
@@ -421,12 +411,6 @@ arrayEnd:
     ld (hl),b
     inc hl                      ; hl = array[0], bc = count
                                 ; de = BP, hl = array[0], bc = count
-    ld a,TARRAY                 ; write type tag
-    ld (hl),a
-    inc hl
-    ld a,TMAGIC                 ; write magic byte
-    ld (hl),a
-    inc hl
     jr arrayEnd3
 arrayEnd1:                        
     ld a,(iy-2)                 ; a = lsb of stack item
@@ -455,9 +439,7 @@ arrayEnd3:
     pop de                      ; pop arg_list (discard)
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
-    ld de,(vHeapPtr)            ; de = array[-4]
-    inc de                      ; de = array[0]
-    inc de
+    ld de,(vHeapPtr)            ; de = array[-2]
     inc de
     inc de
     push de                     ; return array[0]
@@ -891,15 +873,11 @@ goLambda:				        ; execute lambda
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
     ex de,hl                    ; hl = partial_array*
-    dec hl                      ; skip type byte
-    dec hl                      ; skip magic byte
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
     ld c,(hl)
     inc hl                      ; hl = array data*
-    inc hl
-    inc hl
     inc hl
     jr goLambda2                ; push each item on stack
 goLambda1:
@@ -1270,25 +1248,16 @@ addrOf2:
 
 command_b:
     call jumpTable
-    db "a"
-    dw bufferArray
-    db "c"
-    dw bufferChar
-    db "n"
-    dw bufferNumber
     db "r"
     dw break
-    db "s"
-    dw bufferString
-    db "x"
-    dw bufferXChars
     db "y"
     dw coldStart
     db NUL
     dw error1
 
 FUNC bufferArray, 2, "abc"
-.cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
+.cstr "{`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s}",0
+; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
 ; value --                      
@@ -1588,8 +1557,6 @@ remain:
 
 size:
     pop hl
-    dec hl                      ; skip magic byte
-    dec hl                      ; skip type tag
     dec hl                      ; msb size 
     ld d,(hl)
     dec hl                      ; lsb size 
