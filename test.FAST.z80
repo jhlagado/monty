@@ -12,10 +12,9 @@
 .align $100
 testsStart:
 
-    test "(1.)^", 0
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -52,7 +51,7 @@ testsStart:
     test "2 3 *", 6
     test "1 2 3 + *", 5
     test "7 3 /", 2
-    test "7 3 / _", 1
+    test "7 3 / /re", 1
     test "7 3 /", 2
     test "2 3 ==", FALSE
     test "3 3 ==", TRUE
@@ -77,11 +76,11 @@ testsStart:
     test "5 /t{10} ? +", 15
     test "1 /f{10}{20} ?? +", 21
     test "1 /t{10}{20} ?? +", 11
-    test ": -2%", $0000
-    test ":a -1%", $0001
-    test ":a: -1%", $0001
-    test ":a:b -1%", $0102
-    test "::b -1%", $0101
+    test ": 0%", $0000
+    test ":a 0%", $0100
+    test ":a: 0%", $0100
+    test ":a:b 0%", $0201
+    test "::b 0%", $0101
     test ":{2};^", 2
     test ":a{2};^", 2
     test "5 :a{$a};^", 5
@@ -113,6 +112,7 @@ testsStart:
     test "1 10 20 :iab{[{$a}{$b}] $i%^};^", 20
     test "5 [4] :a{$a}; /pa ^", 4
     test "5 [4] :ab{$a $b +}; /pa ^", 9
+    test "5 [4] :ab{$a $b -}; /pa ^", 1
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1%", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
@@ -129,6 +129,7 @@ testsStart:
     test "`A`.s /c/vB 0%", 65
     test "123. /c/vB 1%", $32
     test "#4321 /h. /c/vB 0%", $23
+    test "[1 2 3]:a:bc{`[ `.s $a/s$c= 0$b= ($a$b%. $b++ $b$c</br)^ `]`.s};^",0
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
