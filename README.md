@@ -21,14 +21,14 @@ still a stack, just one stack, but the user doesn't normally care about it.
 Example, a function to square a value a
 
 ```
-:a { $a $a * } ;
+:a { %a %a * } ;
 ```
 
 The function is a value like any other and you can store it in a variable and call
 it with ^. Here I'm storing it in a variable F
 
 ```
-:a { $a $a * } ; F=
+:a { %a %a * } ; F=
 ```
 
 And calling it
@@ -94,7 +94,7 @@ There are other commands in Monty which do not use symbols. These use a / follow
 by one or two letters. Example, to `xor` two values:
 
 ```
-#55 #FF /x .
+$55 $FF /x .
 > 255
 ```
 
@@ -102,7 +102,7 @@ To show as hex use /h and /d for decimal
 
 ```
 255 /h .
-> #FF
+> $FF
 ```
 
 Arrays are simple and can be byte or word sized.
@@ -110,8 +110,12 @@ Create an array and store in A
 
 ```
 [ 10 20 30 ] A=
+```
+
 To access the second element (index 1) of this array
-A 1% .
+
+```
+A 1# .
 >20
 ```
 

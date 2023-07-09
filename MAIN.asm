@@ -26,16 +26,18 @@ CTRL_P      equ     16
 CTRL_S      equ     19
 ESC         equ     27          
 
-TMAGIC      equ     $AA         ; magic number
-TRESERV     equ     $A0         ; reserved
-TNUMBER     equ     $A1         ; number
-TSTRING     equ     $A2         ; string
-TPOINTER    equ     $A3         ; pointer
-TARRAY      equ     $A4         ; array
-TBLOCK      equ     $A5         ; block
-TLAMBDA     equ     $A6         ; lambda
-TARGLST     equ     $A7         ; arglist
-
+; macros for inlining a onty function in assembly
+; follow immediately with a null terminated block of Monty code
+.macro FUNC,name,numLocals,argsStr
+name:
+    call go
+    dw NUL                      ; NUL closure
+    dw name%%M                      
+    dw $+2
+    db numLocals                ; num locals
+    .pstr argsStr
+name%%M:
+.endm
 
 ; z80_RST8    equ     $CF
 
@@ -63,7 +65,7 @@ isysVars:
 
     .align $100
 
-opcodes:                        ; still available ~ `  
+opcodes:                        ; still available ~ ` _ 
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
     DB lsb(dblquote_)           ; "
@@ -127,7 +129,7 @@ opcodes:                        ; still available ~ `
     DB lsb(backslash_)          ; \
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
-    DB lsb(underscore_)         ; _
+    DB lsb(nop_)                ; _
     DB lsb(dblquote_)           ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
@@ -158,7 +160,7 @@ opcodes:                        ; still available ~ `
     DB lsb(lbrace_)             ; {
     DB lsb(pipe_)               ; |  
     DB lsb(rbrace_)             ; }  
-    DB lsb(nop_)              ; ~    
+    DB lsb(nop_)                ; ~    
     DB lsb(nop_)                ; DEL	
 
 
@@ -181,7 +183,7 @@ lbrack_:
 rbrack_:
     jp rbrack
 percent_:        
-    jp arrIndex 
+    jp percent 
 backslash_:
     jp backslash
 lparen_:
@@ -195,8 +197,6 @@ semicolon_:
     jp semicolon
 dot_:  
     jp dot
-underscore_:
-    jp underscore
 colon_:
     jp colon
 upcase_:
@@ -334,10 +334,10 @@ invert:				            ; Bitwise INVert the top member of the stack
     ld de, $FFFF                ; by xoring with $FFFF
     jr xor1    
 
-; $a .. $z
+; %a .. %z
 ; -- value
 ; returns value of arg
-dollar:
+percent:
 arg:
     ld e,(iy+4)                 ; hl = arg_list* 
     ld d,(iy+5)
@@ -345,10 +345,8 @@ arg:
     ld a,l                      ; arg_list* == null, skip
     or h
     jr z,arg0a
-    dec hl                      ; a = num_args, hl = arg_list*
-    dec hl
+    inc hl                      ; a = num_args, hl = arg_list*
     ld a,(hl)                    
-    inc hl
     inc hl
     or a
     jr z,arg0a                  ; num_args == 0, skip 
@@ -413,12 +411,6 @@ arrayEnd:
     ld (hl),b
     inc hl                      ; hl = array[0], bc = count
                                 ; de = BP, hl = array[0], bc = count
-    ld a,TARRAY                 ; write type tag
-    ld (hl),a
-    inc hl
-    ld a,TMAGIC                 ; write magic byte
-    ld (hl),a
-    inc hl
     jr arrayEnd3
 arrayEnd1:                        
     ld a,(iy-2)                 ; a = lsb of stack item
@@ -447,9 +439,7 @@ arrayEnd3:
     pop de                      ; pop arg_list (discard)
     pop de                      ; pop first_arg* (discard)
     pop de                      ; pop IP (discard)
-    ld de,(vHeapPtr)            ; de = array[-4]
-    inc de                      ; de = array[0]
-    inc de
+    ld de,(vHeapPtr)            ; de = array[-2]
     inc de
     inc de
     push de                     ; return array[0]
@@ -460,24 +450,25 @@ arrayEnd3:
 
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
-arrIndex:
+hash:
+arrayIndex:
     pop hl                              ; hl = index  
     pop de                              ; de = array
     ld a,(vDataWidth)                   ; a = data width
     dec a
-    jr z,arrIndex1
-arrIndex0:
+    jr z,arrayIndex1
+arrayIndex0:
     add hl,hl                           ; if data width = 2 then double 
-arrIndex1:
+arrayIndex1:
     add hl,de                           ; add addr
     ld (vPointer),hl                    ; store address in setter    
     ld d,0
     ld e,(hl)
     or a                                ; check data width again                                
-    jr z,arrIndex2
+    jr z,arrayIndex2
     inc hl
     ld d,(hl)
-arrIndex2:
+arrayIndex2:
     push de
     jp (ix)
 
@@ -501,14 +492,14 @@ assign1:
 ; arg_list - parses input (ab:c)
 ; names after the : represent uninitialised locals
 ; return values are the state of the stack after the block ends
-
+; format: numLocals totNumArgs argChars...
 colon:
 arglist:
     ld de,0                     ; d = count locals, e = count args ()
     ld hl,(vHeapPtr)            ; hl = heap*
-    inc hl                      ; skip length field to start
-    inc hl
     push hl                     ; save start of arg_list
+    inc hl                      ; skip length fields to start of string
+    inc hl
     inc bc                      ; point to next char
 arglist1:
     ld a,(bc)
@@ -517,7 +508,7 @@ arglist1:
     inc d                       ; non zero value local count acts as flag
     jr arglist3
 arglist1a:
-    cp "A"                      ; < "A" terminates arg_list
+    cp "a"                      ; < "a" terminates arg_list
     jr c,arglist4
     cp "z"+1                    ; > "z" terminates arg_list
     jr nc,arglist4
@@ -543,10 +534,9 @@ arglist5:
     ld (vHeapPtr),hl            ; bump heap* to after end of string
     pop hl                      ; hl = start of arg_list
     push hl                     ; return start of arg_list    
-    dec hl                      ; write number of locals at start - 1                                      
-    ld (hl),d
-    dec hl                      ; write number of args + locals at start - 2
-    ld (hl),e
+    ld (hl),d                   ; write number of locals at start - 1                                      
+    inc hl                      
+    ld (hl),e                   ; write number of args + locals at start - 2
     jp (ix)  
 
 lbrace:
@@ -705,6 +695,7 @@ discard1:
     jp (ix)
 
 slash:
+command:
     call jumpTable
     db "/"
     dw comment
@@ -730,6 +721,8 @@ slash:
     dw output
     db "p"
     dw command_p
+    db "r"
+    dw command_r
     db "s"
     dw size
     db "t"
@@ -868,7 +861,7 @@ goBlock2:
     ld bc,de                    ; bc = de = block*-1
     jp (ix)    
     
-goLambda:				            ; execute lambda
+goLambda:				        ; execute lambda
     ex de,hl                    ; hl = lambda*
     ld e,(hl)                   ; de = partial_array*
     inc hl
@@ -880,15 +873,11 @@ goLambda:				            ; execute lambda
     ld (vTemp1),bc
     ld (vTemp2),hl              ; save bc,hl
     ex de,hl                    ; hl = partial_array*
-    dec hl                      ; skip type byte
-    dec hl                      ; skip magic byte
     dec hl                      ; bc = count
     ld b,(hl)
     dec hl
     ld c,(hl)
     inc hl                      ; hl = array data*
-    inc hl
-    inc hl
     inc hl
     jr goLambda2                ; push each item on stack
 goLambda1:
@@ -921,22 +910,20 @@ goLambda3:
     jr nz,goLambda4          
     xor a                       ; a = num_args (zero), num locals (zero)
     jr goLambda8                  
-goLambda4:                        ; allocate locals 
-    dec hl                      ; a = num_locals*, de = hblock* hl = arg_list*
-    ld a,(hl)
+goLambda4:                      ; allocate locals 
+    ld a,(hl)                   ; a = num_locals*, de = hblock* hl = arg_list*
     jr goLambda6
-goLambda5:                        ; loop
+goLambda5:                      ; loop
     dec sp
     dec sp
     dec a
 goLambda6:
     or a
-    jr nz,goLambda5               ; end loop
+    jr nz,goLambda5             ; end loop
 goLambda7:
-    dec hl                      ; a = num_args* x 2 
-    ld a,(hl)                   
-    inc hl 
-    inc hl
+    inc hl                      ; a = num_args* x 2 
+    ld a,(hl)
+    dec hl
     add a,a                     ; a *= 2
 goLambda8:
     push bc                     ; push IP
@@ -947,7 +934,7 @@ goLambda8:
     add hl,sp
     jr goBlock2
 
-hash:
+dollar:
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
 hexnum1:
@@ -1071,12 +1058,6 @@ num2:
 num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
-
-underscore:
-remain:
-    ld hl,(vRemain)
-    push hl
-    jp (ix)
 
 rparen:
     ld c,(iy+8)                 ; IP = block* just under stack frame
@@ -1267,31 +1248,16 @@ addrOf2:
 
 command_b:
     call jumpTable
-    db "a"
-    dw bufferArray
-    db "c"
-    dw bufferChar
-    db "n"
-    dw bufferNumber
     db "r"
     dw break
-    db "s"
-    dw bufferString
-    db "x"
-    dw bufferXChars
     db "y"
     dw coldStart
     db NUL
     dw error1
 
-; /ba buffer array             
-; array* -- 
-bufferArray:
-    call go
-    dw NUL                      ; NUL closure
-    dw $+4                      
-    dw args1A2L
-    .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
+FUNC bufferArray, 2, "abc"
+.cstr "{`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s}",0
+; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
 ; value --                      
@@ -1377,7 +1343,7 @@ bufferDec5:
 bufferHex:                      
     pop hl                      ; hl = value
     ld de,(vBufPtr)
-    ld a,"#"                    ; # prefix
+    ld a,"$"                    ; # prefix
     ld (de),a
     inc e                       ; buffer*++, wraparound
     call z,flushBuffer
@@ -1504,17 +1470,17 @@ command_p:
 ; partial
 ; array* lambda* -- lambda1*
 partial:
-    pop hl                              ; h1 = lambda*
-    ld de,(vHeapPtr)                    ; de = heap* = partial_array*
-    ld (vTemp1),bc                      ; save IP
-    ld bc,6                             ; bc = count
-    ldir                                ; clone lambda
-    ld bc,(vTemp1)                      ; restore IP
-    ld hl,(vHeapPtr)                    ; hl = heap* = partial_array*
-    ld (vHeapPtr),de                    ; heap* += 6
-    pop de                              ; de = array*    
-    push hl                             ; return partial_array*
-    ld (hl),e                           ; compile array*
+    pop hl                      ; h1 = lambda*
+    ld de,(vHeapPtr)            ; de = heap* = partial_array*
+    ld (vTemp1),bc              ; save IP
+    ld bc,6                     ; bc = count
+    ldir                        ; clone lambda
+    ld bc,(vTemp1)              ; restore IP
+    ld hl,(vHeapPtr)            ; hl = heap* = partial_array*
+    ld (vHeapPtr),de            ; heap* += 6
+    pop de                      ; de = array*    
+    push hl                     ; return partial_array*
+    ld (hl),e                   ; compile array*
     inc hl
     ld (hl),d
     jp (ix)
@@ -1522,12 +1488,9 @@ partial:
 ; /pb printBuffer
 ; --
 ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
-printBuffer:
-    call go
-    dw NUL                      ; NUL closure
-    dw $+4
-    dw args1A0L
-    .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
+
+FUNC printBuffer, 0, "a"
+.cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
 
 ; printChars
 ; char* len --
@@ -1580,10 +1543,20 @@ printStack:
 ;     ld bc,(vTemp1)
     jp (ix)
 
+command_r:
+    call jumpTable
+    db "e"
+    dw remain
+    db NUL
+    dw error1
+
+remain:
+    ld hl,(vRemain)
+    push hl
+    jp (ix)
+
 size:
     pop hl
-    dec hl                      ; skip magic byte
-    dec hl                      ; skip type tag
     dec hl                      ; msb size 
     ld d,(hl)
     dec hl                      ; lsb size 
@@ -1690,9 +1663,25 @@ numbers:
     jp chars1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; keyIter:
+;     call go
+;     .cstr "{/k /t}"             ; block
+
+; fromIter:
+;     call go
+;     dw NUL                      ; NUL closure
+;     dw $+4
+;     dw args1A0L
+;     .cstr "{[$a [/f /f /f 0]] fromIter1 /pa}"                  ; block
+
+; fromIter1:
+;     call go
+;     dw NUL                      ; NUL closure
+;     dw $+4
+;     dw args2A0L
+;     .cstr "{[$a [/f /f /f 0]] fromIter1 /pa}"                  ; block
+
 
 filter:
 map:
@@ -1702,35 +1691,14 @@ scan:
 ;*******************************************************************
 ; reusable arglists
 ;*******************************************************************
-args0A1L_:                      ; zero args one local
-    db 1                        ; num args + locals
-    db 1                        ; num locals
-args0A1L:
-    db "a"
 
-args1A0L_:                      ; one arg zero locals
-    db 1                        ; num args + locals
-    db 0                        ; num locals
-args1A0L:
-    db "a"
+args1A0L:                       ; one arg zero locals
+    db 0
+    .pstr "a"
 
-args1A1L_:                      ; one arg one local
-    db 2                        ; num args + locals
-    db 1                        ; num locals
-args1A1L:
-    db "ab"
-
-args2A0L_:                      ; two args zero locals
-    db 2                        ; num args + locals
-    db 0                        ; num locals
-args2A0L:
-    db "ab"
-
-args1A2L_:                      ; one arg two locals
-    db 3                        ; num args + locals
-    db 2                        ; num locals
-args1A2L:
-    db "abc"
+args1A2L:                       ; one arg two locals
+    db 2
+    .pstr "abc"
 
 ;*******************************************************************
 ; general routines
