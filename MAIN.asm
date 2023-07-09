@@ -36,6 +36,18 @@ TBLOCK      equ     $A5         ; block
 TLAMBDA     equ     $A6         ; lambda
 TARGLST     equ     $A7         ; arglist
 
+; macros for inlining a onty function in assembly
+; follow immediately with a null terminated block of Monty code
+.macro FUNC,name,numLocals,argsStr
+name:
+    call go
+    dw NUL                      ; NUL closure
+    dw name%%M                      
+    dw $+2
+    db numLocals                ; num locals
+    .pstr argsStr
+name%%M:
+.endm
 
 ; z80_RST8    equ     $CF
 
@@ -181,7 +193,7 @@ lbrack_:
 rbrack_:
     jp rbrack
 percent_:        
-    jp arrIndex 
+    jp percent 
 backslash_:
     jp backslash
 lparen_:
@@ -332,10 +344,10 @@ invert:				            ; Bitwise INVert the top member of the stack
     ld de, $FFFF                ; by xoring with $FFFF
     jr xor1    
 
-; $a .. $z
+; %a .. %z
 ; -- value
 ; returns value of arg
-dollar:
+percent:
 arg:
     ld e,(iy+4)                 ; hl = arg_list* 
     ld d,(iy+5)
@@ -456,24 +468,25 @@ arrayEnd3:
 
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
-arrIndex:
+hash:
+arrayIndex:
     pop hl                              ; hl = index  
     pop de                              ; de = array
     ld a,(vDataWidth)                   ; a = data width
     dec a
-    jr z,arrIndex1
-arrIndex0:
+    jr z,arrayIndex1
+arrayIndex0:
     add hl,hl                           ; if data width = 2 then double 
-arrIndex1:
+arrayIndex1:
     add hl,de                           ; add addr
     ld (vPointer),hl                    ; store address in setter    
     ld d,0
     ld e,(hl)
     or a                                ; check data width again                                
-    jr z,arrIndex2
+    jr z,arrayIndex2
     inc hl
     ld d,(hl)
-arrIndex2:
+arrayIndex2:
     push de
     jp (ix)
 
@@ -943,7 +956,7 @@ goLambda8:
     add hl,sp
     jr goBlock2
 
-hash:
+dollar:
 hexnum:        
 	ld hl,0	    		        ; Clear hl to accept the number
 hexnum1:
@@ -1274,14 +1287,8 @@ command_b:
     db NUL
     dw error1
 
-; /ba buffer array             
-; array* -- 
-bufferArray:
-    call go
-    dw NUL                      ; NUL closure
-    dw $+4                      
-    dw args1A2L
-    .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
+FUNC bufferArray, 2, "abc"
+.cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
 ; value --                      
@@ -1367,7 +1374,7 @@ bufferDec5:
 bufferHex:                      
     pop hl                      ; hl = value
     ld de,(vBufPtr)
-    ld a,"#"                    ; # prefix
+    ld a,"$"                    ; # prefix
     ld (de),a
     inc e                       ; buffer*++, wraparound
     call z,flushBuffer
@@ -1512,12 +1519,9 @@ partial:
 ; /pb printBuffer
 ; --
 ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
-printBuffer:
-    call go
-    dw NUL                              ; NUL closure
-    dw $+4
-    dw args1A0L
-    .cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
+
+FUNC printBuffer, 0, "a"
+.cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
 
 ; printChars
 ; char* len --
@@ -1721,27 +1725,13 @@ scan:
 ; reusable arglists
 ;*******************************************************************
 
-;;; new ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-argsx1A0L_:
+args1A0L:                       ; one arg zero locals
     db 0
     .pstr "a"
 
-argsx0A2L_:
+args1A2L:                       ; one arg two locals
     db 2
     .pstr "abc"
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-args1A0L:                      ; one arg zero locals
-    db 0                        ; num locals
-    db 1                        ; num args + locals
-    db "a"
-
-args1A2L:                      ; one arg two locals
-    db 2                        ; num locals
-    db 3                        ; num args + locals
-    db "abc"
 
 ;*******************************************************************
 ; general routines
