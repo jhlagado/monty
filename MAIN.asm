@@ -1539,7 +1539,7 @@ xpartial2:
     ex de,hl                    ; hl = first_arg
     ld e,(iy+2)                     
     ld d,(iy+3)
-    ex hl,de
+    ex de,hl
 xpartial3:
     dec hl                      ; c = MSB arg or local from stack
     ld c,(hl)
@@ -1547,14 +1547,15 @@ xpartial3:
     ld a,(hl)                   ; a = LSB arg or local from stack
     ld (de),a                   ; write LSB and MSB to partial_array*
     inc de
-    ld (de),c
+    ld a,c
+    ld (de),a
     inc de
     djnz xpartial3              ; b = outer length
 xpartial4:
     pop hl                      ; hl = partial_array*
     pop bc                      ; bc = new arg_list*
     push de                     ; return new lambda*
-    ex hl,de                    ; hl = new lambda*, de = partial_array*
+    ex de,hl                    ; hl = new lambda*, de = partial_array*
     ld (hl),e                   ; compile partial_array* to lambda
     inc hl                       
     ld (hl),d
