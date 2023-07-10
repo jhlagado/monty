@@ -1464,10 +1464,12 @@ command_p:
     dw printChars
     db "k"
     dw printStack
+    db "x"
+    dw xpartial
     db NUL
     dw error1
 
-; partial
+; /pa partial
 ; array* lambda* -- lambda1*
 partial:
     pop hl                      ; h1 = lambda*
@@ -1485,7 +1487,7 @@ partial:
     ld (hl),d
     jp (ix)
 
-; xpartial
+; /px xpartial
 ; arg_list* block* -- lambda*
 xpartial:
     ld (vTemp1),bc              ; save IP
@@ -1494,7 +1496,7 @@ xpartial:
     pop hl                      ; hl = inner arg_list*
     ld de,(vHeapPtr)            ; de = compile*
     push de                     ; push new arglist* 
-    ld a,(hl)                   ; compile num locals
+    ld a,(hl)                   ; compile inner num locals
     ld (de),a
     inc hl
     inc de
@@ -1512,8 +1514,8 @@ xpartial1:
     ld e,(iy+4)                  
     ld d,(iy+5)
     ex de,hl
-    ld a,e                      ; skip if null
-    or d
+    ld a,l                      ; skip if outer arg_list == null
+    or h
     jr z,xpartial2
     inc hl                      ; a = outer length
     ld a,(hl)
@@ -1523,28 +1525,34 @@ xpartial1:
     ld c,a
     ld b,0
     ldir                        ; append outer args
-xpartial2:
+xpartial2:                      ; a = outer length 
+                                ; z flag = (a == 0) 
+                                ; de = partial_array[-2]
+    ld b,a                      ; b = a = outer length
+    ld (de),a                   ; compile partial_array length field 
+    inc de
+    xor a
+    ld (de),a
+    inc de
     push de                     ; push partial_array*
-    jr z,xpartial4              ; z flag hasn't changed yet
-    ld hl,(vHeapPtr)            ; hl = start of cloned arg_list
-    ld b,a                      ; b = a = outer length and b > 0
-    ld a,(hl)                   ; a = new num locals
-    add a,b                     ; add all of outer length to new locals
+    jr z,xpartial4              ; if (a == 0) skip appending args to partial array
+    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
+    ld a,(hl)                   ; add outer length to new locals
+    add a,b                     
     ld (hl),a
     inc hl
-    ld a,(hl)
-    add a,b                     ; add outer length to new length
+    ld a,(hl)                   ; add outer length to new length
+    add a,b                     
     ld (hl),a
-
     ex de,hl                    ; hl = first_arg
     ld e,(iy+2)                     
     ld d,(iy+3)
     ex de,hl
 xpartial3:
-    dec hl                      ; c = MSB arg or local from stack
+    dec hl                      ; c = MSB of arg from stack (incl. locals)
     ld c,(hl)
     dec hl
-    ld a,(hl)                   ; a = LSB arg or local from stack
+    ld a,(hl)                   ; a = LSB of arg from stack (incl. locals)
     ld (de),a                   ; write LSB and MSB to partial_array*
     inc de
     ld a,c
