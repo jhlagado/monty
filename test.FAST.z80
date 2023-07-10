@@ -12,7 +12,7 @@
 .align $100
 testsStart:
 
-    test "100 :b{ [%b] :ab{%b %a}; /pa};^ .", false
+    test ":ab{%b %a-}/px F= 1 2F^ .", false
 
     call printStr
     .cstr "Done!"
