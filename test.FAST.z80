@@ -12,7 +12,8 @@
 .align $100
 testsStart:
 
-    test "100 :b{ [%b] :ab{%b %a}; /pa};^ .", false
+    test "1 :b{:a{%a}/px};^F= 3F",3
+    ; test ":ab{%b %a-}/px F= 1 2F^ .", false
 
     call printStr
     .cstr "Done!"
@@ -128,9 +129,10 @@ testsStart:
     test "'Z' /ad", VARS + ("Z"-"A")*2
     test "'A' /ad", VARS
     test "-1. /c/vB 0#", $2D
-    test "`A`.s /c/vB 0#", 65
+    test {DQ,"A",DQ,".s /c/vB 0#"}, 65
     test "123. /c/vB 1#", $32
-    ; test "$4321 /h. /c/vB 0#", $24
+
+    test ":a{%a}/px F=1F^", 1
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -138,16 +140,5 @@ testsStart:
     .cstr "Done!"
     HALT
     
-; executes a null teminated string (null executes exit_)
-; the string should be immedaitely following the call
-execStr:                       ; create a root stack frame
-    pop bc                     ; bc = code*
-    dec bc                     ; dec to prepare for next routine
-    ld de,0
-    push de                    ; push fake IP
-    push de                    ; push null arg_list*
-    push de                    ; push null first_arg*
-    push de                    ; push fake BP
-    jp (ix) 
-
+.include "test.fast.util.asm"
 .include "ram.asm"

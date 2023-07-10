@@ -16,7 +16,7 @@
 TRUE        equ     -1		    ; C-style true
 FALSE       equ     0
 NUL         equ     0           ; exit code
-DQUOTE      equ     $22         ; " double quote char
+DQ          equ     $22         ; " double quote char
 CTRL_C      equ     3
 CTRL_E      equ     5
 CTRL_H      equ     8
@@ -68,7 +68,7 @@ isysVars:
 opcodes:                        ; still available ~ ` _ 
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
-    DB lsb(dblquote_)           ; "
+    DB lsb(dquote_)           ; "
     DB lsb(hash_)               ; #
     DB lsb(dollar_)             ; $  
     DB lsb(percent_)            ; %  
@@ -130,7 +130,7 @@ opcodes:                        ; still available ~ ` _
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(nop_)                ; _
-    DB lsb(dblquote_)           ; `     used for testing string   	    
+    DB lsb(dquote_)             ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -220,8 +220,8 @@ caret_:
     jp caret
 comma_: 		 
     jp comma
-dblquote_:
-    jp dblquote
+dquote_:
+    jp dquote
 minus_:
     jp minus
 eq_:    
@@ -568,7 +568,7 @@ blockStart1:                         ; Skip to end of definition
     jr z,blockStart3
     cp "`"
     jr z,blockStart3
-    cp DQUOTE
+    cp DQ
     jr z,blockStart3
     jr blockStart1
 blockStart2:
@@ -697,39 +697,39 @@ discard1:
 slash:
 command:
     call jumpTable
-    db "/"
+    db "/"                      ; // comment
     dw comment
-    db "a"
+    db "a"                      
     dw command_a
     db "b"
     dw command_b
-    db "c"
+    db "c"                      ; /c chars
     dw chars
-    db "d"
+    db "d"                      ; /d decimal
     dw decimal
-    db "f"
+    db "f"                      ; /f false
     dw false1
-    db "h"
+    db "h"                      ; /h hexadecimal
     dw hexadecimal
     db "i"
     dw command_i
-    db "k"
+    db "k"                      ; /k key
     dw key
-    db "n"
+    db "n"                      ; /n numbers
     dw numbers
-    db "o"
+    db "o"                      ; /o output
     dw output
-    db "p"
+    db "p"                      
     dw command_p
     db "r"
     dw command_r
-    db "s"
+    db "s"                      ; /s size
     dw size
-    db "t"
+    db "t"                      ; /t true
     dw true1
     db "v"
     dw command_v
-    db "x"
+    db "x"                      ; /x xor
     dw xor
     db NUL
     dw div
@@ -747,15 +747,15 @@ div:
 
 dot:
     call jumpTable
-    db "a"
+    db "a"                      ; .a print array
     dw bufferArray
-    db "c"
+    db "c"                      ; .c print char
     dw bufferChar
-    db "s"
+    db "s"                      ; .s print string
     dw bufferString
-    db "x"
+    db "x"                      ; .x print x chars
     dw bufferXChars
-    db NUL
+    db NUL                      ; .  print number
     dw bufferNumber
 
 ; division subroutine.
@@ -1125,7 +1125,7 @@ shiftRight2:
 ; string
 ; -- ptr                        ; points to start of string chars, 
                                 ; length is stored at start - 2 bytes 
-dblquote:
+dquote:
 string:     
     ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
@@ -1139,7 +1139,7 @@ string1:
     inc bc                      ; point to next char
 string2:
     ld a,(bc)
-    cp DQUOTE                      ; " is the string terminator
+    cp DQ                      ; " is the string terminator
     jr z,string3
     cp "`"                      ; ` is the string terminator used in testing
     jr nz,string1
@@ -1198,9 +1198,9 @@ comment:
 
 command_a:
     call jumpTable
-    db "b"
+    db "b"                      ; /ab absolute
     dw absolute
-    db "d"
+    db "d"                      ; /ad address of
     dw addrOf
     db NUL
     dw error1
@@ -1248,15 +1248,15 @@ addrOf2:
 
 command_b:
     call jumpTable
-    db "r"
+    db "r"                      ; /br break
     dw break
-    db "y"
+    db "y"                      ; /by cold boot
     dw coldStart
     db NUL
     dw error1
 
 FUNC bufferArray, 2, "abc"
-.cstr "{`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s}",0
+.cstr "{",DQ,"[ ",DQ,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQ,"]",DQ,".s}",0
 ; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
@@ -1447,27 +1447,29 @@ bufferXChars2:
 
 command_i:
     call jumpTable
-    db "n"
+    db "n"                      ; /in input
     dw input
-    db "v"
+    db "v"                      ; /iv invert
     dw invert
     db NUL
     dw error1
 
 command_p:
     call jumpTable
-    db "a"
+    db "a"                      ; /pa partial
     dw partial
-    db "b"
+    db "b"                      ; /pb print buffer
     dw printBuffer
-    db "c"
+    db "c"                      ; /pc print chars
     dw printChars
-    db "k"
+    db "k"                      ; /pk print stack
     dw printStack
+    db "x"                      ; /px print xpartial
+    dw xpartial
     db NUL
     dw error1
 
-; partial
+; /pa partial
 ; array* lambda* -- lambda1*
 partial:
     pop hl                      ; h1 = lambda*
@@ -1485,16 +1487,25 @@ partial:
     ld (hl),d
     jp (ix)
 
-; xpartial
+; /px xpartial
 ; arg_list* block* -- lambda*
 xpartial:
     ld (vTemp1),bc              ; save IP
     pop hl                      ; hl = block*
     ld (vTemp2),hl              ; save block*
+    ld e,(iy+4)                 ; de = outer arg_list 
+    ld d,(iy+5)
+    ld a,e                      ; if arg_list == null then make a lambda
+    or d
+    jr nz,xpartial0
+    ld hl,0                     ; partial_array = null
+    ld de,(vHeapPtr)            ; de = compile*
+    jr xpartial5                 
+xpartial0:
     pop hl                      ; hl = inner arg_list*
     ld de,(vHeapPtr)            ; de = compile*
     push de                     ; push new arglist* 
-    ld a,(hl)                   ; compile num locals
+    ld a,(hl)                   ; compile inner num locals
     ld (de),a
     inc hl
     inc de
@@ -1512,8 +1523,8 @@ xpartial1:
     ld e,(iy+4)                  
     ld d,(iy+5)
     ex de,hl
-    ld a,e                      ; skip if null
-    or d
+    ld a,l                      ; skip if outer arg_list == null
+    or h
     jr z,xpartial2
     inc hl                      ; a = outer length
     ld a,(hl)
@@ -1523,28 +1534,34 @@ xpartial1:
     ld c,a
     ld b,0
     ldir                        ; append outer args
-xpartial2:
+xpartial2:                      ; a = outer length 
+                                ; z flag = (a == 0) 
+                                ; de = partial_array[-2]
+    ld b,a                      ; b = a = outer length
+    ld (de),a                   ; compile partial_array length field 
+    inc de
+    xor a
+    ld (de),a
+    inc de
     push de                     ; push partial_array*
-    jr z,xpartial4              ; z flag hasn't changed yet
-    ld hl,(vHeapPtr)            ; hl = start of cloned arg_list
-    ld b,a                      ; b = a = outer length and b > 0
-    ld a,(hl)                   ; a = new num locals
-    add a,b                     ; add all of outer length to new locals
+    jr z,xpartial4              ; if (a == 0) skip appending args to partial array
+    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
+    ld a,(hl)                   ; add outer length to new locals
+    add a,b                     
     ld (hl),a
     inc hl
-    ld a,(hl)
-    add a,b                     ; add outer length to new length
+    ld a,(hl)                   ; add outer length to new length
+    add a,b                     
     ld (hl),a
-
     ex de,hl                    ; hl = first_arg
     ld e,(iy+2)                     
     ld d,(iy+3)
     ex de,hl
 xpartial3:
-    dec hl                      ; c = MSB arg or local from stack
+    dec hl                      ; c = MSB of arg from stack (incl. locals)
     ld c,(hl)
     dec hl
-    ld a,(hl)                   ; a = LSB arg or local from stack
+    ld a,(hl)                   ; a = LSB of arg from stack (incl. locals)
     ld (de),a                   ; write LSB and MSB to partial_array*
     inc de
     ld a,c
@@ -1553,6 +1570,7 @@ xpartial3:
     djnz xpartial3              ; b = outer length
 xpartial4:
     pop hl                      ; hl = partial_array*
+xpartial5:
     pop bc                      ; bc = new arg_list*
     push de                     ; return new lambda*
     ex de,hl                    ; hl = new lambda*, de = partial_array*
@@ -1700,7 +1718,7 @@ printStack:
 
 command_r:
     call jumpTable
-    db "e"
+    db "e"                      ; /re remainder
     dw remain
     db NUL
     dw error1
@@ -1923,7 +1941,7 @@ prtstr:
 ; **************************************************************************    
 
 nesting:    
-    cp DQUOTE                      ; quote char
+    cp DQ                      ; quote char
     jr z,nesting0
     cp "`"                      ; quote char
     jr z,nesting0
@@ -2175,7 +2193,7 @@ run:
 
 error:
     call run
-    db DQUOTE,"Error ",DQUOTE,".s .",0
+    db DQ,"Error ",DQ,".s .",0
     jp interpret
 
 backSpace_:
@@ -2190,7 +2208,7 @@ backSpace_:
 ; edit 
 edit_:                        
     call run
-    db DQUOTE,"var?",DQUOTE,".s /k/ad .h",0
+    db DQ,"var?",DQ,".s /k/ad .h",0
     jp interpret
 
 reEdit_:
@@ -2333,7 +2351,7 @@ printStack_:
 ;     jr z,blockLength3
 ;     cp "`"
 ;     jr z,blockLength3
-;     cp DQUOTE
+;     cp DQ
 ;     jr z,blockLength3
 ;     jr blockLength1
 ; blockLength2:

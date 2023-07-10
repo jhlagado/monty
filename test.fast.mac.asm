@@ -1,8 +1,15 @@
-.macro expect,msg1,val1
+.macro expect
+.endm
 
+.macro test
+    ld SP,STACK
+    call coldInit
+    call execStr
+    db %%1,0
+    call flushBuffer
     pop HL
     push HL
-    ld DE,val1
+    ld DE,%%2
     or A
     sbc HL,DE
     ld A,L
@@ -10,11 +17,11 @@
     jp Z,expect%%M
 
     call printStr
-    .cstr "Code: ",msg1
+    .cstr "Code: ",%%1
 
     call printStr
     .cstr "\r\n\r\nExpected: "
-    ld hl,val1
+    ld hl,%%2
     push hl
     push hl
     call run
@@ -29,23 +36,7 @@
     call run
     .cstr ". /h./d `\r\n`.s"
     call flushBuffer
-
     halt
 expect%%M:
     pop HL
-.endm
-
-.macro test,code1,val1
-    ld SP,STACK
-    call coldInit
-    call execStr
-    .cstr code1
-    
-    call flushBuffer
-    expect code1,val1
-.endm
-
-.macro kall,label1
-    db msb(label1 / 2) + $80
-    db lsb(label1 / 2)
 .endm
