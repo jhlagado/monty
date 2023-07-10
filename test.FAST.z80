@@ -12,11 +12,13 @@
 .align $100
 testsStart:
 
-    test ":ab{%b %a-}/px F= 1 2F^ .", false
+    ; test {DQUOTE,"A",DQUOTE,".s /c/vB 0#"}, 65
+    ; test {"/","f"}, false
+    ; ; test ":ab{%b %a-}/px F= 1 2F^ .", false
 
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -128,9 +130,8 @@ testsStart:
     test "'Z' /ad", VARS + ("Z"-"A")*2
     test "'A' /ad", VARS
     test "-1. /c/vB 0#", $2D
-    test "`A`.s /c/vB 0#", 65
+    test {DQUOTE,"A",DQUOTE,".s /c/vB 0#"}, 65
     test "123. /c/vB 1#", $32
-    ; test "$4321 /h. /c/vB 0#", $24
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

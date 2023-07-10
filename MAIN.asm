@@ -130,7 +130,7 @@ opcodes:                        ; still available ~ ` _
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(nop_)                ; _
-    DB lsb(dblquote_)           ; `     used for testing string   	    
+    DB lsb(nop_)                ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -1256,7 +1256,7 @@ command_b:
     dw error1
 
 FUNC bufferArray, 2, "abc"
-.cstr "{`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s}",0
+.cstr "{",DQUOTE,"[ ",DQUOTE,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQUOTE,"]",DQUOTE,".s}",0
 ; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
