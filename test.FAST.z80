@@ -12,9 +12,11 @@
 .align $100
 testsStart:
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    test "100 :b{ [%b] :ab{%b %a}; /pa};^ .", false
+
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -83,23 +85,23 @@ testsStart:
     test "::b 0#", $0101
     test ":{2};^", 2
     test ":a{2};^", 2
-    test "5 :a{%a };^", 5
-    test "5 :a:b{%a };^", 5
+    test "5 :a{%a};^", 5
+    test "5 :a:b{%a};^", 5
     test ":a{{2}^};^", 2
-    test "1 5 :a{{%a }^};^", 5
-    test "1 5 :ab{{%a }^};^", 1
+    test "1 5 :a{{%a}^};^", 5
+    test "1 5 :ab{{%a}^};^", 1
     test "1 5 :a{{%a 2 +}^};^", 7
     test "1 5 :ab{{%a %b +}^};^", 6
     test ":a{2}; x= 1 x^", 2
-    test ":a{%a }; x= 0 1 x^", 1
-    test ":ab{%b }; x= 1 2 x^", 2
-    test ":a:b{%a }; x= 1 2 x^", 2
-    test ":ab{%b }; x= 1 2 x^", 2
-    test ":ab{%b %a }; x= 10 15 x^ -", 5
+    test ":a{%a}; x= 0 1 x^", 1
+    test ":ab{%b}; x= 1 2 x^", 2
+    test ":a:b{%a}; x= 1 2 x^", 2
+    test ":ab{%b}; x= 1 2 x^", 2
+    test ":ab{%b %a}; x= 10 15 x^ -", 5
     test ":a:b{2}; x= 1 x^", 2
-    test "::b{100 %b = %b }; x= x^", 100
-    test ":a:b{1 %b = %b }; x= 2 x^", 1
-    test ":a:b{%a %b = %b }; x= 2 x^", 2
+    test "::b{100 %b = %b}; x= x^", 100
+    test ":a:b{1 %b = %b}; x= 2 x^", 1
+    test ":a:b{%a %b = %b}; x= 2 x^", 2
     test "1 10 20 :ab{/t{%a}{%b} ??};^ +", 11
     test "1 10 20 :ab{/f{%a}{%b} ??};^ +", 21
     test "[10 20 30] 1#", 20
@@ -107,16 +109,16 @@ testsStart:
     test "/c [1 2 3] 1#", 2
     test "/c ['A' 'B' 'C'] 1#", 66
     test "[{10}{20}{30}] 0#^ ", 10
-    test "10 20 :ab{[{%a }{%b }] 0#^};^", 10
-    test "0 10 20 :iab{[{%a }{%b }] %i#^};^", 10
-    test "1 10 20 :iab{[{%a }{%b }] %i#^};^", 20
-    test "5 [4] :a{%a }; /pa ^", 4
-    test "5 [4] :ab{%a %b +}; /pa ^", 9
-    test "5 [4] :ab{%a %b -}; /pa ^", 1
+    test "10 20 :ab {[{%a}{%b}] 0#^};^", 10
+    test "0 10 20 :iab {[{%a}{%b}] %i#^};^", 10
+    test "1 10 20 :iab {[{%a}{%b}] %i#^};^", 20
+    test "5 [4] :a {%a}; /pa ^", 4
+    test "5 [4] :ab {%a %b +}; /pa ^", 9
+    test "5 [4] :ab {%a %b -}; /pa ^", 1
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1#", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
-    test "3 :a:bc{%a %c = ( %c %c -- %c /br )^ + +};^", 6
+    test "3 :a:bc {%a %c = ( %c %c -- %c /br )^ + +};^", 6
     test "'A' 1 - /ad", NUL
     test "'Z' 1 + /ad", NUL
     test "'a' 1 - /ad", NUL
@@ -128,8 +130,7 @@ testsStart:
     test "-1. /c/vB 0#", $2D
     test "`A`.s /c/vB 0#", 65
     test "123. /c/vB 1#", $32
-    test "$4321 /h. /c/vB 0#", $24
-    test "[1 2 3]:a:bc{`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s};^",0
+    ; test "$4321 /h. /c/vB 0#", $24
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -1485,6 +1485,161 @@ partial:
     ld (hl),d
     jp (ix)
 
+; xpartial
+; arg_list* block* -- lambda*
+xpartial:
+    ld (vTemp1),bc              ; save IP
+    pop hl                      ; hl = block*
+    ld (vTemp2),hl              ; save block*
+    pop hl                      ; hl = inner arg_list*
+    ld de,(vHeapPtr)            ; de = compile*
+    push de                     ; push new arglist* 
+    ld a,(hl)                   ; compile num locals
+    ld (de),a
+    inc hl
+    inc de
+    ld a,(hl)                   ; compile inner length
+    ld (de),a
+    inc hl
+    inc de
+    or a                        ; compile args if inner length > 0
+    jr z,xpartial1
+    ld c,a
+    ld b,0
+    ldir
+xpartial1:    
+    ex de,hl                    ; hl = outer arg_list
+    ld e,(iy+4)                  
+    ld d,(iy+5)
+    ex de,hl
+    ld a,e                      ; skip if null
+    or d
+    jr z,xpartial2
+    inc hl                      ; a = outer length
+    ld a,(hl)
+    inc hl      
+    or a
+    jr z,xpartial2
+    ld c,a
+    ld b,0
+    ldir                        ; append outer args
+xpartial2:
+    push de                     ; push partial_array*
+    jr z,xpartial4              ; z flag hasn't changed yet
+    ld hl,(vHeapPtr)            ; hl = start of cloned arg_list
+    ld b,a                      ; b = a = outer length and b > 0
+    ld a,(hl)                   ; a = new num locals
+    add a,b                     ; add all of outer length to new locals
+    ld (hl),a
+    inc hl
+    ld a,(hl)
+    add a,b                     ; add outer length to new length
+    ld (hl),a
+
+    ex de,hl                    ; hl = first_arg
+    ld e,(iy+2)                     
+    ld d,(iy+3)
+    ex de,hl
+xpartial3:
+    dec hl                      ; c = MSB arg or local from stack
+    ld c,(hl)
+    dec hl
+    ld a,(hl)                   ; a = LSB arg or local from stack
+    ld (de),a                   ; write LSB and MSB to partial_array*
+    inc de
+    ld a,c
+    ld (de),a
+    inc de
+    djnz xpartial3              ; b = outer length
+xpartial4:
+    pop hl                      ; hl = partial_array*
+    pop bc                      ; bc = new arg_list*
+    push de                     ; return new lambda*
+    ex de,hl                    ; hl = new lambda*, de = partial_array*
+    ld (hl),e                   ; compile partial_array* to lambda
+    inc hl                       
+    ld (hl),d
+    inc hl
+    ld de,(vTemp2)              ; de = block*
+    ld (hl),e                   ; compile block* to lambda
+    inc hl
+    ld (hl),d
+    inc hl
+    ld (hl),c                   ; compile new arg_list* to lambda
+    inc hl
+    ld (hl),b
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap ptr
+    ld bc,(vTemp1)              ; restore IP
+    jp (ix)
+
+; ; arg_list* block* -- ptr
+; semicolon:
+;     pop de                      ; de = block* hl = heap*
+;     ld hl,(vHeapPtr)
+;     xor a
+;     ld (hl),a                   ; compile null partial_array*
+;     inc hl
+;     ld (hl),a
+;     inc hl
+;     ld (hl),e                   ; compile block*
+;     inc hl
+;     ld (hl),d
+;     inc hl
+;     pop de                      ; de = block*
+;     ld (hl),e                   ; compile arg_list*
+;     inc hl
+;     ld (hl),d
+;     inc hl
+;     ld de,(vHeapPtr)            ; return lambda*
+;     push de
+;     ld (vHeapPtr),hl            ; heap* += 4
+;     jp (ix)
+
+; arg:
+;     ld e,(iy+4)                 ; hl = arg_list* 
+;     ld d,(iy+5)
+;     ex de,hl                    
+;     ld a,l                      ; arg_list* == null, skip
+;     or h
+;     jr z,arg0a
+;     inc hl                      ; a = num_args, hl = arg_list*
+;     ld a,(hl)                    
+;     inc hl
+;     or a
+;     jr z,arg0a                  ; num_args == 0, skip 
+;     ld e,a                      ; e = a = num_args
+;     inc bc                      ; a = next char = dollar_name
+;     ld a,(bc)
+;     push bc                     ; save IP                         
+;     ld b,e                      ; b = e = num_args
+;     ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
+;     ld d,(iy+3)
+; arg0:
+;     dec de                      ; a = dollar_name, de = next arg*
+;     dec de
+;     cp (hl)
+;     jr z,arg1
+;     inc hl                      ; hl = next arg_list*            
+;     djnz arg0
+;     pop bc                      ; no match, restore IP
+; arg0a:
+;     ld de,0                     ; return 0
+;     jr arg1a
+; arg1:
+;     pop bc                      ; restore IP
+;     ex de,hl                    ; hl = arg*
+;     ld (vPointer),hl            ; store arg* in setter    
+;     ld e,(hl)
+;     inc hl
+;     ld d,(hl)                   ; de = arg
+; arg1a:
+;     push de                     ; push arg
+;     jp (ix)
+
+
+
+
 ; /pb printBuffer
 ; --
 ; prints chars in buffer from /vB to /vb. Resets /vb to /vB
