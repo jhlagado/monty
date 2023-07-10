@@ -1523,9 +1523,6 @@ xpartial1:
     ld e,(iy+4)                  
     ld d,(iy+5)
     ex de,hl
-    ld a,l                      ; skip if outer arg_list == null
-    or h
-    jr z,xpartial2
     inc hl                      ; a = outer length
     ld a,(hl)
     inc hl      
@@ -1535,24 +1532,23 @@ xpartial1:
     ld b,0
     ldir                        ; append outer args
 xpartial2:                      ; a = outer length 
-                                ; z flag = (a == 0) 
-                                ; de = partial_array[-2]
     ld b,a                      ; b = a = outer length
+    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
+    add a,(hl)                  ; add outer length to new locals
+    ld (hl),a
+    inc hl
+    ld a,(hl)                   ; add outer length to new length
+    add a,b                     
+    ld (hl),a
+
+    ld a,b                      ; de = partial_array[-2]
     ld (de),a                   ; compile partial_array length field 
     inc de
     xor a
     ld (de),a
     inc de
     push de                     ; push partial_array*
-    jr z,xpartial4              ; if (a == 0) skip appending args to partial array
-    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
-    ld a,(hl)                   ; add outer length to new locals
-    add a,b                     
-    ld (hl),a
-    inc hl
-    ld a,(hl)                   ; add outer length to new length
-    add a,b                     
-    ld (hl),a
+
     ex de,hl                    ; hl = first_arg
     ld e,(iy+2)                     
     ld d,(iy+3)
