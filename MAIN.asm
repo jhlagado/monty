@@ -16,7 +16,7 @@
 TRUE        equ     -1		    ; C-style true
 FALSE       equ     0
 NUL         equ     0           ; exit code
-DQUOTE      equ     $22         ; " double quote char
+DQ          equ     $22         ; " double quote char
 CTRL_C      equ     3
 CTRL_E      equ     5
 CTRL_H      equ     8
@@ -68,7 +68,7 @@ isysVars:
 opcodes:                        ; still available ~ ` _ 
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
-    DB lsb(dblquote_)           ; "
+    DB lsb(dquote_)           ; "
     DB lsb(hash_)               ; #
     DB lsb(dollar_)             ; $  
     DB lsb(percent_)            ; %  
@@ -130,7 +130,7 @@ opcodes:                        ; still available ~ ` _
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(nop_)                ; _
-    DB lsb(nop_)                ; `     used for testing string   	    
+    DB lsb(dquote_)             ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -220,8 +220,8 @@ caret_:
     jp caret
 comma_: 		 
     jp comma
-dblquote_:
-    jp dblquote
+dquote_:
+    jp dquote
 minus_:
     jp minus
 eq_:    
@@ -568,7 +568,7 @@ blockStart1:                         ; Skip to end of definition
     jr z,blockStart3
     cp "`"
     jr z,blockStart3
-    cp DQUOTE
+    cp DQ
     jr z,blockStart3
     jr blockStart1
 blockStart2:
@@ -1125,7 +1125,7 @@ shiftRight2:
 ; string
 ; -- ptr                        ; points to start of string chars, 
                                 ; length is stored at start - 2 bytes 
-dblquote:
+dquote:
 string:     
     ld hl,(vHeapPtr)            ; hl = heap*
     inc hl                      ; skip length field to start
@@ -1139,7 +1139,7 @@ string1:
     inc bc                      ; point to next char
 string2:
     ld a,(bc)
-    cp DQUOTE                      ; " is the string terminator
+    cp DQ                      ; " is the string terminator
     jr z,string3
     cp "`"                      ; ` is the string terminator used in testing
     jr nz,string1
@@ -1256,7 +1256,7 @@ command_b:
     dw error1
 
 FUNC bufferArray, 2, "abc"
-.cstr "{",DQUOTE,"[ ",DQUOTE,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQUOTE,"]",DQUOTE,".s}",0
+.cstr "{",DQ,"[ ",DQ,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQ,"]",DQ,".s}",0
 ; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
@@ -1493,6 +1493,15 @@ xpartial:
     ld (vTemp1),bc              ; save IP
     pop hl                      ; hl = block*
     ld (vTemp2),hl              ; save block*
+    ld e,(iy+4)                 ; de = outer arg_list 
+    ld d,(iy+5)
+    ld a,e                      ; if arg_list == null then make a lambda
+    or d
+    jr nz,xpartial0
+    ld hl,0                     ; partial_array = null
+    ld de,(vHeapPtr)            ; de = compile*
+    jr xpartial5                 
+xpartial0:
     pop hl                      ; hl = inner arg_list*
     ld de,(vHeapPtr)            ; de = compile*
     push de                     ; push new arglist* 
@@ -1514,9 +1523,6 @@ xpartial1:
     ld e,(iy+4)                  
     ld d,(iy+5)
     ex de,hl
-    ld a,l                      ; skip if outer arg_list == null
-    or h
-    jr z,xpartial2
     inc hl                      ; a = outer length
     ld a,(hl)
     inc hl      
@@ -1526,24 +1532,23 @@ xpartial1:
     ld b,0
     ldir                        ; append outer args
 xpartial2:                      ; a = outer length 
-                                ; z flag = (a == 0) 
-                                ; de = partial_array[-2]
     ld b,a                      ; b = a = outer length
+    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
+    add a,(hl)                  ; add outer length to new locals
+    ld (hl),a
+    inc hl
+    ld a,(hl)                   ; add outer length to new length
+    add a,b                     
+    ld (hl),a
+
+    ld a,b                      ; de = partial_array[-2]
     ld (de),a                   ; compile partial_array length field 
     inc de
     xor a
     ld (de),a
     inc de
     push de                     ; push partial_array*
-    jr z,xpartial4              ; if (a == 0) skip appending args to partial array
-    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
-    ld a,(hl)                   ; add outer length to new locals
-    add a,b                     
-    ld (hl),a
-    inc hl
-    ld a,(hl)                   ; add outer length to new length
-    add a,b                     
-    ld (hl),a
+
     ex de,hl                    ; hl = first_arg
     ld e,(iy+2)                     
     ld d,(iy+3)
@@ -1561,6 +1566,7 @@ xpartial3:
     djnz xpartial3              ; b = outer length
 xpartial4:
     pop hl                      ; hl = partial_array*
+xpartial5:
     pop bc                      ; bc = new arg_list*
     push de                     ; return new lambda*
     ex de,hl                    ; hl = new lambda*, de = partial_array*
@@ -1931,7 +1937,7 @@ prtstr:
 ; **************************************************************************    
 
 nesting:    
-    cp DQUOTE                      ; quote char
+    cp DQ                      ; quote char
     jr z,nesting0
     cp "`"                      ; quote char
     jr z,nesting0
@@ -2183,7 +2189,7 @@ run:
 
 error:
     call run
-    db DQUOTE,"Error ",DQUOTE,".s .",0
+    db DQ,"Error ",DQ,".s .",0
     jp interpret
 
 backSpace_:
@@ -2198,7 +2204,7 @@ backSpace_:
 ; edit 
 edit_:                        
     call run
-    db DQUOTE,"var?",DQUOTE,".s /k/ad .h",0
+    db DQ,"var?",DQ,".s /k/ad .h",0
     jp interpret
 
 reEdit_:
@@ -2341,7 +2347,7 @@ printStack_:
 ;     jr z,blockLength3
 ;     cp "`"
 ;     jr z,blockLength3
-;     cp DQUOTE
+;     cp DQ
 ;     jr z,blockLength3
 ;     jr blockLength1
 ; blockLength2:

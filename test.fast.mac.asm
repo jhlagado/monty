@@ -40,8 +40,3 @@
 expect%%M:
     pop HL
 .endm
-
-; .macro kall,label1
-;     db msb(label1 / 2) + $80
-;     db lsb(label1 / 2)
-; .endm
