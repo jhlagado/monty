@@ -1534,8 +1534,8 @@ xpartial1:
 xpartial2:                      ; a = outer length 
     ld b,a                      ; b = a = outer length
     ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
-    add a,(hl)                  ; add outer length to new locals
-    ld (hl),a
+    ; add a,(hl)                  ; add outer length to new locals
+    ; ld (hl),a
     inc hl
     ld a,(hl)                   ; add outer length to new length
     add a,b                     
