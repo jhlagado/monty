@@ -697,39 +697,39 @@ discard1:
 slash:
 command:
     call jumpTable
-    db "/"
+    db "/"                      ; // comment
     dw comment
-    db "a"
+    db "a"                      
     dw command_a
     db "b"
     dw command_b
-    db "c"
+    db "c"                      ; /c chars
     dw chars
-    db "d"
+    db "d"                      ; /d decimal
     dw decimal
-    db "f"
+    db "f"                      ; /f false
     dw false1
-    db "h"
+    db "h"                      ; /h hexadecimal
     dw hexadecimal
     db "i"
     dw command_i
-    db "k"
+    db "k"                      ; /k key
     dw key
-    db "n"
+    db "n"                      ; /n numbers
     dw numbers
-    db "o"
+    db "o"                      ; /o output
     dw output
-    db "p"
+    db "p"                      
     dw command_p
     db "r"
     dw command_r
-    db "s"
+    db "s"                      ; /s size
     dw size
-    db "t"
+    db "t"                      ; /t true
     dw true1
     db "v"
     dw command_v
-    db "x"
+    db "x"                      ; /x xor
     dw xor
     db NUL
     dw div
@@ -747,15 +747,15 @@ div:
 
 dot:
     call jumpTable
-    db "a"
+    db "a"                      ; .a print array
     dw bufferArray
-    db "c"
+    db "c"                      ; .c print char
     dw bufferChar
-    db "s"
+    db "s"                      ; .s print string
     dw bufferString
-    db "x"
+    db "x"                      ; .x print x chars
     dw bufferXChars
-    db NUL
+    db NUL                      ; .  print number
     dw bufferNumber
 
 ; division subroutine.
@@ -1198,9 +1198,9 @@ comment:
 
 command_a:
     call jumpTable
-    db "b"
+    db "b"                      ; /ab absolute
     dw absolute
-    db "d"
+    db "d"                      ; /ad address of
     dw addrOf
     db NUL
     dw error1
@@ -1248,9 +1248,9 @@ addrOf2:
 
 command_b:
     call jumpTable
-    db "r"
+    db "r"                      ; /br break
     dw break
-    db "y"
+    db "y"                      ; /by cold boot
     dw coldStart
     db NUL
     dw error1
@@ -1447,24 +1447,24 @@ bufferXChars2:
 
 command_i:
     call jumpTable
-    db "n"
+    db "n"                      ; /in input
     dw input
-    db "v"
+    db "v"                      ; /iv invert
     dw invert
     db NUL
     dw error1
 
 command_p:
     call jumpTable
-    db "a"
+    db "a"                      ; /pa partial
     dw partial
-    db "b"
+    db "b"                      ; /pb print buffer
     dw printBuffer
-    db "c"
+    db "c"                      ; /pc print chars
     dw printChars
-    db "k"
+    db "k"                      ; /pk print stack
     dw printStack
-    db "x"
+    db "x"                      ; /px print xpartial
     dw xpartial
     db NUL
     dw error1
@@ -1708,7 +1708,7 @@ printStack:
 
 command_r:
     call jumpTable
-    db "e"
+    db "e"                      ; /re remainder
     dw remain
     db NUL
     dw error1
