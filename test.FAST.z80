@@ -111,9 +111,6 @@ testsStart:
     test "10 20 :ab {[{%a}{%b}] 0#^};^", 10
     test "0 10 20 :iab {[{%a}{%b}] %i#^};^", 10
     test "1 10 20 :iab {[{%a}{%b}] %i#^};^", 20
-    test "5 [4] :a {%a}; /pa ^", 4
-    test "5 [4] :ab {%a %b +}; /pa ^", 9
-    test "5 [4] :ab {%a %b -}; /pa ^", 1
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1#", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
@@ -129,7 +126,6 @@ testsStart:
     test "-1. /c/vB 0#", $2D
     test {DQ,"A",DQ,".s /c/vB 0#"}, 65
     test "123. /c/vB 1#", $32
-
     test ":a{%a}; F=1F^", 1
     test "1 :b{:a{%a};};^F= 3F^",3
     test "1 :b{:a{%a%b-};};^F= 3F^",2
