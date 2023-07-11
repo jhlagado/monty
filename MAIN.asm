@@ -1740,27 +1740,28 @@ numbers:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; keyIter:
-;     call go
-;     .cstr "{/k /t}"             ; block
+; /ki keyIter
+; -- done char
+FUNC keyIter, 1, "k"            ; ::k  
+.cstr "{/k%k= 3%k== %k}" 
 
-; fromIter:
-;     call go
-;     dw NUL                      ; NUL closure
-;     dw $+4
-;     dw args1A0L
-;     .cstr "{[$a [/f /f /f 0]] fromIter1 /pa}"                  ; block
+; /fi fromIter
+; s -- :mk
+FUNC fromIter, 0, "s"           ; :s source 
+.cstr "{:mk{ 0 :t:r{1%t==/br (s^%r= !/br 1 %r%k^)^ 2 0%k^}; %k^};}" 
 
-; fromIter1:
-;     call go
-;     dw NUL                      ; NUL closure
-;     dw $+4
-;     dw args2A0L
-;     .cstr "{[$a [/f /f /f 0]] fromIter1 /pa}"                  ; block
+; /mp map
+; :f -- :s{:mk}
+FUNC map, 0, "f"                ; :f func 
+.cstr "{:s{:mk{%m0==/br 0 :td{%t {d 1%t==/br} %k}; %s};};}" 
+
+; /fe forEach
+; :o -- :s
+FUNC forEach, 0, "f"            ; :f func 
+.cstr "{:s:b{:td{2%t!=/br 0%t=={%d%b=}{%d%f^}?? 1 0%b}};}" 
 
 
 filter:
-map:
 scan:
     jp (ix)
 

@@ -12,7 +12,6 @@
 .align $100
 testsStart:
 
-    ; test "1 :b:c{:a:d{%a%b-%c= %c--%c %d= %d++%d};};^F= 3F^",2
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -115,6 +114,8 @@ testsStart:
     test "3i= [ ( i i-- i/br )^ ] 1#", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
     test "3 :a:bc {%a %c = ( %c %c -- %c /br )^ + +};^", 6
+    test "/t :f{1 %f/br 2 +};^",3
+    test "/f :f{1 %f/br 2 +};^",1
     test "'A' 1 - /ad", NUL
     test "'Z' 1 + /ad", NUL
     test "'a' 1 - /ad", NUL
