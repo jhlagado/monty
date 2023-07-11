@@ -1,2 +1,6 @@
 *.__dbg__
 .DS_Store
+test.FAST.z80.hex
+test.FAST.z80.lst
+test.RUN.z80.hex
+test.RUN.z80.lst
