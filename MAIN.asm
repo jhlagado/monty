@@ -34,7 +34,7 @@ name:
     dw NUL                      ; NUL closure
     dw name%%M                      
     dw $+2
-    db numLocals                ; num locals
+    db numLocals                ; num_locals
     .pstr argsStr
 name%%M:
 .endm
@@ -908,7 +908,7 @@ goLambda3:
     ld a,l                      ; if arg_list* == null a = 0
     or h
     jr nz,goLambda4          
-    xor a                       ; a = num_args (zero), num locals (zero)
+    xor a                       ; a = num_args (zero), num_locals (zero)
     jr goLambda8                  
 goLambda4:                      ; allocate locals 
     ld a,(hl)                   ; a = num_locals*, de = hblock* hl = arg_list*
@@ -1503,19 +1503,22 @@ xpartial:
     jr xpartial5                 
 xpartial0:
     pop hl                      ; hl = inner arg_list*
+    push hl                     ; save inner arg_list
     ld de,(vHeapPtr)            ; de = compile*
     push de                     ; push new arglist* 
-    ld a,(hl)                   ; compile inner num locals
+    ld a,(hl)                   ; compile inner num_locals
+    ld c,a                      ; b = inner num_locals
     ld (de),a
     inc hl
     inc de
     ld a,(hl)                   ; compile inner length
     ld (de),a
+    sub c                       ; a = inner num args
     inc hl
     inc de
     or a                        ; compile args if inner length > 0
     jr z,xpartial1
-    ld c,a
+    ld c,a                      ; bc = a
     ld b,0
     ldir
 xpartial1:    
@@ -1534,22 +1537,37 @@ xpartial1:
 xpartial2:                      ; a = outer length 
     ld b,a                      ; b = a = outer length
     ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
-    ; add a,(hl)                  ; add outer length to new locals
-    ; ld (hl),a
     inc hl
     ld a,(hl)                   ; add outer length to new length
     add a,b                     
     ld (hl),a
-
-    ld a,b                      ; de = partial_array[-2]
+    ld a,b                      ; save outer length in a'
+    ex af,af'                   
+    pop hl                      ; hl = inner arg_list*                      
+    ld a,(hl)                   ; c = a = inner num_locals
+    or a
+    jr z,xpartial2a             ; if inner num_locals == 0 skip
+    ld c,a                      ; c = inner num_locals
+    ld b,0                      ; bc = inner num_locals
+    inc hl                      ; a = inner length
+    ld a,(hl)                    
+    sub c                       ; a = inner num_args
+    inc hl                      ; hl = inner arg_chars
+    add a,l                     ; hl += a
+    ld l,a
+    ld a,0
+    add a,h
+    ld h,a
+    ldir                        ; append inner locals
+xpartial2a:    
+    ex af,af'                   ; restore outer length to a, de = partial_array[-2]
     ld (de),a                   ; compile partial_array length field 
     inc de
     xor a
     ld (de),a
     inc de
     push de                     ; push partial_array*
-
-    ex de,hl                    ; hl = first_arg
+    ex de,hl                    ; hl = first_arg, copy outer args+locals to partial_array
     ld e,(iy+2)                     
     ld d,(iy+3)
     ex de,hl
