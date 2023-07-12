@@ -1742,48 +1742,48 @@ numbers:
 
 ; /fs funcSrc
 ; func -- src
-FUNC funcSrc, 1, "f"                    ; :f func or block                 
-.cstr 
-"{"
-    ":kt{",                             ; :kt sink, type 
-        "0%t==/br",                     ; break if t != 0 
-        ":dt{",
-            "1%t==/br %f^ 1 %k^",       ; if t == 1 send data to sink
-        "} 0 %k^",                      ; init sink
-    "}", 
-"}" 
+FUNC funcSrc, 1, "f"                      ; :f func or block                 
+db "{"
+db    ":kt{"                              ; :kt sink, type 
+db         "0%t==/br"                     ; break if t != 0 
+db         ":dt{"
+db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
+db         "} 0 %k^"                      ; init sink
+db     "}" 
+db "}" 
+db 0
 
 ; /mp map
 ; func -- :s{:mk}
-FUNC map, 0, "f"                        ; :f func 
-.cstr 
-"{"
-    ":s{",                              ; :s source 
-        ":kt{",                         ; :kt sink, type 
-            "0%t==/br",                 ; break if t != 0 
-            ":dt{",
-                "1%t=={%d %f^}{%d}??",  ; if t == 1 pass data through func else raw
-                "%t %k^",               ; send data to sink
-            "} 0 %s^",                  ; init source
-        "}", 
-    "}", 
-"}" 
+FUNC map, 0, "f"                           ; :f func 
+db "{"
+db     ":s{"                               ; :s source 
+db         ":kt{"                          ; :kt sink, type 
+db             "0%t==/br"                  ; break if t != 0 
+db             ":dt{" 
+db                 "1%t=={%d %f^}{%d}??"   ; if t == 1 pass data through func else raw
+db                 "%t %k^"                ; send data to sink
+db             "} 0 %s^"                   ; init source
+db         "}" 
+db     "}" 
+db "}" 
+db 0
 
 ; /fe forEach
 ; :o -- :s
-FUNC forEach, 0, "p"                    ; :p proc 
-.cstr 
-"{"
-    ":s:T{",                            ; :s source 
-        "[0]%T=",
-        "0%t==/br",                     ; break if t != 0 
-        ":dt{",
-            "{ 0%t==/br %d %T0#= }",    ; 0: store talkback
-            "{ 1%t==/br %d %p^ }",      ; 1: send data to proc
-            "{ 2%t!=/br 0 1 %T0#^ }",   ; 0 or 1: get next data item
-        "} 0 %s^",                      ; init source
-    "}", 
-"}" 
+FUNC forEach, 0, "p"                       ; :p proc 
+db "{"
+db     ":s:T{"                             ; :s source 
+db         "[0]%T="
+db         "0%t==/br"                      ; break if t != 0 
+db         ":dt{"
+db             "{ 0%t==/br %d %T0#= }"     ; 0: store talkback
+db             "{ 1%t==/br %d %p^ }"       ; 1: send data to proc
+db             "{ 2%t!=/br 0 1 %T0#^ }"    ; 0 or 1: get next data item
+db         "} 0 %s^"                       ; init source
+db     "}" 
+db "}" 
+db 0
 
 ; example {/k}/fs :a{a}/mp^ {.}/fe^
 ; example [ {/k}/fs :a{a}/mp {.}/fe ] /pi
