@@ -1740,42 +1740,57 @@ numbers:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; /ki keyIter
-; -- done char
-FUNC keyIter, 1, "k"            ; ::k  
-.cstr "{/k%k= 3%k== %k}" 
-
-; /fi fromIter
-; s -- :mk
-FUNC fromIter, 0, "s"           ; :s source 
-.cstr "{:mk{ 0 :t:r{1%t==/br (s^%r= !/br 1 %r%k^)^ 2 0%k^}; %k^};}" 
+; /fs funcSrc
+; func -- src
+FUNC funcSrc, 1, "f"                    ; :f func or block                 
+.cstr 
+"{"
+    ":kt{",                             ; :kt sink, type 
+        "0%t==/br",                     ; break if t != 0 
+        ":dt{",
+            "1%t==/br %f^ 1 %k^",       ; if t == 1 send data to sink
+        "} 0 %k^",                      ; init sink
+    "}", 
+"}" 
 
 ; /mp map
-; :f -- :s{:mk}
-FUNC map, 0, "f"                ; :f func 
-.cstr "{:s{:mk{%m0==/br 0 :td{%t {d 1%t==/br} %k}; %s};};}" 
+; func -- :s{:mk}
+FUNC map, 0, "f"                        ; :f func 
+.cstr 
+"{"
+    ":s{",                              ; :s source 
+        ":kt{",                         ; :kt sink, type 
+            "0%t==/br",                 ; break if t != 0 
+            ":dt{",
+                "1%t=={%d %f^}{%d}??",  ; if t == 1 pass data through func else raw
+                "%t %k^",               ; send data to sink
+            "} 0 %s^",                  ; init source
+        "}", 
+    "}", 
+"}" 
 
 ; /fe forEach
 ; :o -- :s
-FUNC forEach, 0, "f"            ; :f func 
-.cstr "{:s:b{:td{2%t!=/br 0%t=={%d%b=}{%d%f^}?? 1 0%b}};}" 
+FUNC forEach, 0, "p"                    ; :p proc 
+.cstr 
+"{"
+    ":s:T{",                            ; :s source 
+        "[0]%T=",
+        "0%t==/br",                     ; break if t != 0 
+        ":dt{",
+            "{ 0%t==/br %d %T0#= }",    ; 0: store talkback
+            "{ 1%t==/br %d %p^ }",      ; 1: send data to proc
+            "{ 2%t!=/br 0 1 %T0#^ }",   ; 0 or 1: get next data item
+        "} 0 %s^",                      ; init source
+    "}", 
+"}" 
 
+; example {/k}/fs :a{a}/mp^ {.}/fe^
+; example [ {/k}/fs :a{a}/mp {.}/fe ] /pi
 
 filter:
 scan:
     jp (ix)
-
-;*******************************************************************
-; reusable arglists
-;*******************************************************************
-
-args1A0L:                       ; one arg zero locals
-    db 0
-    .pstr "a"
-
-args1A2L:                       ; one arg two locals
-    db 2
-    .pstr "abc"
 
 ;*******************************************************************
 ; general routines
