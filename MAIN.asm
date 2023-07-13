@@ -65,10 +65,10 @@ isysVars:
 
     .align $100
 
-opcodes:                        ; still available ~ ` _ 
+opcodes:                        ; still available ` ~ _ \
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
-    DB lsb(dquote_)           ; "
+    DB lsb(dquote_)             ; "
     DB lsb(hash_)               ; #
     DB lsb(dollar_)             ; $  
     DB lsb(percent_)            ; %  
@@ -126,7 +126,7 @@ opcodes:                        ; still available ~ ` _
     DB lsb(upcase_)             ; Y     
     DB lsb(upcase_)             ; Z    
     DB lsb(lbrack_)             ; [
-    DB lsb(backslash_)          ; \
+    DB lsb(nop_)                ; \
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(nop_)                ; _
@@ -184,8 +184,6 @@ rbrack_:
     jp rbrack
 percent_:        
     jp percent 
-backslash_:
-    jp backslash
 lparen_:
 lbrace_:
     jp lbrace
@@ -447,7 +445,6 @@ arrayEnd3:
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
-
 ; index of an array, based on vDataWidth 
 ; array num -- value    ; also sets vPointer to address 
 hash:
@@ -471,23 +468,6 @@ arrayIndex1:
 arrayIndex2:
     push de
     jp (ix)
-
-; value _oldValue --            ; uses address in vPointer
-assign:
-    pop hl                      ; discard last accessed value
-    pop hl                      ; hl = new value
-assign0:
-    ex de,hl                    ; de = new value
-assignx:
-    ld hl,(vPointer)     
-    ld (hl),e
-    ld a,(vDataWidth)                   
-    dec a                       ; is it byte?
-    jr z,assign1
-    inc hl    
-    ld (hl),d
-assign1:	  
-    jp (ix)  
 
 ; arg_list - parses input (ab:c)
 ; names after the : represent uninitialised locals
@@ -538,6 +518,65 @@ arglist5:
     inc hl                      
     ld (hl),e                   ; write number of args + locals at start - 2
     jp (ix)  
+
+; value _oldValue --            ; uses address in vPointer
+assign:
+    pop hl                      ; discard last accessed value
+    pop hl                      ; hl = new value
+assign0:
+    ex de,hl                    ; de = new value
+assignx:
+    ld hl,(vPointer)     
+    ld (hl),e
+    ld a,(vDataWidth)                   
+    dec a                       ; is it byte?
+    jr z,assign1
+    inc hl    
+    ld (hl),d
+assign1:	  
+    jp (ix)  
+
+; /ab absolute
+; num -- num
+absolute:
+    pop hl
+    bit 7,h
+    ret z
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+    push hl
+    jp (ix)
+
+; /ad addrOf
+; char -- addr
+addrOf:
+    pop hl                      ; a = char
+    ld a,l
+    cp "z"+1                    ; if a > z then exit
+    jr nc,addrOf2
+    sub "A"                     ; a - 65
+    jr c,addrOf2                ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,addrOf1
+    sub "a"-("Z"+1)
+    cp "Z"-"A"+1
+    jr c,addrOf2                ; if < a then exit
+addrOf1:
+    add a,a                     ; double a
+    ld hl,VARS                  ; hl = VARS + a
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    push hl
+addrOf2:    
+    jp (ix)
+
 
 lbrace:
 blockStart:
@@ -657,6 +696,25 @@ blockEnd3:
     ld iy,(vTemp1)
     jp (ix)    
 
+; /br break from loop             
+; --
+break:
+    pop hl
+    ld a,l
+    or h
+    jr z,break1
+    jp (ix)
+break1:    
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    inc hl
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+    jp blockEnd
+
 tick:
 char:
     ld hl,0                     ; if '' is empty or null
@@ -676,24 +734,6 @@ char3:
     push hl
     jp (ix)  
 
-backslash:
-    jp (ix)
-
-; , discard stack item
-; x y -- x
-comma:
-discard:
-    ld d,iyh                    ; limit this to SP <= BP
-    ld e,iyl
-    ex de,hl
-    or a
-    sbc hl,sp
-    bit 7,h
-    jr nz,discard1
-    pop hl
-discard1:
-    jp (ix)
-
 slash:
 command:
     call jumpTable
@@ -707,14 +747,18 @@ command:
     dw chars
     db "d"                      ; /d decimal
     dw decimal
-    db "f"                      ; /f false
-    dw false1
+    db "f"                       
+    dw command_f
     db "h"                      ; /h hexadecimal
     dw hexadecimal
     db "i"
     dw command_i
     db "k"                      ; /k key
     dw key
+    db "l"
+    dw command_l
+    db "m"                      
+    dw command_m
     db "n"                      ; /n numbers
     dw numbers
     db "o"                      ; /o output
@@ -734,335 +778,105 @@ command:
     db NUL
     dw div
 
-div:
-    pop de
-    pop hl
-    push bc                     ; preserve the IP    
-    ld bc,hl                
-    call divide
-    ex de,hl
-    ld (vRemain),de
-    pop bc
-    jp add3
-
-dot:
+command_a:
     call jumpTable
-    db "a"                      ; .a print array
-    dw bufferArray
-    db "c"                      ; .c print char
-    dw bufferChar
-    db "s"                      ; .s print string
-    dw bufferString
-    db "x"                      ; .x print x chars
-    dw bufferXChars
-    db NUL                      ; .  print number
-    dw bufferNumber
+    db "b"                      ; /ab absolute
+    dw absolute
+    db "d"                      ; /ad address of
+    dw addrOf
+    db NUL
+    dw error1
 
-; division subroutine.
-; bc: divisor, de: dividend, hl: remainder
+command_b:
+    call jumpTable
+    db "r"                      ; /br break
+    dw break
+    db "y"                      ; /by cold boot
+    dw coldStart
+    db NUL
+    dw error1
 
-divide:        
-    ld hl,0    	                        ; zero the remainder
-    ld a,16    	                        ; loop counter
-divide1:		                        ; shift the bits from bc (numerator) into hl (accumulator)
-    sla c
-    rl b
-    adc hl,hl
-    sbc hl,de		                    ; check if remainder >= denominator (hl>=de)
-    jr c,divide2
-    inc c
-    jr divide3
-divide2:		                        ; remainder is not >= denominator, so we have to add de back to hl
-    add hl,de
-divide3:
-    dec a
-    jr nz,divide1
-    ld de,bc                              ; result from bc to de
-    ret
+command_f:
+    call jumpTable
+    db "e"                      ; /fe forEach
+    dw forEach
+    db "s"                      ; /fs funcSrc
+    dw funcSrc
+    db NUL
+    dw false1
 
-; hl = value1, de = value2
-; hl = result
-equals:
-    or a                        ; reset the carry flag
-    sbc hl,de                   ; only equality sets hl=0 here
-    jr z, true1
-    jp false1
+command_i:
+    call jumpTable
+    db "n"                      ; /in input
+    dw input
+    db "v"                      ; /iv invert
+    dw invert
+    db NUL
+    dw error1
 
-; hl = value1 de = value2
-; hl = result
-lessthaneq:    
-    or a                        
-    sbc hl,de    
-    jr lessthan1
+command_l:
+    call jumpTable
+    db "i"                      ; /li literal
+    dw literal
+    db NUL
+    dw error1
 
-; hl = value1 de = value2
-; hl = result
-lessthan:
-    or a                        
-    sbc hl,de    
-    jr z,false1    
+command_m:
+    call jumpTable
+    db "p"                      ; /mp map
+    dw map
+    db NUL
+    dw error1
 
-lessthan1:
-    jp m,false1
+command_p:
+    call jumpTable
+    db "b"                      ; /pb print buffer
+    dw printBuffer
+    db "c"                      ; /pc print chars
+    dw printChars
+    db "k"                      ; /pk print stack
+    dw printStack
+    db NUL
+    dw error1
 
-true1:
-    ld hl, TRUE
-    push hl
-    jp (ix) 
-null1:
-false1:
-    ld hl, FALSE
-    push hl
-    jp (ix) 
+command_r:
+    call jumpTable
+    db "e"                      ; /re remainder
+    dw remain
+    db NUL
+    dw error1
 
-; execute a block of code which ends with }
-; creates a root scope if BP == stack
-; else uses outer scope 
-caret:
-go:				       
-    pop de                      ; de = block*
-go1:
-    ld a,e                      ; if block* == null, exit
-    or d
-    jr nz,go2
+command_v:
+    call jumpTable
+    db "b"
+    dw varBufPtr
+    db "h"
+    dw varHeapPtr
+    db "t"
+    dw varTIBPtr
+    db "B"
+    dw constBufStart
+    db "T"
+    dw constTIBStart
+    db NUL
+    dw error1
+
+chars:
+    ld hl,1
+chars1:
+    ld (vDataWidth),hl
     jp (ix)
-go2:
-    ld a,(de)
-    cp "{"
-    jr z,goBlock1
-    cp "("
-    jp nz,goFunc
-    ; inc de                      ; de is the address to jump back to
-    push de                     ; push de just before stack frame
-goBlock:
-goBlock1:    
-    ld (vTemp1),de              ; save de
-    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
-    ld d,iyh                    
-    ld e,iyl
-    or a                        ; if stack* == BP then this is the root_scope
-    sbc hl,de                   
-    ld de,(vTemp1)              ; restore de
-    ld a,l                      ; if (not root_scope) then inherit scope vars from parent
-    or h                    
-    ld a,0
-    jr z,goFunc8
-    push bc                     ; push IP
-    ld c,(iy+4)                 ; push arg_list* (parent)
-    ld b,(iy+5)                 
-    ld l,(iy+2)                 ; push first_arg* (parent)
-    ld h,(iy+3)                 
-goBlock2:
-    push bc                     ; arg_list*
-    push hl                     ; first_arg*
-    push iy                     ; push BP
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    ld bc,de                    ; bc = de = block*-1
-    jp (ix)    
-    
-goFunc:				        ; execute func
-    ex de,hl                    ; hl = func*
-    ld e,(hl)                   ; de = partial_array*
-    inc hl
-    ld d,(hl)
-    inc hl
-    ld a,e                      ; if partial_array* == null skip
-    or d
-    jr z,goFunc3
-    ld (vTemp1),bc
-    ld (vTemp2),hl              ; save bc,hl
-    ex de,hl                    ; hl = partial_array*
-    dec hl                      ; bc = count
-    ld b,(hl)
-    dec hl
-    ld c,(hl)
-    inc hl                      ; hl = array data*
-    inc hl
-    jr goFunc2                ; push each item on stack
-goFunc1:
-    ld e,(hl)                   ; de = partial item
-    inc hl
-    ld d,(hl)
-    inc hl
-    push de                     ; push on stack
-    dec bc
-goFunc2:
-    ld a,c                      ; if count != 0 then loop
-    or b
-    jr nz,goFunc1
-    ld bc,(vTemp1)              ; restore bc
-    ld hl,(vTemp2)              ; restore hl
-goFunc3:
-    ld e,(hl)                   ; de = block*
-    inc hl
-    ld d,(hl)
-    inc hl
-    ld (vTemp1),de              ; save block*
-    ld e,(hl)                   ; de = arg_list*
-    inc hl
-    ld d,(hl)
-    inc hl
-    ex de,hl                    ; hl = arg_list*
-    ld de,(vTemp1)              ; restore de = block*
-    ld a,l                      ; if arg_list* == null a = 0
-    or h
-    jr nz,goFunc4          
-    xor a                       ; a = num_args (zero), num_locals (zero)
-    jr goFunc8                  
-goFunc4:                      ; allocate locals 
-    ld a,(hl)                   ; a = num_locals*, de = hblock* hl = arg_list*
-    jr goFunc6
-goFunc5:                      ; loop
-    dec sp
-    dec sp
-    dec a
-goFunc6:
-    or a
-    jr nz,goFunc5             ; end loop
-goFunc7:
-    inc hl                      ; a = num_args* x 2 
-    ld a,(hl)
-    dec hl
-    add a,a                     ; a *= 2
-goFunc8:
-    push bc                     ; push IP
-    ld bc,hl
-    ld hl,2                     ; hl = first_arg* (BP+8), a = num args offset
-    add a,l                     
-    ld l,a
-    add hl,sp
-    jr goBlock2
+numbers:
+    ld hl,2
+    jp chars1
 
-dollar:
-hexnum:        
-	ld hl,0	    		        ; Clear hl to accept the number
-hexnum1:
-    inc bc
-    ld a,(bc)		            ; Get the character which is a numeral
-    bit 6,a                     ; is it uppercase alpha?
-    jr z, hexnum2               ; no a decimal
-    sub 7                       ; sub 7  to make $a - $F
-hexnum2:
-    sub $30                     ; form decimal digit
-    jp c,num2
-    cp $0F+1
-    jp nc,num2
-    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
-    add hl,hl                   ; 4X
-    add hl,hl                   ; 8X
-    add hl,hl                   ; 16X     
-    add a,l                     ; add into bottom of hl
-    ld  l,a        
-    jr  hexnum1
-upcase:
-    ld a,(bc)                   ; a = identifier char
-    sub 'A'                     ; 'A' = 0
-    jr ident1
-lowcase:
+comment:
+    inc bc                      ; point to next char
     ld a,(bc)
-    sub 'a' 
-    add a,26
-ident1:
-    add a,a                     ; l = a * 2                             
-    ld l,a
-    ld h,msb(vars)     
-    ld (vPointer),hl            ; store address in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    push de
-    jp (ix)
-
-; if
-; condition then -- value
-question:
-if:
-    inc bc
-    ld a,(bc)
-    cp "?"
-    jr z,ifte
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
     dec bc
-    ld de,NUL                   ; NUL pointer for else
-    jr ifte1
-; ifte
-; condition then else -- value
-ifte: 
-    pop de                      ; de = else
-ifte1:
-    pop hl                      ; hl = then
-    ex (sp),hl                  ; hl = condition, (sp) = then
-    ld a,h
-    or l
-    pop hl                      ; hl = then
-    jp z,go1                    ; if z de = else                   
-    ex de,hl                    ; condition = false, de = then  
-    jp go1
-
-star:
-mul:        
-    pop  de                     ; get first value
-    pop  hl
-mul2:
-    push bc                     ; Preserve the IP
-    ld bc,hl                    ; bc = 2nd value
-    ld hl,0
-    ld a,16
-mul3:
-    add hl,hl
-    rl e
-    rl d
-    jr nc,$+6
-    add hl,bc
-    jr nc,$+3
-    inc de
-    dec a
-    jr nz,mul3
-	pop bc			            ; Restore the IP
-    jp add3
-
-num:
-	ld hl,$0000				    ; Clear hl to accept the number
-	ld a,(bc)				    ; Get numeral or -
-    cp '-'
-    jr nz,num0
-    inc bc                      ; move to next char, no flags affected
-num0:
-    ex af,af'                   ; save zero flag = 0 for later
-num1:
-    ld a,(bc)                   ; read digit    
-    sub "0"                     ; less than 0?
-    jr c, num2                  ; not a digit, exit loop 
-    cp 10                       ; greater that 9?
-    jr nc, num2                 ; not a digit, exit loop
-    inc bc                      ; inc IP
-    ld de,hl                    ; multiply hl * 10
-    add hl,hl    
-    add hl,hl    
-    add hl,de    
-    add hl,hl    
-    add a,l                     ; add digit in a to hl
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    jr num1 
-num2:
-    dec bc
-    ex af,af'                   ; restore zero flag
-    jr nz, num3
-    ex de,hl                    ; negate the value of hl
-    ld hl,0
-    or a                        ; jump to sub2
-    sbc hl,de    
-num3:
-    push hl                     ; Put the number on the stack
-    jp (ix)                     ; and process the next character
-
-rparen:
-    ld c,(iy+8)                 ; IP = block* just under stack frame
-    ld b,(iy+9)
-    jp (ix)
+    jp (ix) 
 
 ; ";" createFunc
 ; arg_list* block* -- func*
@@ -1183,177 +997,56 @@ createFunc5:
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
-; shiftLeft  
-; value count -- value2          shift left count places
-shiftLeft:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftLeft2
-shiftLeft1:   
-    add hl,hl                   ; left shift hl
-shiftLeft2:   
-    djnz shiftLeft1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-; shiftRight  
-; value count -- value2          shift left count places
-shiftRight:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftRight2
-shiftRight1:   
-    srl h                       ; right shift hl
-    rr l
-shiftRight2:   
-    djnz shiftRight1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-; string
-; -- ptr                        ; points to start of string chars, 
-                                ; length is stored at start - 2 bytes 
-dquote:
-string:     
-    ld hl,(vHeapPtr)            ; hl = heap*
-    inc hl                      ; skip length field to start
-    inc hl
-    push hl                     ; save start of string 
-    inc bc                      ; point to next char
-    jr string2
-string1:
-    ld (hl),a
-    inc hl                      ; increase count
-    inc bc                      ; point to next char
-string2:
-    ld a,(bc)
-    cp DQ                      ; " is the string terminator
-    jr z,string3
-    cp "`"                      ; ` is the string terminator used in testing
-    jr nz,string1
-string3:
-    xor a                       ; write NUL to terminate string
-    ld (hl),a                   ; hl = end of string
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap* to after end of string
-    dec hl                      ; hl = end of string without terminator
-    pop de                      ; de = start of string
-    push de                     ; return start of string    
-    or a                        ; hl = length bytes, de = start of string
-    sbc hl,de
+; , discard stack item
+; x y -- x
+comma:
+discard:
+    ld d,iyh                    ; limit this to SP <= BP
+    ld e,iyl
     ex de,hl
-    dec hl                      ; write length bytes to length field at start - 2                                      
-    ld (hl),d
-    dec hl
-    ld (hl),e
-    jp (ix)  
-
-minus:  		                ; negative sign or subtract
-    inc bc                      ; check if sign of a number
-    ld a,(bc)
-    dec bc
-    cp "0"
-    jr c,sub
-    cp "9"+1
-    jp c,num_    
-sub:                            ; Subtract the value 2nd on stack from top of stack 
-    inc bc
-    cp "-"
-    jr nz,sub1
+    or a
+    sbc hl,sp
+    bit 7,h
+    jr nz,discard1
     pop hl
-    dec hl
-    jp assign0
-sub1:
-    dec bc
+discard1:
+    jp (ix)
+
+div:
     pop de
     pop hl
-    or a
-    sbc hl,de    
+    push bc                     ; preserve the IP    
+    ld bc,hl                
+    call divide
+    ex de,hl
+    ld (vRemain),de
+    pop bc
     jp add3
 
-error1:
-    ld hl,1                     ; error 1: unknown command
-    push hl
-    jp error
-
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
-
-command_a:
-    call jumpTable
-    db "b"                      ; /ab absolute
-    dw absolute
-    db "d"                      ; /ad address of
-    dw addrOf
-    db NUL
-    dw error1
-
-; /ab absolute
-; num -- num
-absolute:
-    pop hl
-    bit 7,h
-    ret z
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-    push hl
+decimal:
+    ld hl,10
+decimal1:
+    ld (vNumBase),hl
     jp (ix)
+hexadecimal:
+    ld hl,16
+    jp decimal1
 
-; /ad addrOf
-; char -- addr
-addrOf:
-    pop hl                      ; a = char
-    ld a,l
-    cp "z"+1                    ; if a > z then exit
-    jr nc,addrOf2
-    sub "A"                     ; a - 65
-    jr c,addrOf2                ; if < A then exit
-    cp "Z"+1-"A"                ; if > Z then subtract 7
-    jr c,addrOf1
-    sub "a"-("Z"+1)
-    cp "Z"-"A"+1
-    jr c,addrOf2                ; if < a then exit
-addrOf1:
-    add a,a                     ; double a
-    ld hl,VARS                  ; hl = VARS + a
-    add a,l
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    push hl
-addrOf2:    
-    jp (ix)
-
-command_b:
+dot:
     call jumpTable
-    db "r"                      ; /br break
-    dw break
-    db "y"                      ; /by cold boot
-    dw coldStart
-    db NUL
-    dw error1
+    db "a"                      ; .a print array
+    dw bufferArray
+    db "c"                      ; .c print char
+    dw bufferChar
+    db "s"                      ; .s print string
+    dw bufferString
+    db "x"                      ; .x print x chars
+    dw bufferXChars
+    db NUL                      ; .  print number
+    dw bufferNumber
 
 FUNC bufferArray, 2, "abc"
 .cstr "{",DQ,"[ ",DQ,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQ,"]",DQ,".s}",0
-; .cstr "{$a/s$c= 0$b=( $a$b%/bd $b++ $b $c</br )^}" ; block
 
 ; /bd buffer decimal
 ; value --                      
@@ -1473,25 +1166,6 @@ bufferHex2:
     call z,flushBuffer
 	ret
 
-; /br break from loop             
-; --
-break:
-    pop hl
-    ld a,l
-    or h
-    jr z,break1
-    jp (ix)
-break1:    
-    ld e,iyl                    ; get block* just under stack frame
-    ld d,iyh
-    ld hl,8
-    add hl,de
-    inc hl
-    inc hl
-    ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ld (iy+3),h                 ; first_arg* = address of block*
-    jp blockEnd
-
 ; /bs buffered string             
 ; string* --
 bufferString:
@@ -1541,25 +1215,516 @@ bufferXChars2:
     ld (vBufPtr),de             ; save buffer*'
     jp (ix)
 
-command_i:
-    call jumpTable
-    db "n"                      ; /in input
-    dw input
-    db "v"                      ; /iv invert
-    dw invert
-    db NUL
-    dw error1
+; division subroutine.
+; bc: divisor, de: dividend, hl: remainder
 
-command_p:
-    call jumpTable
-    db "b"                      ; /pb print buffer
-    dw printBuffer
-    db "c"                      ; /pc print chars
-    dw printChars
-    db "k"                      ; /pk print stack
-    dw printStack
-    db NUL
-    dw error1
+divide:        
+    ld hl,0    	                ; zero the remainder
+    ld a,16    	                ; loop counter
+divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
+    sla c
+    rl b
+    adc hl,hl
+    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
+    jr c,divide2
+    inc c
+    jr divide3
+divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
+    add hl,de
+divide3:
+    dec a
+    jr nz,divide1
+    ld de,bc                    ; result from bc to de
+    ret
+
+; hl = value1, de = value2
+; hl = result
+equals:
+    or a                        ; reset the carry flag
+    sbc hl,de                   ; only equality sets hl=0 here
+    jr z, true1
+    jp false1
+
+; hl = value1 de = value2
+; hl = result
+lessthaneq:    
+    or a                        
+    sbc hl,de    
+    jr lessthan1
+
+; hl = value1 de = value2
+; hl = result
+lessthan:
+    or a                        
+    sbc hl,de    
+    jr z,false1    
+
+lessthan1:
+    jp m,false1
+
+true1:
+    ld hl, TRUE
+    push hl
+    jp (ix) 
+null1:
+false1:
+    ld hl, FALSE
+    push hl
+    jp (ix) 
+
+error1:
+    ld hl,1                     ; error 1: unknown command
+    push hl
+    jp error
+
+; /fe forEach
+; :o -- :s
+FUNC forEach, 0, "p"                       ; :p proc 
+db "{"
+db     ":s:T{"                             ; :s source 
+db         "[0]%T="
+db         "0%t==/br"                      ; break if t != 0 
+db         ":dt{"
+db             "{ 0%t==/br %d %T0#= }"     ; 0: store talkback
+db             "{ 1%t==/br %d %p^ }"       ; 1: send data to proc
+db             "{ 2%t!=/br 0 1 %T0#^ }"    ; 0 or 1: get next data item
+db         "}; 0 %s^"                       ; init source
+db     "};" 
+db "}" 
+db 0
+
+; ; /fs funcSrc
+; ; func -- src
+; FUNC funcSrc, 1, "f"                      ; :f func or block                 
+; db "{"
+; db    ":kt{"                              ; :kt sink, type 
+; db         "0%t==/br"                     ; break if t != 0 
+; db         ":dt{"
+; db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
+; db         "}; 0 %k^"                      ; init sink
+; db     "};" 
+; db "}" 
+; db 0
+
+; ; /fs funcSrc
+; ; func -- src
+FUNC funcSrc, 1, "f"                      ; :f func or block                 
+db "{"
+db    ":kt{"                              ; :kt sink, type 
+db         "0%t==/br"                     ; break if t != 0 
+db         ":dt{"
+db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
+db         "}; 0 %k^"                     ; init sink
+db     "};" 
+db "}" 
+db 0
+
+; execute a block of code which ends with }
+; creates a root scope if BP == stack
+; else uses outer scope 
+caret:
+go:				       
+    pop de                      ; de = block*
+go1:
+    ld a,e                      ; if block* == null, exit
+    or d
+    jr nz,go2
+    jp (ix)
+go2:
+    ld a,(de)
+    cp "{"
+    jr z,goBlock
+    cp "("
+    jp nz,goFunc
+    ; inc de                      ; de is the address to jump back to
+    push de                     ; push de just before stack frame
+
+goBlock:
+    ld (vTemp1),de              ; save de
+    ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
+    ld d,iyh                    
+    ld e,iyl
+    or a                        ; if stack* == BP then this is the root_scope
+    sbc hl,de                   
+    ld de,(vTemp1)              ; restore de
+    ld a,l                      ; if (not root_scope) then inherit scope vars from parent
+    or h                    
+    ld a,0
+    jr z,goFunc8
+    push bc                     ; push IP
+    ld c,(iy+4)                 ; push arg_list* (parent)
+    ld b,(iy+5)                 
+    ld l,(iy+2)                 ; push first_arg* (parent)
+    ld h,(iy+3)                 
+goBlock2:
+    push bc                     ; arg_list*
+    push hl                     ; first_arg*
+    push iy                     ; push BP
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    ld bc,de                    ; bc = de = block*-1
+    jp (ix)    
+    
+goFunc:				            ; execute func
+    ex de,hl                    ; hl = func*
+    ld e,(hl)                   ; de = partial_array*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ld a,e                      ; if partial_array* == null skip
+    or d
+    jr z,goFunc3
+    ld (vTemp1),bc
+    ld (vTemp2),hl              ; save bc,hl
+    ex de,hl                    ; hl = partial_array*
+    dec hl                      ; bc = count
+    ld b,(hl)
+    dec hl
+    ld c,(hl)
+    inc hl                      ; hl = array data*
+    inc hl
+    jr goFunc2                ; push each item on stack
+goFunc1:
+    ld e,(hl)                   ; de = partial item
+    inc hl
+    ld d,(hl)
+    inc hl
+    push de                     ; push on stack
+    dec bc
+goFunc2:
+    ld a,c                      ; if count != 0 then loop
+    or b
+    jr nz,goFunc1
+    ld bc,(vTemp1)              ; restore bc
+    ld hl,(vTemp2)              ; restore hl
+goFunc3:
+    ld e,(hl)                   ; de = block*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ld (vTemp1),de              ; save block*
+    ld e,(hl)                   ; de = arg_list*
+    inc hl
+    ld d,(hl)
+    inc hl
+    ex de,hl                    ; hl = arg_list*
+    ld de,(vTemp1)              ; restore de = block*
+    ld a,l                      ; if arg_list* == null a = 0
+    or h
+    jr nz,goFunc4          
+    xor a                       ; a = num_args (zero), num_locals (zero)
+    jr goFunc8                  
+goFunc4:                        ; allocate locals 
+    ld a,(hl)                   ; a = num_locals*, de = hblock* hl = arg_list*
+    jr goFunc6
+goFunc5:                        ; loop
+    dec sp
+    dec sp
+    dec a
+goFunc6:
+    or a
+    jr nz,goFunc5               ; end loop
+goFunc7:
+    inc hl                      ; a = num_args* x 2 
+    ld a,(hl)
+    dec hl
+    add a,a                     ; a *= 2
+goFunc8:
+    push bc                     ; push IP
+    ld bc,hl
+    ld hl,2                     ; hl = first_arg* (BP+8), a = num args offset
+    add a,l                     
+    ld l,a
+    add hl,sp
+    jr goBlock2
+
+dollar:
+hexnum:        
+	ld hl,0	    		        ; Clear hl to accept the number
+hexnum1:
+    inc bc
+    ld a,(bc)		            ; Get the character which is a numeral
+    bit 6,a                     ; is it uppercase alpha?
+    jr z, hexnum2               ; no a decimal
+    sub 7                       ; sub 7  to make $a - $F
+hexnum2:
+    sub $30                     ; form decimal digit
+    jp c,num2
+    cp $0F+1
+    jp nc,num2
+    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
+    add hl,hl                   ; 4X
+    add hl,hl                   ; 8X
+    add hl,hl                   ; 16X     
+    add a,l                     ; add into bottom of hl
+    ld  l,a        
+    jr  hexnum1
+
+upcase:
+    ld a,(bc)                   ; a = identifier char
+    sub 'A'                     ; 'A' = 0
+    jr ident1
+lowcase:
+    ld a,(bc)
+    sub 'a' 
+    add a,26
+ident1:
+    add a,a                     ; l = a * 2                             
+    ld l,a
+    ld h,msb(vars)     
+    ld (vPointer),hl            ; store address in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    push de
+    jp (ix)
+
+; if
+; condition then -- value
+question:
+if:
+    inc bc
+    ld a,(bc)
+    cp "?"
+    jr z,ifte
+    dec bc
+    ld de,NUL                   ; NUL pointer for else
+    jr ifte1
+; ifte
+; condition then else -- value
+ifte: 
+    pop de                      ; de = else
+ifte1:
+    pop hl                      ; hl = then
+    ex (sp),hl                  ; hl = condition, (sp) = then
+    ld a,h
+    or l
+    pop hl                      ; hl = then
+    jp z,go1                    ; if z de = else                   
+    ex de,hl                    ; condition = false, de = then  
+    jp go1
+
+; Z80 port input
+; port -- value 
+input:			    
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    in l,(c)
+    ld h,0
+    ld c,e                      ; restore IP
+    push hl
+    jp (ix)    
+
+key:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
+    jp (ix)
+
+; /li literal
+; low level operation
+; reads the next two bytes and 
+; pushes a word on the stack
+; -- value
+literal:
+    inc bc
+    ld a,(bc)
+    ld l,a
+    inc bc
+    ld a,(bc)
+    ld h,a
+    push hl
+    jp (ix)
+
+; Z80 port output
+; value port --
+output:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    pop hl
+    out (c),l
+    ld c,e                      ; restore IP
+    jp (ix)    
+
+; /mp map
+; func -- :s{:mk}
+FUNC map, 0, "f"                            ; :f func 
+db "{"
+db     ":s{"                                ; :s source 
+db         ":kt{"                           ; :kt sink, type 
+db             "0%t==/br"                   ; break if t != 0 
+db             ":dt{" 
+db                 "1%t=={%d %f^}{%d}??"    ; if t == 1 pass data through func else raw
+db                 "%t %k^"                 ; send data to sink
+db             "}; 0 %s^"                   ; init source
+db         "};" 
+db     "};" 
+db "}" 
+db 0
+
+star:
+mul:        
+    pop  de                     ; get first value
+    pop  hl
+mul2:
+    push bc                     ; Preserve the IP
+    ld bc,hl                    ; bc = 2nd value
+    ld hl,0
+    ld a,16
+mul3:
+    add hl,hl
+    rl e
+    rl d
+    jr nc,$+6
+    add hl,bc
+    jr nc,$+3
+    inc de
+    dec a
+    jr nz,mul3
+	pop bc			            ; Restore the IP
+    jp add3
+
+num:
+	ld hl,$0000				    ; Clear hl to accept the number
+	ld a,(bc)				    ; Get numeral or -
+    cp '-'
+    jr nz,num0
+    inc bc                      ; move to next char, no flags affected
+num0:
+    ex af,af'                   ; save zero flag = 0 for later
+num1:
+    ld a,(bc)                   ; read digit    
+    sub "0"                     ; less than 0?
+    jr c, num2                  ; not a digit, exit loop 
+    cp 10                       ; greater that 9?
+    jr nc, num2                 ; not a digit, exit loop
+    inc bc                      ; inc IP
+    ld de,hl                    ; multiply hl * 10
+    add hl,hl    
+    add hl,hl    
+    add hl,de    
+    add hl,hl    
+    add a,l                     ; add digit in a to hl
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    jr num1 
+num2:
+    dec bc
+    ex af,af'                   ; restore zero flag
+    jr nz, num3
+    ex de,hl                    ; negate the value of hl
+    ld hl,0
+    or a                        ; jump to sub2
+    sbc hl,de    
+num3:
+    push hl                     ; Put the number on the stack
+    jp (ix)                     ; and process the next character
+
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
+
+; shiftLeft  
+; value count -- value2          shift left count places
+shiftLeft:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftLeft2
+shiftLeft1:   
+    add hl,hl                   ; left shift hl
+shiftLeft2:   
+    djnz shiftLeft1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; shiftRight  
+; value count -- value2          shift left count places
+shiftRight:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftRight2
+shiftRight1:   
+    srl h                       ; right shift hl
+    rr l
+shiftRight2:   
+    djnz shiftRight1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; string
+; -- ptr                        ; points to start of string chars, 
+                                ; length is stored at start - 2 bytes 
+dquote:
+string:     
+    ld hl,(vHeapPtr)            ; hl = heap*
+    inc hl                      ; skip length field to start
+    inc hl
+    push hl                     ; save start of string 
+    inc bc                      ; point to next char
+    jr string2
+string1:
+    ld (hl),a
+    inc hl                      ; increase count
+    inc bc                      ; point to next char
+string2:
+    ld a,(bc)
+    cp DQ                      ; " is the string terminator
+    jr z,string3
+    cp "`"                      ; ` is the string terminator used in testing
+    jr nz,string1
+string3:
+    xor a                       ; write NUL to terminate string
+    ld (hl),a                   ; hl = end of string
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
+    dec hl                      ; hl = end of string without terminator
+    pop de                      ; de = start of string
+    push de                     ; return start of string    
+    or a                        ; hl = length bytes, de = start of string
+    sbc hl,de
+    ex de,hl
+    dec hl                      ; write length bytes to length field at start - 2                                      
+    ld (hl),d
+    dec hl
+    ld (hl),e
+    jp (ix)  
+
+minus:  		                ; negative sign or subtract
+    inc bc                      ; check if sign of a number
+    ld a,(bc)
+    dec bc
+    cp "0"
+    jr c,sub
+    cp "9"+1
+    jp c,num_    
+sub:                            ; Subtract the value 2nd on stack from top of stack 
+    inc bc
+    cp "-"
+    jr nz,sub1
+    pop hl
+    dec hl
+    jp assign0
+sub1:
+    dec bc
+    pop de
+    pop hl
+    or a
+    sbc hl,de    
+    jp add3
 
 ; /pb printBuffer
 ; --
@@ -1619,13 +1784,6 @@ printStack:
 ;     ld bc,(vTemp1)
     jp (ix)
 
-command_r:
-    call jumpTable
-    db "e"                      ; /re remainder
-    dw remain
-    db NUL
-    dw error1
-
 remain:
     ld hl,(vRemain)
     push hl
@@ -1639,21 +1797,6 @@ size:
     ld e,(hl)
     push de
     jp (ix)
-
-command_v:
-    call jumpTable
-    db "b"
-    dw varBufPtr
-    db "h"
-    dw varHeapPtr
-    db "t"
-    dw varTIBPtr
-    db "B"
-    dw constBufStart
-    db "T"
-    dw constTIBStart
-    db NUL
-    dw error1
 
 constBufStart:
     ld de,BUF
@@ -1689,104 +1832,9 @@ constant:
     jp (ix)
 
 
-chars:
-    ld hl,1
-chars1:
-    ld (vDataWidth),hl
-    jp (ix)
-
-decimal:
-    ld hl,10
-decimal1:
-    ld (vNumBase),hl
-    jp (ix)
-hexadecimal:
-    ld hl,16
-    jp decimal1
-
-; Z80 port input
-; port -- value 
-input:			    
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    in l,(c)
-    ld h,0
-    ld c,e                      ; restore IP
-    push hl
-    jp (ix)    
-
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
-
-; Z80 port output
-; value port --
-output:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    pop hl
-    out (c),l
-    ld c,e                      ; restore IP
-    jp (ix)    
-
-numbers:
-    ld hl,2
-    jp chars1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; /fs funcSrc
-; func -- src
-FUNC funcSrc, 1, "f"                      ; :f func or block                 
-db "{"
-db    ":kt{"                              ; :kt sink, type 
-db         "0%t==/br"                     ; break if t != 0 
-db         ":dt{"
-db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
-db         "} 0 %k^"                      ; init sink
-db     "}" 
-db "}" 
-db 0
-
-; /mp map
-; func -- :s{:mk}
-FUNC map, 0, "f"                           ; :f func 
-db "{"
-db     ":s{"                               ; :s source 
-db         ":kt{"                          ; :kt sink, type 
-db             "0%t==/br"                  ; break if t != 0 
-db             ":dt{" 
-db                 "1%t=={%d %f^}{%d}??"   ; if t == 1 pass data through func else raw
-db                 "%t %k^"                ; send data to sink
-db             "} 0 %s^"                   ; init source
-db         "}" 
-db     "}" 
-db "}" 
-db 0
-
-; /fe forEach
-; :o -- :s
-FUNC forEach, 0, "p"                       ; :p proc 
-db "{"
-db     ":s:T{"                             ; :s source 
-db         "[0]%T="
-db         "0%t==/br"                      ; break if t != 0 
-db         ":dt{"
-db             "{ 0%t==/br %d %T0#= }"     ; 0: store talkback
-db             "{ 1%t==/br %d %p^ }"       ; 1: send data to proc
-db             "{ 2%t!=/br 0 1 %T0#^ }"    ; 0 or 1: get next data item
-db         "} 0 %s^"                       ; init source
-db     "}" 
-db "}" 
-db 0
-
-; example {/k}/fs :a{a}/mp^ {.}/fe^
-; example [ {/k}/fs :a{a}/mp {.}/fe ] /pi
 
 filter:
 scan:

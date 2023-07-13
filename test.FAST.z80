@@ -9,12 +9,26 @@
 
 .include "MAIN.asm"
 
+FUNC f1, 1, "f"                      ; :f func or block                 
+db "{"
+db    "1."
+; ; db    ":kt{"                              ; :kt sink, type 
+; ; db         "0%t==/br"                     ; break if t != 0 
+; ; db         ":dt{"
+; ; db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
+; ; db         "}; 0 %k^"                     ; init sink
+; ; db     "};" 
+db "}" 
+db 0
+
 .align $100
 testsStart:
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    test {"0 /li",lsb(f1+3),msb(f1),"^"}, false
+
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -133,7 +147,6 @@ testsStart:
     test "1 :b{:a:c{%a%b-%c= %c--%c};};^F= 3F^",1
     test "1 :b:c{:a{%a%b-%c= %c--%c};};^F= 3F^",1
     test "1 :b:c{:a:d{%a%b-%c= %c--%c %d= %d++%d};};^F= 3F^",2
-
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
