@@ -9,22 +9,31 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 1, "f"                      ; :f func or block                 
+FUNC f1, 0, "f"                             ; :f func or block                 
 db "{"
-db    "1."
-; ; db    ":kt{"                              ; :kt sink, type 
-; ; db         "0%t==/br"                     ; break if t != 0 
-; ; db         ":dt{"
-; ; db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
-; ; db         "}; 0 %k^"                     ; init sink
-; ; db     "};" 
+db      ":kt{"                                ; :kt sink, type 
+db          "0%t==/br"                      ; break if t != 0 
+db          ":dt{"
+db              "1%t==/br"                  ; if t == 1
+db              "%f^ 1 %k^"                 ; if t == 1 send data to sink
+db          "}; 0 %k^"                      ; init sink
+db      "};" 
+db "}" 
+db 0
+
+FUNC f2, 0, "dt"                           ; sink                 
+db "{"
+db      "2%t!=/br"                          ; break if t == 2 
+db      "{0%t==/br `x`.s %t. 0 1 %d^}^"     ; greet with talkback and use to get data                            
+db      "{1%t==/br `y`.s %t. %d.}^"         ; receive data                        
 db "}" 
 db 0
 
 .align $100
 testsStart:
 
-    test {"0 /li",lsb(f1+3),msb(f1),"^"}, false
+    ; test {"/li",lsb(f2+3),msb(f2)," 0 {500} /li",lsb(f1+3),msb(f1),"^^"}, 0
+    test {"/li",lsb(f2+3),msb(f2)," 0 {500} /fs^"}, 0
 
     call printStr
     .cstr "Done!"

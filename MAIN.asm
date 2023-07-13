@@ -206,6 +206,15 @@ question_:
 star_:    
     jp star 
 bang_:				            ; logical invert, any non zero value 
+    inc bc
+    ld a,(bc)
+    cp "="
+    jr nz,not
+    pop hl
+    pop de
+    jp notequals
+not:
+    dec bc
     ld hl,0                     ; is considered true
     jr eq1    
 num_:    
@@ -1245,6 +1254,12 @@ equals:
     jr z, true1
     jp false1
 
+notequals:
+    or a                        ; reset the carry flag
+    sbc hl,de                   
+    jp nz, true1
+    jp false1
+
 ; hl = value1 de = value2
 ; hl = result
 lessthaneq:    
@@ -1308,7 +1323,7 @@ db 0
 
 ; ; /fs funcSrc
 ; ; func -- src
-FUNC funcSrc, 1, "f"                      ; :f func or block                 
+FUNC funcSrc, 0, "f"                      ; :f func or block                 
 db "{"
 db    ":kt{"                              ; :kt sink, type 
 db         "0%t==/br"                     ; break if t != 0 
