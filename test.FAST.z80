@@ -16,8 +16,7 @@ db      ":kt{"
 db          "0%t==/br"                      ; break if type != 0 
 db          ":dt{"                          ; return talkback to receive data
 db              "%I0# %A="
-db              "%s %I0# + %I0#="         ; inc value of I by s
-; db              "%s %I0# +="                ; inc value of I by s
+db              "%s %I0# + %I0#="           ; inc value of I by s
 db              "1%t==/br"                  ; break if type != 0
 db              "%A %e <"                   ; cond: in range?
 db              "{%A 1}{0 2} ?? %k/rc"      ; ifte args to send to sink, 
@@ -38,24 +37,40 @@ db      "}; 0 %s^"
 db "}" 
 db 0
 
-FUNC f3, 0, "dt"                            ; sink                 
+FUNC f3, 0, "sf"                            ; sink                 
 db "{"
+db      "`f3`.s"                                
+db      ":kt{"                              ; 
+db          "0%t==/br"                      ; break if type != 0  
+db          "`f3-a`.s %k."                                
+; db          ":dt{"                          ; 
+; db              "`f3-b`.s"                                
+; ; db              "1%t=="                     ; cond: type == 1 ? 
+; ; db              "{%d %f^}{%d} ?? %t %k^"    ; yes: pass thru func, 
+; ;                                             ; pass thru types and data to sink 
+; db          "}; 0 %k^"                      ; 
+db      "}; 0 %s^" 
 db "}" 
 db 0
 
-FUNC f4, 0, "dt"                            ; sink                 
+FUNC f4, 0, "s"                            ; sink                 
 db "{"
+db      "`f4`.s %s."                                
+db      ":dt{"                              ; return talkback to receive data
+db          "`f4-a`.s"                                
+db      "}; 0 %s^" 
 db "}" 
 db 0
 
 .align $100
 testsStart:
 
-    test "0 10 1 /f1 :a{%a.}; /f2", 0
+    ; ; test "0 10 1 /f1 :a{%a}; /f3 :a{%a.}; /f2", 0
+    ; test "0 10 1 /f1 :a{%a}; /f3 /f4", 0
 
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
