@@ -9,31 +9,49 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 0, "f"                             ; :f func or block                 
+FUNC f1, 2, "besIA"                         ; range source                  
 db "{"
-db      ":kt{"                                ; :kt sink, type 
-db          "0%t==/br"                      ; break if t != 0 
-db          ":dt{"
-db              "1%t==/br"                  ; if t == 1
-db              "%f^ 1 %k^"                 ; if t == 1 send data to sink
+db      "[%b] %I="                          ; init mutable I to b                            
+db      ":kt{"                            
+db          "0%t==/br"                      ; break if type != 0 
+db          ":dt{"                          ; return talkback to receive data
+db              "%I0# %A="
+db              "%s %I0# + %I0#="         ; inc value of I by s
+; db              "%s %I0# +="                ; inc value of I by s
+db              "1%t==/br"                  ; break if type != 0
+db              "%A %e <"                   ; cond: in range?
+db              "{%A 1}{0 2} ?? %k/rc"      ; ifte args to send to sink, 
+                                            ; note: /rc recur
 db          "}; 0 %k^"                      ; init sink
 db      "};" 
 db "}" 
 db 0
 
-FUNC f2, 0, "dt"                           ; sink                 
+FUNC f2, 1, "spT"                           ; forEach                 
 db "{"
-db      "2%t!=/br"                          ; break if t == 2 
-db      "{0%t==/br `x`.s %t. 0 1 %d^}^"     ; greet with talkback and use to get data                            
-db      "{1%t==/br `y`.s %t. %d.}^"         ; receive data                        
+db      "[0]%T="
+db      ":dt{"                              ; return talkback to receive data
+db          "{ 0%t==/br %d %T0#= }^"        ; 0: store talkback
+db          "{ 1%t==/br %d %p^ }^"          ; 1: send data to proc
+db          "{ 2%t!=/br 0 1 %T0#^ }^"       ; 0 or 1: get next data item
+db      "}; 0 %s^" 
+db "}" 
+db 0
+
+FUNC f3, 0, "dt"                            ; sink                 
+db "{"
+db "}" 
+db 0
+
+FUNC f4, 0, "dt"                            ; sink                 
+db "{"
 db "}" 
 db 0
 
 .align $100
 testsStart:
 
-    ; test {"/li",lsb(f2+3),msb(f2)," 0 {500} /li",lsb(f1+3),msb(f1),"^^"}, 0
-    test {"/li",lsb(f2+3),msb(f2)," 0 {500} /fs^"}, 0
+    test "0 10 1 /f1 :a{%a.}; /f2", 0
 
     call printStr
     .cstr "Done!"
@@ -74,6 +92,10 @@ testsStart:
     test "2 3 *", 6
     test "1 2 3 + *", 5
     test "7 3 /", 2
+    test "100a= 1a+= a", 101
+    test "100a= a1-= a", 99
+    test "100a= a2*= a", 200
+    test "100a= a2/= a", 50
     test "7 3 / /re", 1
     test "7 3 /", 2
     test "2 3 ==", FALSE

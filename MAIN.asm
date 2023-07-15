@@ -62,9 +62,10 @@ isysVars:
     DW BUF                      ; vBUFPtr pointer into BUF
     DW next                     ; nNext
     DW HEAP                     ; vHeapPtr \h start of the free mem
-
+    DW 0                        ; vRecur
+    DW 0                        ; unused
+    
     .align $100
-
 opcodes:                        ; still available ` ~ _ \
     DB lsb(nop_)                ; SP  
     DB lsb(bang_)               ; !  
@@ -232,12 +233,17 @@ dquote_:
 minus_:
     jp minus
 eq_:    
-    inc bc
-    ld a,(bc)                   ; is it == ?
-    cp "="
-    jr z,eq0                    ; no its equality
-    dec bc
-    jp assign                   ; no its assignment
+    call jumpTable
+    db "="                      
+    dw eq0
+    db NUL
+    dw assign
+    ; inc bc
+    ; ld a,(bc)                   ; is it == ?
+    ; cp "="
+    ; jr z,eq0                    ; no its equality
+    ; dec bc
+    ; jp assign                   ; no its assignment
 eq0:
     pop hl
 eq1:
@@ -289,8 +295,15 @@ add1:
     pop hl                      ; first term
     add hl,de    
 add3:
+    inc bc
+    ld a,(bc)
+    cp "="
+    jp z,add4
+    dec bc
     push hl        
     jp (ix)    
+add4:
+    jp assign0
 
 ; @ addr
 ; -- ptr
@@ -315,6 +328,12 @@ and1:
     jp (ix)    
     
 pipe:
+    call jumpTable
+    db ">"                      
+    dw pipeStream
+    db NUL
+    dw or
+
 or:
     pop de                      ; Bitwise or the top 2 elements of the stack
     pop hl
@@ -703,8 +722,16 @@ blockEnd3:
     ld sp,hl                    
     ld bc,(vTemp2)
     ld iy,(vTemp1)
+    ld de,(vRecur)              ; de = recur vector              
+    ld a,e                      ; check for NUL
+    or d
+    jr nz,blockEnd4
     jp (ix)    
-
+blockEnd4:
+    ld hl,0                     ; clear recur vector
+    ld (vRecur),hl
+    jp go1                      ; execute de
+    
 ; /br break from loop             
 ; --
 break:
@@ -811,6 +838,14 @@ command_f:
     dw forEach
     db "s"                      ; /fs funcSrc
     dw funcSrc
+    db "1"                      
+    dw f1
+    db "2"                      
+    dw f2
+    db "3"                      
+    dw f3
+    db "4"                      
+    dw f4
     db NUL
     dw false1
 
@@ -850,6 +885,8 @@ command_p:
 
 command_r:
     call jumpTable
+    db "c"                      ; /rc tail call optimisation
+    dw recur
     db "e"                      ; /re remainder
     dw remain
     db NUL
@@ -1351,7 +1388,6 @@ go2:
     jr z,goBlock
     cp "("
     jp nz,goFunc
-    ; inc de                      ; de is the address to jump back to
     push de                     ; push de just before stack frame
 
 goBlock:
@@ -1377,9 +1413,10 @@ goBlock2:
     push iy                     ; push BP
     ld iy,0                     ; BP = SP
     add iy,sp
+goBlock3:
     ld bc,de                    ; bc = de = block*-1
     jp (ix)    
-    
+
 goFunc:				            ; execute func
     ex de,hl                    ; hl = func*
     ld e,(hl)                   ; de = partial_array*
@@ -1640,6 +1677,17 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
+; |> pipeStream
+; source sink -- source
+; connects a sink with a source
+pipeStream:
+    pop hl                      ; hl = sink
+    pop de                      ; de = src
+    push hl                     ; push sink
+    ld hl,0                     ; push type = greet
+    push hl                     
+    jp go1                      ; go to address in de
+
 rparen:
     ld c,(iy+8)                 ; IP = block* just under stack frame
     ld b,(iy+9)
@@ -1797,6 +1845,11 @@ printStack:
 ;     jr nz,printStack1
 ;     call prompt
 ;     ld bc,(vTemp1)
+    jp (ix)
+
+recur:
+    pop hl
+    ld (vRecur),hl
     jp (ix)
 
 remain:
@@ -2164,6 +2217,7 @@ next1:
     cp NUL                      ; end of input string?
     jr z,exit
     jp interpret                ; no, other whitespace, macros?
+
 exit:
     inc bc
     ld hl,bc

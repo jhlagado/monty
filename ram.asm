@@ -39,6 +39,7 @@ vTIBPtr:    ds 2                ;
 vBufPtr:    ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
+vRecur:     ds 2                ;
 
 ; uninitialised sys variables (preserved)
 
@@ -49,14 +50,12 @@ vSavedIP:   ds 2                ;
 vSavedSP:   ds 2                ;
 vSavedNext: ds 2                ;
 vSavedBP:   ds 2                ;
-vChecksum:  ds 2                ;
 
 ; uninitialised sys variables (unpreserved)
 
 vTemp1:     ds 2                ; 
 vTemp2:     ds 2                ; 
 vLastDef:   ds 2                ; 
-vHashStr:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
 
 titleBuf:    ds 20
