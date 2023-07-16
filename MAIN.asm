@@ -328,11 +328,7 @@ and1:
     jp (ix)    
     
 pipe:
-    call jumpTable
-    db ">"                      
-    dw pipeStream
-    db NUL
-    dw or
+    jp or
 
 or:
     pop de                      ; Bitwise or the top 2 elements of the stack
@@ -836,6 +832,8 @@ command_f:
     call jumpTable
     db "e"                      ; /fe forEach
     dw forEach
+    db "l"                      ; /fl flush output buffer
+    dw flush
     db "s"                      ; /fs funcSrc
     dw funcSrc
     db "1"                      
@@ -846,6 +844,8 @@ command_f:
     dw f3
     db "4"                      
     dw f4
+    db "z"                      
+    dw fz
     db NUL
     dw false1
 
@@ -889,6 +889,8 @@ command_r:
     dw recur
     db "e"                      ; /re remainder
     dw remain
+    db "g"
+    dw rangeSrc
     db NUL
     dw error1
 
@@ -1329,34 +1331,26 @@ error1:
     push hl
     jp error
 
+; /fl flush
+; --
+flush:
+    call flushBuffer
+    jp (ix)
+
 ; /fe forEach
-; :o -- :s
-FUNC forEach, 0, "p"                       ; :p proc 
+; src proc --
+FUNC forEach, 1, "spT"                               
 db "{"
-db     ":s:T{"                             ; :s source 
-db         "[0]%T="
-db         "0%t==/br"                      ; break if t != 0 
-db         ":dt{"
-db             "{ 0%t==/br %d %T0#= }"     ; 0: store talkback
-db             "{ 1%t==/br %d %p^ }"       ; 1: send data to proc
-db             "{ 2%t!=/br 0 1 %T0#^ }"    ; 0 or 1: get next data item
-db         "}; 0 %s^"                       ; init source
-db     "};" 
+db    "[0]%T="
+db    ":dt{"                        ; return talkback to receive data
+db      "2%t!=/br"                  ; break if type = 2
+db      "0%t=="                     ; ifte: type = 0 ?
+db      "{%d %T0#=}{%d %p^}"        ; ifte: 0: store talkback, 1: send data
+db      "??"                        ; ifte:
+db      "0 1 %T0#^"                 ; 0 or 1: get next src data item
+db    "}; 0 %s^" 
 db "}" 
 db 0
-
-; ; /fs funcSrc
-; ; func -- src
-; FUNC funcSrc, 1, "f"                      ; :f func or block                 
-; db "{"
-; db    ":kt{"                              ; :kt sink, type 
-; db         "0%t==/br"                     ; break if t != 0 
-; db         ":dt{"
-; db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
-; db         "}; 0 %k^"                      ; init sink
-; db     "};" 
-; db "}" 
-; db 0
 
 ; ; /fs funcSrc
 ; ; func -- src
@@ -1370,6 +1364,47 @@ db         "}; 0 %k^"                     ; init sink
 db     "};" 
 db "}" 
 db 0
+
+fz:
+    ld hl,STACK
+    sbc hl,sp
+    srl h
+    rr l
+    push hl
+    jp bufferNumber
+
+; /pk print stack
+; -- 
+printStack:
+;     ld (vTemp1),bc
+;     call printStr
+;     .cstr "=> "
+;     ld hl,STACK
+;     sbc hl,sp
+;     srl h
+;     rr l
+;     ld bc,hl
+;     ld hl,STACK
+;     jr printStack2
+; printStack1:
+;     dec bc
+;     dec hl
+;     ld d,(hl)
+;     dec hl
+;     ld e,(hl)
+;     ex de,hl    
+;     call prthex
+;     ex de,hl
+;     ld a," "
+;     call putchar
+; printStack2:
+;     ld a,c
+;     or b
+;     jr nz,printStack1
+;     call prompt
+;     ld bc,(vTemp1)
+    jp (ix)
+
 
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
@@ -1602,18 +1637,17 @@ output:
     jp (ix)    
 
 ; /mp map
-; func -- :s{:mk}
-FUNC map, 0, "f"                            ; :f func 
+; src func -- src1
+FUNC map, 0, "sf"                   ; map                 
 db "{"
-db     ":s{"                                ; :s source 
-db         ":kt{"                           ; :kt sink, type 
-db             "0%t==/br"                   ; break if t != 0 
-db             ":dt{" 
-db                 "1%t=={%d %f^}{%d}??"    ; if t == 1 pass data through func else raw
-db                 "%t %k^"                 ; send data to sink
-db             "}; 0 %s^"                   ; init source
-db         "};" 
-db     "};" 
+db    ":kt{"                        
+db      "0%t==/br"                  ; break if type != 0  
+db      ":dt{"                      ; call source with tb
+db        "1%t=="                   ; ifte: type == 1 ?
+db        "{%d %f^}{%d}"            ; ifte: func(data) or data
+db        "?? %t %k^"             ; ifte: send to sink
+db      "}; 0 %s^" 
+db    "};" 
 db "}" 
 db 0
 
@@ -1677,16 +1711,25 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
-; |> pipeStream
-; source sink -- source
-; connects a sink with a source
-pipeStream:
-    pop hl                      ; hl = sink
-    pop de                      ; de = src
-    push hl                     ; push sink
-    ld hl,0                     ; push type = greet
-    push hl                     
-    jp go1                      ; go to address in de
+; /rs rangeSrc
+; begin end step -- src
+FUNC rangeSrc, 1, "besL"            ; range source (begin end step)                 
+db "{"
+db    "[%b /t] %L="                 ; init mutable L [index active]                           
+db    ":kt{"                            
+db      "0%t==/br"                  ; break if type != 0 
+db      ":dt:a{"                          ; return talkback to receive data
+db        "%L1#/br"                 ; if not active don't send
+db        "%L0# %a="                ; store current index in A 
+db        "%s %L0# + %L0#="         ; inc value of index by step
+db        "1%t==/br"                ; break if type != 0
+db        "%a %e <"                 ; ifte: in range?
+db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
+db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+db      "}; 0 %k^"                  ; init sink
+db    "};" 
+db "}" 
+db 0
 
 rparen:
     ld c,(iy+8)                 ; IP = block* just under stack frame
@@ -1814,38 +1857,6 @@ printChars2:
     or h
     ret z
     jr printChars1                      ; if not loop
-
-; /pk print stack
-; -- 
-printStack:
-;     ld (vTemp1),bc
-;     call printStr
-;     .cstr "=> "
-;     ld hl,STACK
-;     sbc hl,sp
-;     srl h
-;     rr l
-;     ld bc,hl
-;     ld hl,STACK
-;     jr printStack2
-; printStack1:
-;     dec bc
-;     dec hl
-;     ld d,(hl)
-;     dec hl
-;     ld e,(hl)
-;     ex de,hl    
-;     call prthex
-;     ex de,hl
-;     ld a," "
-;     call putchar
-; printStack2:
-;     ld a,c
-;     or b
-;     jr nz,printStack1
-;     call prompt
-;     ld bc,(vTemp1)
-    jp (ix)
 
 recur:
     pop hl

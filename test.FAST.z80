@@ -9,58 +9,24 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 1, "besL"                          ; range source (begin end step)                 
-db "{"
-db      "[%b /t] %L="                       ; init mutable L [index active]                           
-db      ":kt{"                            
-db          "0%t==/br"                      ; break if type != 0 
-db          ":dt:a{"                          ; return talkback to receive data
-db              "%L1#/br"                   ; if not active don't send
-db              "%L0# %a="                  ; store current index in A 
-db              "%s %L0# + %L0#="           ; inc value of index by step
-db              "1%t==/br"                  ; break if type != 0
-db              "%a %e <"                   ; ifte: in range?
-db              "{%a 1}{/f %L1#= 0 2}"      ; ifte: 1: send index, 2: active = false, send quit
-db              "?? %k/rc"                  ; ifte: call sink note: /rc recur      
-db          "}; 0 %k^"                      ; init sink
-db      "};" 
-db "}" 
+FUNC f1, 0, "f"                      ; :f func or block                 
 db 0
 
-FUNC f2, 0, "sf"                            ; map                 
-db "{"
-db      ":kt{"                              ; line 24
-db          "0%t==/br"                      ; break if type != 0  
-db          ":dt{"                          ; call source with tb
-db              "1%t=="                     ; ifte: type == 1 ?
-db              "{%d %f^}{%d}"              ; ifte: func(data) or data
-db              "?? %t %k/rc"               ; ifte: send to sink
-db          "}; 0 %s^" 
-db      "};" 
-db "}" 
+FUNC f2, 0, ""                                     
 db 0
 
-FUNC f3, 1, "spT"                           ; forEach                 
-db "{"
-db      "[0]%T="
-db      ":dt{"                              ; return talkback to receive data
-db          "2%t!=/br"                      ; break if type = 2
-db          "0%t=="                         ; ifte: type = 0 ?
-db          "{%d %T0#=}{%d %p^}"            ; ifte: 0: store talkback, 1: send data
-db          "??"                            ; ifte:
-db          "0 1 %T0#^"                     ; 0 or 1: get next src data item
-db      "}; 0 %s^" 
-db "}" 
+FUNC f3, 0, ""                                    
 db 0
 
-FUNC f4, 1, "sT"                            ; sink                 
+FUNC f4, 0, ""                                     
 db 0
 
 .align $100
 testsStart:
 
-    ; test "0 10 1 /f1 :a{%a.}; /f3", 0
-    test "0 10 1 /f1 :a{%a 1 + 10 *}; /f2 :a{%a.}; /f3", 0
+    ; test "{/k}/fs :a{%a 1 +};/mp :a{%a.c/fl};/fe", 0
+    ; test "0 10 1 /rg :a{%a.}; /fe", 0
+    test "0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
 
     call printStr
     .cstr "Done!"
