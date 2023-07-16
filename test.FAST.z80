@@ -11,66 +11,70 @@
 
 FUNC f1, 2, "besIA"                         ; range source                  
 db "{"
-db      "[%b] %I="                          ; init mutable I to b                            
+db      "[%b /t] %I="                       ; init mutable I [index active]                           
 db      ":kt{"                            
 db          "0%t==/br"                      ; break if type != 0 
 db          ":dt{"                          ; return talkback to receive data
+db              "%I1#/br"                   ; if not active don't send
 db              "%I0# %A="
 db              "%s %I0# + %I0#="           ; inc value of I by s
 db              "1%t==/br"                  ; break if type != 0
 db              "%A %e <"                   ; cond: in range?
-db              "{%A 1}{0 2} ?? %k/rc"      ; ifte args to send to sink, 
-                                            ; note: /rc recur
+db              "{%A 1 %k/rc}"              ; ifte args to send to sink,
+db              "{/f %I1#= 0 2 %k/rc} "     ; note: /rc recur
+db              "?? "                        
 db          "}; 0 %k^"                      ; init sink
 db      "};" 
 db "}" 
 db 0
 
-FUNC f2, 1, "spT"                           ; forEach                 
+FUNC f2, 0, "sf"                            ; map                 
+db "{"
+db      ":kt{"                              ; line 24
+db          "0%t==/br"                      ; break if type != 0  
+db          ":dt{"                          ; call source with tb
+db              "{1%t==/br %d %f^ %t %k/rc}^"      ; todo: add function
+db              "{1%t!=/br %d %t %k/rc}^"
+db          "}; 0 %s^" 
+db      "};" 
+db "}" 
+db 0
+
+FUNC f3, 1, "spT"                           ; forEach                 
 db "{"
 db      "[0]%T="
 db      ":dt{"                              ; return talkback to receive data
 db          "{ 0%t==/br %d %T0#= }^"        ; 0: store talkback
+db          "%T0#/br"       
 db          "{ 1%t==/br %d %p^ }^"          ; 1: send data to proc
 db          "{ 2%t!=/br 0 1 %T0#^ }^"       ; 0 or 1: get next data item
+db          "{ 2%t==/br 0 %T0#= }^"       
 db      "}; 0 %s^" 
 db "}" 
 db 0
 
-FUNC f3, 0, "sf"                            ; sink                 
-db "{"
-db      "`f3`.s"                                
-db      ":kt{"                              ; 
-db          "0%t==/br"                      ; break if type != 0  
-db          "`f3-a`.s %k."                                
-; db          ":dt{"                          ; 
-; db              "`f3-b`.s"                                
-; ; db              "1%t=="                     ; cond: type == 1 ? 
-; ; db              "{%d %f^}{%d} ?? %t %k^"    ; yes: pass thru func, 
-; ;                                             ; pass thru types and data to sink 
-; db          "}; 0 %k^"                      ; 
-db      "}; 0 %s^" 
-db "}" 
-db 0
-
-FUNC f4, 0, "s"                            ; sink                 
-db "{"
-db      "`f4`.s %s."                                
-db      ":dt{"                              ; return talkback to receive data
-db          "`f4-a`.s"                                
-db      "}; 0 %s^" 
-db "}" 
+FUNC f4, 1, "sT"                            ; sink                 
+; db "{"
+; db      "`f4`.s %s."                                
+; db      "[0]%T="
+; db      ":dt{"                              ; return talkback to receive data
+; ; db          "`f4-a`.s %d."                                
+; db          "{ 0%t==/br %d %T0#= }^"        ; 0: store talkback
+; db          "{ 1%t==/br %d. }^"          ; 1: send data to proc
+; db          "{ 2%t!=/br 0 1 %T0#^ }^"       ; 0 or 1: get next data item
+; db      "}; 0 %s^" 
+; db "}" 
 db 0
 
 .align $100
 testsStart:
 
-    ; ; test "0 10 1 /f1 :a{%a}; /f3 :a{%a.}; /f2", 0
-    ; test "0 10 1 /f1 :a{%a}; /f3 /f4", 0
+    ; test "0 10 1 /f1 :a{%a.}; /f2", 0
+    test "0 10 1 /f1 :a{1 %a +}; /f2 :a{%a.}; /f3", 0
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
