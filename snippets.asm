@@ -80,4 +80,24 @@ squareRoot4:
     inc b         
 squareRoot5:
     ld d,0
-    ret           
+    ret          
+    
+FUNC f3, 0, ""                                    
+db "{"
+db    ":kt{"                            
+db      ":dt{"                          ; return talkback to receive data
+db        "0 2 %k^"                         
+db      "}; 0 %k^"                      ; init sink
+db    "};" 
+db "}" 
+db 0
+
+FUNC f4, 1, "spT"                                     
+db "{"
+db    ":dt{"                        ; *** return talkback to receive data ; $56AA
+db      "0%t==/br"                  ; break if type = 2
+db      "0 0 %d^"                 ; 0 or 1: get next src data item
+db    "}; 0 %s^" 
+db "}" 
+db 0
+

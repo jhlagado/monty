@@ -9,23 +9,23 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 0, "f"                      ; :f func or block                 
+FUNC f1, 1, "besL"                  ; range source (begin end step)                 
 db 0
 
-FUNC f2, 0, ""                                     
+FUNC f2, 1, ""                               
 db 0
 
 FUNC f3, 0, ""                                    
 db 0
 
-FUNC f4, 0, ""                                     
+FUNC f4, 1, ""                                     
 db 0
 
 .align $100
 testsStart:
 
-    ; test "{/k}/fs :a{%a 1 +};/mp :a{%a.c/fl};/fe", 0
-    ; test "0 10 1 /rg :a{%a.}; /fe", 0
+    ; test "[1 2 5].a",0
+    ; test "0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
     test "0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
 
     call printStr

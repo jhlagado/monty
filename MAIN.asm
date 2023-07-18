@@ -731,7 +731,7 @@ blockEnd4:
 ; /br break from loop             
 ; --
 break:
-    pop hl
+    pop hl                      ; hl = condition, break if false
     ld a,l
     or h
     jr z,break1
@@ -889,7 +889,7 @@ command_r:
     dw recur
     db "e"                      ; /re remainder
     dw remain
-    db "g"
+    db "g"                      ; /rg range src
     dw rangeSrc
     db NUL
     dw error1
@@ -1083,22 +1083,24 @@ hexadecimal:
 dot:
     call jumpTable
     db "a"                      ; .a print array
-    dw bufferArray
+    dw dotArray
     db "c"                      ; .c print char
-    dw bufferChar
+    dw dotChar
     db "s"                      ; .s print string
-    dw bufferString
+    dw dotString
     db "x"                      ; .x print x chars
-    dw bufferXChars
+    dw dotXChars
     db NUL                      ; .  print number
-    dw bufferNumber
+    dw dotNumber
 
-FUNC bufferArray, 2, "abc"
-.cstr "{",DQ,"[ ",DQ,".s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ",DQ,"]",DQ,".s}",0
-
+FUNC dotArray, 2, "abc"
+db "{"
+db "`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s"
+db "}"
+db 0
 ; /bd buffer decimal
 ; value --                      
-bufferNumber:        
+dotNumber:        
     ld a,(vNumBase)
     cp 16
     jr z,bufferHex              ; else falls through
@@ -1216,50 +1218,50 @@ bufferHex2:
 
 ; /bs buffered string             
 ; string* --
-bufferString:
+dotString:
     pop hl                      ; hl = string*
     ld de,(vBufPtr)             ; de = buffer*
-    jr bufferString1
-bufferString0:
+    jr dotString1
+dotString0:
     ld (de),a                   ; a -> buffer*
     inc e                       ; buffer*++, wraparound
     call z,flushBuffer
     inc hl
-bufferString1:
+dotString1:
     ld a,(hl)                   ; a <- string*
     or a                        ; if NUL exit loop
-    jr nz,bufferString0
+    jr nz,dotString0
     ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
     ld (vBufPtr),de             ; save buffer*' in pointer
     jp (ix)
 
 ; /bc buffer char             
 ; char -- 
-bufferChar:
+dotChar:
     ld hl,1
-    jr bufferXChars0
+    jr dotXChars0
 
 ; /bx buffered x chars             
 ; char length --
-bufferXChars:
+dotXChars:
     pop hl                      ; hl = length
-bufferXChars0:
+dotXChars0:
     pop de                      ; a' = char
     ld a,e
     ex af,af'
     ld de,(vBufPtr)             ; de = buffer*
-    jr bufferXChars2
-bufferXChars1:
+    jr dotXChars2
+dotXChars1:
     ex af,af'
     ld (de),a
     ex af,af'
     inc e                       ; buffer*++, wraparound
     call z,flushBuffer
     dec hl
-bufferXChars2:
+dotXChars2:
     ld a,l
     or h
-    jr nz,bufferXChars1
+    jr nz,dotXChars1
     ld (vBufPtr),de             ; save buffer*'
     jp (ix)
 
@@ -1342,12 +1344,13 @@ flush:
 FUNC forEach, 1, "spT"                               
 db "{"
 db    "[0]%T="
-db    ":dt{"                        ; return talkback to receive data
-db      "2%t!=/br"                  ; break if type = 2
-db      "0%t=="                     ; ifte: type = 0 ?
-db      "{%d %T0#=}{%d %p^}"        ; ifte: 0: store talkback, 1: send data
-db      "??"                        ; ifte:
-db      "0 1 %T0#^"                 ; 0 or 1: get next src data item
+db    ":dt{"                        ; return talkback to receive data ; $56AA
+db      "2%t!={"                    ; if type == 2 skip
+db        "0%t=="                   ; ifte: type = 0 ?
+db        "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
+db        "??"                      ; ifte:
+db        "0 1 %T0#^"               ; 0 or 1: get next src data item
+db      "}?"                        
 db    "}; 0 %s^" 
 db "}" 
 db 0
@@ -1371,7 +1374,7 @@ fz:
     srl h
     rr l
     push hl
-    jp bufferNumber
+    jp dotNumber
 
 ; /pk print stack
 ; -- 
@@ -1711,7 +1714,7 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
-; /rs rangeSrc
+; /rg rangeSrc
 ; begin end step -- src
 FUNC rangeSrc, 1, "besL"            ; range source (begin end step)                 
 db "{"
@@ -2240,7 +2243,7 @@ run:
 
 error:
     call run
-    db DQ,"Error ",DQ,".s .",0
+    db "`Error `.s .",0
     jp interpret
 
 backSpace_:
@@ -2255,7 +2258,7 @@ backSpace_:
 ; edit 
 edit_:                        
     call run
-    db DQ,"var?",DQ,".s /k/ad .h",0
+    db "`var?`.s /k/ad .h",0
     jp interpret
 
 reEdit_:
