@@ -81,7 +81,46 @@ squareRoot4:
 squareRoot5:
     ld d,0
     ret          
-    
+
+; /pk print stack
+; -- 
+printStack:
+    ld (vTemp1),bc
+    call printStr
+    .cstr "=> "
+    ld hl,STACK
+    sbc hl,sp
+    srl h
+    rr l
+    ld bc,hl
+    ld hl,STACK
+    jr printStack2
+printStack1:
+    dec bc
+    dec hl
+    ld d,(hl)
+    dec hl
+    ld e,(hl)
+    ex de,hl    
+    call prthex
+    ex de,hl
+    ld a," "
+    call putchar
+printStack2:
+    ld a,c
+    or b
+    jr nz,printStack1
+    call prompt
+    ld bc,(vTemp1)
+    jp (ix)
+
+; /pb printBuffer
+; --
+; prints chars in buffer from /vB to /vb. Resets /vb to /vB
+
+FUNC printBuffer, 0, "a"
+.cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
+
 FUNC f3, 0, ""                                    
 db "{"
 db    ":kt{"                            

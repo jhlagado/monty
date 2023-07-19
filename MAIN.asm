@@ -470,7 +470,7 @@ arrayEnd3:
     jp (ix)
 
 ; index of an array, based on vDataWidth 
-; array num -- value    ; also sets vPointer to address 
+; array* num -- value    ; also sets vPointer to address 
 hash:
 arrayIndex:
     pop hl                              ; hl = index  
@@ -490,6 +490,17 @@ arrayIndex1:
     inc hl
     ld d,(hl)
 arrayIndex2:
+    push de
+    jp (ix)
+
+; /as size of an array, num elements, ignores vDataWidth :-/ 
+; array* -- num     
+arraySize:
+    pop hl
+    dec hl                      ; msb size 
+    ld d,(hl)
+    dec hl                      ; lsb size 
+    ld e,(hl)
     push de
     jp (ix)
 
@@ -747,6 +758,15 @@ break1:
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
 
+quit:
+    pop hl                      ; hl = condition, exit if true
+    ld a,l
+    or h
+    jr nz,quit1
+    jp (ix)
+quit1:    
+    jp blockEnd
+
 tick:
 char:
     ld hl,0                     ; if '' is empty or null
@@ -799,12 +819,12 @@ command:
     dw command_p
     db "r"
     dw command_r
-    db "s"                      ; /s size
-    dw size
     db "t"                      ; /t true
     dw true1
     db "v"
     dw command_v
+    db "w"                      ; /w words
+    dw words
     db "x"                      ; /x xor
     dw xor
     db NUL
@@ -816,6 +836,8 @@ command_a:
     dw absolute
     db "d"                      ; /ad address of
     dw addrOf
+    db "s"                      ; /as array size
+    dw arraySize
     db NUL
     dw error1
 
@@ -826,7 +848,7 @@ command_b:
     db "y"                      ; /by cold boot
     dw coldStart
     db NUL
-    dw error1
+    dw bytes                    ; /b bytes
 
 command_f:
     call jumpTable
@@ -874,12 +896,15 @@ command_m:
 
 command_p:
     call jumpTable
-    db "b"                      ; /pb print buffer
-    dw printBuffer
     db "c"                      ; /pc print chars
     dw printChars
-    db "k"                      ; /pk print stack
-    dw printStack
+    db NUL
+    dw error1
+
+command_q:
+    call jumpTable
+    db "t"                      ; /qt quit
+    dw quit
     db NUL
     dw error1
 
@@ -909,14 +934,16 @@ command_v:
     db NUL
     dw error1
 
-chars:
-    ld hl,1
-chars1:
-    ld (vDataWidth),hl
-    jp (ix)
+words:
 numbers:
     ld hl,2
-    jp chars1
+    jr bytes1
+bytes:
+chars:
+    ld hl,1
+bytes1:
+    ld (vDataWidth),hl
+    jp (ix)
 
 comment:
     inc bc                      ; point to next char
@@ -1095,7 +1122,7 @@ dot:
 
 FUNC dotArray, 2, "abc"
 db "{"
-db "`[ `.s %a /s%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s"
+db "`[ `.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s"
 db "}"
 db 0
 ; /bd buffer decimal
@@ -1375,39 +1402,6 @@ fz:
     rr l
     push hl
     jp dotNumber
-
-; /pk print stack
-; -- 
-printStack:
-;     ld (vTemp1),bc
-;     call printStr
-;     .cstr "=> "
-;     ld hl,STACK
-;     sbc hl,sp
-;     srl h
-;     rr l
-;     ld bc,hl
-;     ld hl,STACK
-;     jr printStack2
-; printStack1:
-;     dec bc
-;     dec hl
-;     ld d,(hl)
-;     dec hl
-;     ld e,(hl)
-;     ex de,hl    
-;     call prthex
-;     ex de,hl
-;     ld a," "
-;     call putchar
-; printStack2:
-;     ld a,c
-;     or b
-;     jr nz,printStack1
-;     call prompt
-;     ld bc,(vTemp1)
-    jp (ix)
-
 
 ; execute a block of code which ends with }
 ; creates a root scope if BP == stack
@@ -1835,14 +1829,7 @@ sub1:
     sbc hl,de    
     jp add3
 
-; /pb printBuffer
-; --
-; prints chars in buffer from /vB to /vb. Resets /vb to /vB
-
-FUNC printBuffer, 0, "a"
-.cstr "{/vB /vb/vB- /pc /vB/vb=}"   ; block
-
-; printChars
+; /pc printChars
 ; char* len --
 printChars:
     pop hl                              ; hl = count
@@ -1869,15 +1856,6 @@ recur:
 remain:
     ld hl,(vRemain)
     push hl
-    jp (ix)
-
-size:
-    pop hl
-    dec hl                      ; msb size 
-    ld d,(hl)
-    dec hl                      ; lsb size 
-    ld e,(hl)
-    push de
     jp (ix)
 
 constBufStart:
@@ -2152,8 +2130,8 @@ interpret5:
     jp z,backSpace_
     cp CTRL_J
     jp z,reEdit_
-    cp CTRL_S
-    jp z,printStack_
+    ; cp CTRL_S
+    ; jp z,printStack_
 
     ; DB     lsb(edit_)       ; ENQ ^E  5
     ; DB     lsb(reedit_)     ; LF  ^J 10
