@@ -786,165 +786,6 @@ char3:
     push hl
     jp (ix)  
 
-slash:
-command:
-    call jumpTable
-    db "/"                      ; // comment
-    dw comment
-    db "a"                      
-    dw command_a
-    db "b"
-    dw command_b
-    db "c"                      ; /c chars
-    dw chars
-    db "d"                      ; /d decimal
-    dw decimal
-    db "f"                       
-    dw command_f
-    db "h"                      ; /h hexadecimal
-    dw hexadecimal
-    db "i"
-    dw command_i
-    db "k"                      ; /k key
-    dw key
-    db "l"
-    dw command_l
-    db "m"                      
-    dw command_m
-    db "n"                      ; /n numbers
-    dw numbers
-    db "o"                      ; /o output
-    dw output
-    db "p"                      
-    dw command_p
-    db "r"
-    dw command_r
-    db "t"                      ; /t true
-    dw true1
-    db "v"
-    dw command_v
-    db "w"                      ; /w words
-    dw words
-    db "x"                      ; /x xor
-    dw xor
-    db NUL
-    dw div
-
-command_a:
-    call jumpTable
-    db "b"                      ; /ab absolute
-    dw absolute
-    db "d"                      ; /ad address of
-    dw addrOf
-    db "s"                      ; /as array size
-    dw arraySize
-    db NUL
-    dw error1
-
-command_b:
-    call jumpTable
-    db "r"                      ; /br break
-    dw break
-    db "y"                      ; /by cold boot
-    dw coldStart
-    db NUL
-    dw bytes                    ; /b bytes
-
-command_f:
-    call jumpTable
-    db "e"                      ; /fe forEach
-    dw forEach
-    db "l"                      ; /fl flush output buffer
-    dw flush
-    db "s"                      ; /fs funcSrc
-    dw funcSrc
-    db "1"                      
-    dw f1
-    db "2"                      
-    dw f2
-    db "3"                      
-    dw f3
-    db "4"                      
-    dw f4
-    db "z"                      
-    dw fz
-    db NUL
-    dw false1
-
-command_i:
-    call jumpTable
-    db "n"                      ; /in input
-    dw input
-    db "v"                      ; /iv invert
-    dw invert
-    db NUL
-    dw error1
-
-command_l:
-    call jumpTable
-    db "i"                      ; /li literal
-    dw literal
-    db NUL
-    dw error1
-
-command_m:
-    call jumpTable
-    db "p"                      ; /mp map
-    dw map
-    db NUL
-    dw error1
-
-command_p:
-    call jumpTable
-    db "c"                      ; /pc print chars
-    dw printChars
-    db NUL
-    dw error1
-
-command_q:
-    call jumpTable
-    db "t"                      ; /qt quit
-    dw quit
-    db NUL
-    dw error1
-
-command_r:
-    call jumpTable
-    db "c"                      ; /rc tail call optimisation
-    dw recur
-    db "e"                      ; /re remainder
-    dw remain
-    db "g"                      ; /rg range src
-    dw rangeSrc
-    db NUL
-    dw error1
-
-command_v:
-    call jumpTable
-    db "b"
-    dw varBufPtr
-    db "h"
-    dw varHeapPtr
-    db "t"
-    dw varTIBPtr
-    db "B"
-    dw constBufStart
-    db "T"
-    dw constTIBStart
-    db NUL
-    dw error1
-
-words:
-numbers:
-    ld hl,2
-    jr bytes1
-bytes:
-chars:
-    ld hl,1
-bytes1:
-    ld (vDataWidth),hl
-    jp (ix)
-
 comment:
     inc bc                      ; point to next char
     ld a,(bc)
@@ -952,6 +793,277 @@ comment:
     jr nc,comment
     dec bc
     jp (ix) 
+
+slash:
+command:
+    inc bc
+    ld a,(bc)
+    cp "/"                      ; // comment
+    jr z,comment
+    dec bc
+    call commandTable
+    db lsb(command_a_)
+    db lsb(command_b_)
+    db lsb(command_nop_)
+    db lsb(decimal_)
+    db lsb(command_nop_)
+    db lsb(command_f_)
+    db lsb(command_nop_)
+    db lsb(hexadecimal_)
+    db lsb(command_i_)
+    db lsb(command_nop_)
+    db lsb(key_)
+    db lsb(command_l_)
+    db lsb(command_m_)
+    db lsb(command_nop_)
+    db lsb(output_)
+    db lsb(command_p_)
+    db lsb(command_q_)
+    db lsb(command_r_)
+    db lsb(command_nop_)
+    db lsb(true_)
+    db lsb(command_nop_)
+    db lsb(command_v_)
+    db lsb(words_)
+    db lsb(xor_)
+    db lsb(command_nop_)
+    db lsb(command_nop_)
+    db lsb(div_)
+
+.align $100
+COMMANDS:
+
+command_nop_:
+    jp (ix)
+    
+command_a_:
+    call jumpTable
+    db "b"                      ; /ab absolute
+    dw absolute_
+    db "d"                      ; /ad address of
+    dw addrOf_
+    db "s"                      ; /as array size
+    dw arraySize_
+    db NUL
+    dw error1_
+
+command_b_:
+    call jumpTable
+    db "r"                      ; /br break
+    dw break_
+    db "y"                      ; /by cold boot
+    dw coldStart_
+    db NUL
+    dw bytes_                   ; /b bytes
+
+command_f_:
+    call jumpTable
+    db "e"                      ; /fe forEach
+    dw forEach_
+    db "l"                      ; /fl flush output buffer
+    dw flush_
+    db "s"                      ; /fs funcSrc
+    dw funcSrc_
+    db "1"                      
+    dw f1_
+    db "2"                      
+    dw f2_
+    db "3"                      
+    dw f3_
+    db "4"                      
+    dw f4_
+    db "z"                      
+    dw fz_
+    db NUL
+    dw false_
+
+command_i_:
+    call jumpTable
+    db "n"                      ; /in input
+    dw input_
+    db "v"                      ; /iv invert
+    dw invert_
+    db NUL
+    dw error1_
+
+command_l_:
+    call jumpTable
+    db "i"                      ; /li literal
+    dw literal_
+    db NUL
+    dw error1_
+
+command_m_:
+    call jumpTable
+    db "p"                      ; /mp map
+    dw map_
+    db NUL
+    dw error1_
+
+command_p_:
+    call jumpTable
+    db "c"                      ; /pc print chars
+    dw printChars_
+    db NUL
+    dw error1_
+
+command_q_:
+    call jumpTable
+    db "t"                      ; /qt quit
+    dw quit_
+    db NUL
+    dw error1_
+
+command_r_:
+    call jumpTable
+    db "c"                      ; /rc tail call optimisation
+    dw recur_
+    db "e"                      ; /re remainder
+    dw remain_
+    db "g"                      ; /rg range src
+    dw rangeSrc_
+    db NUL
+    dw error1_
+
+command_v_:
+    call jumpTable
+    db "b"
+    dw varBufPtr_
+    db "h"
+    dw varHeapPtr_
+    db "t"
+    dw varTIBPtr_
+    db "B"
+    dw constBufStart_
+    db "T"
+    dw constTIBStart_
+    db NUL
+    dw error1_
+
+absolute_:
+    jp absolute
+
+addrOf_:
+    jp addrOf
+
+arraySize_:
+    jp arraySize
+
+break_:
+    jp break
+
+coldStart_:
+    jp coldStart
+
+div_:
+    jp div
+
+error1_:
+    jp error1
+
+forEach_:
+    jp forEach
+
+flush_:
+    jp flush
+
+funcSrc_:
+    jp funcSrc
+
+f1_:
+    jp f1
+
+f2_:
+    jp f2
+
+f3_:
+    jp f3
+
+f4_:
+    jp f4
+
+fz_:
+    jp fz
+
+false_:
+    jp false1
+
+input_:
+    jp input
+
+invert_:
+    jp invert
+
+literal_:
+    jp literal
+
+map_:
+    jp map
+
+printChars_:
+    jp printChars
+
+quit_:
+    jp quit
+
+recur_:
+    jp recur
+
+remain_:
+    jp remain
+
+rangeSrc_:
+    jp rangeSrc
+
+varBufPtr_:
+    jp varBufPtr
+
+varHeapPtr_:
+    jp varHeapPtr
+
+varTIBPtr_:
+    jp varTIBPtr
+
+constBufStart_:
+    jp constBufStart
+
+constTIBStart_:
+    jp constTIBStart
+
+decimal_:
+    jp decimal
+    
+hexadecimal_:
+    jp hexadecimal
+
+key_:
+    jp key_
+
+output_:
+    jp output
+    
+true_:    
+    jp true1
+
+bytes_:
+    jp bytes
+words_:
+    jp words
+xor_:
+    jp xor
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+words:
+    ld hl,2
+    jr bytes1
+bytes:
+    ld hl,1
+bytes1:
+    ld (vDataWidth),hl
+    jp (ix)
+
+    
 
 ; ";" createFunc
 ; arg_list* block* -- func*
@@ -1920,6 +2032,28 @@ flushBuffer:
     pop af
     ret
 
+commandTable:
+    inc bc
+    ld a,(bc)
+    cp "z"+1
+    jr nc,commandTable2
+    sub "a" 
+    jr c,commandTable2
+commandTable1:
+    pop hl
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    ld l,(hl)
+    ld h,msb(COMMANDS)
+    jp (hl)
+commandTable2:
+    ld a,26
+    dec bc
+    jr commandTable1
+    
 ; followed by a table
 ; db char
 ; dw addr

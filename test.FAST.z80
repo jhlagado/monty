@@ -24,8 +24,8 @@ db 0
 .align $100
 testsStart:
 
-    ; test "[1 2 5]/as.",0
-    ; test "0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
+    ; ; test "[1 2 5]/as.",0
+    ; ; test "0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
     test "[1 2 5].a 0 10 1 /rg :a{%a 1 + 10 *}; /mp :a{%a.}; /fe", 0
 
     call printStr

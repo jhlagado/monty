@@ -1,5 +1,10 @@
 # Ideas
 
+/ss string size
+
+
+----
+
 type annotation
 polymorphic print
 any value can be a pointer. If it is not a pointer then it contains a number value
