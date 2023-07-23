@@ -537,7 +537,7 @@
 00C9                             ;  see the LICENSE file in this repo for more information
 00C9                             ; 
 00C9                             ;  Incorporating code from the MINT project by Ken Boak and Craig Jones.
-00C9                             ;  Inspiration from Charles H. Moore and Peter Jakacki
+00C9                             ;  Inspiration from Charles H. Moore, Peter Jakacki and André Staltz
 00C9                             ; 
 00C9                             ; *****************************************************************************
 00C9                TRUE:     EQU   -1   ; C-style true

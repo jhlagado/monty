@@ -9,7 +9,7 @@
 ;  see the LICENSE file in this repo for more information 
 ;
 ;  Incorporating code from the MINT project by Ken Boak and Craig Jones.
-;  Inspiration from Charles H. Moore and Peter Jakacki
+;  Inspiration from Charles H. Moore, Peter Jakacki and André Staltz
 ;
 ; *****************************************************************************
 
@@ -931,11 +931,32 @@ backslash:
 underscore:
 tilde:
 comma:
+semicolon:
     jp (ix)
 
 ;*******************************************************************
 ; implementations
 ;*******************************************************************
+
+; _ func
+; -- func*
+colon:
+lambda:
+    push ix
+    ld ix,lambda1
+    jp arglist
+lambda1:
+    inc bc
+    ld ix,lambda2
+    jp blockStart
+lambda2:    
+    ld ix,lambda3
+    jp createFunc
+lambda3:
+    pop hl
+    pop ix
+    push hl
+    jp (ix)
 
 ; %a .. %z
 ; -- value
@@ -1078,7 +1099,7 @@ arrayIndex2:
 ; names after the : represent uninitialised locals
 ; return values are the state of the stack after the block ends
 ; format: numLocals totNumArgs argChars...
-colon:
+; colon:
 arglist:
     ld de,0                     ; d = count locals, e = count args ()
     ld hl,(vHeapPtr)            ; hl = heap*
@@ -1307,7 +1328,7 @@ char3:
 
 ; ";" createFunc
 ; arg_list* block* -- func*
-semicolon:
+; semicolon:
 createFunc:
     ld (vTemp1),bc              ; save IP
     pop hl                      ; hl = block*

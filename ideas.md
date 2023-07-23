@@ -1,6 +1,58 @@
 # Ideas
 
-/ss string size
+- /ss string size
+
+- printf style formatting
+
+e.g. 
+
+[2 5] `it is %d for %d dollars` .p
+
+where 
+
+%d is decimal
+%h is hex
+%c is char
+%s is string
+
+- bring back previous line to edit
+
+- filter, scan
+
+- loops need to clean up better
+
+- eliminate ; from functions by making param block parse bodies
+
+functions are then simply
+
+:a {%a.} 
+
+without needing ; at end
+
+- := declaration operator
+
+1 a= is ok but hard to read, especially for function names
+
+declarative operator could work like:
+
+a := 3 ;
+
+where := discards the value of a and puts address of a in a vDeclare variable
+where ; is repurposed to mean save the stack value in address pointed to by vDeclare
+
+f := :a {%a.} ;   // is the colon too much?
+
+is equivalent to
+
+:a {%a.} f=
+
+backslash might be good but painful in tests
+
+f := \a:b {%a.} ;
+
+alternative use tilde
+
+f := ~a:b {%a.} ;
 
 
 ----

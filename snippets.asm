@@ -140,3 +140,26 @@ db    "}; 0 %s^"
 db "}" 
 db 0
 
+;  Inspiration from Charles H. Moore, Peter Jakacki and André Staltz
+
+; _ func
+; -- func*
+underscore:
+colon:
+lambda:
+    push ix
+    ld ix,lambda1
+    jp arglist
+lambda1:
+    inc bc
+    ld ix,lambda2
+    jp blockStart
+lambda2:    
+    ld ix,lambda3
+    jp createFunc
+lambda3:
+    pop hl
+    pop ix
+    push hl
+    jp (ix)
+
