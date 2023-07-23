@@ -949,186 +949,14 @@ semicolon:
 colon:
 lambda:
     push ix
-    call arglist
+    call parseArgs
     inc bc
-    call blockStart
+    call parseBlock
     call createFunc
     pop hl
     pop ix
     push hl
     jp (ix)
-
-; arg_list - parses input (ab:c)
-; names after the : represent uninitialised locals
-; return values are the state of the stack after the block ends
-; format: numLocals totNumArgs argChars...
-; colon:
-arglist:
-    ld de,0                     ; d = count locals, e = count args ()
-    ld hl,(vHeapPtr)            ; hl = heap*
-    push hl                     ; save start of arg_list
-    inc hl                      ; skip length fields to start of string
-    inc hl
-    inc bc                      ; point to next char
-arglist1:
-    ld a,(bc)
-    cp ":"                      ; ":" switches from args to locals
-    jr nz,arglist1a
-    inc d                       ; non zero value local count acts as flag
-    jr arglist3
-arglist1a:
-    cp "a"                      ; < "a" terminates arg_list
-    jr c,arglist4
-    cp "z"+1                    ; > "z" terminates arg_list
-    jr nc,arglist4
-arglist2:
-    ld (hl),a
-    inc hl                      
-    inc e                       ; increase arg count
-    xor a
-    or d
-    jr z,arglist3
-    inc d                       ; if d > 0 increase local count
-arglist3:
-    inc bc                      ; point to next char
-    jr arglist1
-arglist4:
-    dec bc
-    xor a
-    or d
-    jr z,arglist5
-    dec d                       ; remove initial inc
-arglist5:
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap* to after end of string
-    pop hl                      ; hl = start of arg_list
-    ld (hl),d                   ; write number of locals at start - 1                                      
-    inc hl                      
-    ld (hl),e                   ; write number of args + locals at start - 2
-    dec hl
-    ex (sp),hl
-    jp (hl)  
-
-; arg_list* block* -- func*
-; semicolon:
-createFunc:
-    pop hl                      ; save retrn address
-    ld (vTemp3),hl
-    ld (vTemp1),bc              ; save IP
-    pop hl                      ; hl = block*
-    ld (vTemp2),hl              ; save block*
-    ld e,(iy+4)                 ; de = outer_arg_list 
-    ld d,(iy+5)
-    ld a,e                      ; if arg_list == null then make a func
-    or d
-    jr nz,createFunc0
-    ld hl,0                     ; partial_array = null
-    ld de,(vHeapPtr)            ; de = compile*
-    jr createFunc5                 
-createFunc0:
-    pop hl                      ; hl = inner_arg_list*
-    push hl                     ; save inner_arg_list
-    ld de,(vHeapPtr)            ; de = compile*
-    ld a,(hl)                   ; compile inner_num_locals
-    ld c,a                      ; b = inner_num_locals
-    ld (de),a
-    inc hl
-    inc de
-    ld a,(hl)                   ; compile inner_length
-    ld (de),a
-    sub c                       ; a = inner_num args
-    inc hl
-    inc de
-    or a                        ; compile args if inner_length > 0
-    jr z,createFunc1
-    ld c,a                      ; bc = a
-    ld b,0
-    ldir
-createFunc1:    
-    ex de,hl                    ; hl = outer_arg_list
-    ld e,(iy+4)                  
-    ld d,(iy+5)
-    ex de,hl
-    inc hl                      ; a = outer_length
-    ld a,(hl)
-    inc hl      
-    or a
-    jr z,createFunc2
-    ld c,a
-    ld b,0
-    ldir                        ; append outer_args
-createFunc2:                      ; a = outer_length 
-    ld b,a                      ; b = a = outer_length
-    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
-    inc hl
-    ld a,(hl)                   ; add outer_length to new length
-    add a,b                     
-    ld (hl),a
-    dec hl
-    ld a,b                      ; save outer_length in a'
-    ex af,af'                   
-    ex (sp),hl                  ; hl = inner_arg_list*, (sp) new_arg_list                      
-    ld a,(hl)                   ; c = a = inner_num_locals
-    or a
-    jr z,createFunc2a             ; if inner_num_locals == 0 skip
-    ld c,a                      ; c = inner_num_locals
-    ld b,0                      ; bc = inner_num_locals
-    inc hl                      ; a = inner_length
-    ld a,(hl)                    
-    sub c                       ; a = inner_num_args
-    inc hl                      ; hl = inner_arg_chars
-    add a,l                     ; hl += a
-    ld l,a
-    ld a,0
-    add a,h
-    ld h,a
-    ldir                        ; append inner_locals
-createFunc2a:    
-    ex af,af'                   ; restore outer_length to a, de = partial_array[-2]
-    ld (de),a                   ; compile partial_array length field 
-    inc de
-    xor a
-    ld (de),a
-    inc de
-    push de                     ; push partial_array*
-    ex de,hl                    ; hl = first_arg, copy outer_args+locals to partial_array
-    ld e,(iy+2)                     
-    ld d,(iy+3)
-    ex de,hl
-createFunc3:
-    dec hl                      ; c = MSB of arg from stack (incl. locals)
-    ld c,(hl)
-    dec hl
-    ld a,(hl)                   ; a = LSB of arg from stack (incl. locals)
-    ld (de),a                   ; write LSB and MSB to partial_array*
-    inc de
-    ld a,c
-    ld (de),a
-    inc de
-    djnz createFunc3              ; b = outer_length
-createFunc4:
-    pop hl                      ; hl = partial_array*
-createFunc5:
-    pop bc                      ; bc = new_arg_list*
-    push de                     ; return new func*
-    ex de,hl                    ; hl = new func*, de = partial_array*
-    ld (hl),e                   ; compile partial_array* to func
-    inc hl                       
-    ld (hl),d
-    inc hl
-    ld de,(vTemp2)              ; de = block*
-    ld (hl),e                   ; compile block* to func
-    inc hl
-    ld (hl),d
-    inc hl
-    ld (hl),c                   ; compile new_arg_list* to func
-    inc hl
-    ld (hl),b
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap ptr
-    ld bc,(vTemp1)              ; restore IP
-    ld hl,(vTemp3)              ; jump to return address
-    jp (hl)
 
 ; %a .. %z
 ; -- value
@@ -1287,77 +1115,9 @@ assign1:
 ; { block start
 ; -- block*
 lbrace:
-    call blockStart
+    call parseBlock
     jp (ix)
     
-blockStart:
-    push bc                     ; return pointer to first { of block    
-    inc bc
-    ld d,1                      ; nesting: count first parenthesis
-blockStart1:                         ; Skip to end of definition    
-    ld a,(bc)                   ; Get the next character
-    inc bc                      ; Point to next character
-    cp " " + 1                  ; ignore whitespace 
-    jr c,blockStart1
-
-    cp ")"
-    jr z,blockStart4
-    cp "}"                       
-    jr z,blockStart4
-    cp "]"
-    jr z,blockStart4
-
-    cp "("
-    jr z,blockStart2
-    cp "{"
-    jr z,blockStart2
-    cp "["
-    jr z,blockStart2
-
-    cp "'"
-    jr z,blockStart3
-    cp "`"
-    jr z,blockStart3
-    cp DQ
-    jr z,blockStart3
-    jr blockStart1
-blockStart2:
-    inc d
-    jr blockStart1                   
-blockStart3:
-    ld a,$80
-    xor d
-    ld d,a
-    jr nz, blockStart1
-    jr blockStart5
-blockStart4:
-    dec d
-    jr nz, blockStart1          ; get the next element
-blockStart5:
-    ld hl,bc                    ; hl = IP
-    ld de,HEAP                  ; is IP pointing to object in heap
-    or a                        ; IP - HEAP
-    sbc hl,de
-    bit 7,h                     ; if -ve then copy to heap else skip
-    jr z,blockStart6
-    ld hl,bc                    ; hl = IP
-    pop de                      ; de = block*
-    ld (vTemp1),bc              ; save IP
-    or a                        ; bc = size
-    sbc hl,de
-    ld bc,hl
-    ex de,hl                    ; hl = block* de = heap*
-    ld de,(vHeapPtr)            
-    push de                     ; return hblock*
-    ldir                        ; copy size bytes from block* to hblock*
-    ld (vHeapPtr),de            ; heap* += size
-    ld bc,(vTemp1)              ; restore IP
-blockStart6:
-    dec bc                      ; balanced, exit
-    pop hl                      ; hl = block*
-    ex (sp),hl                  ; return to caller
-    jp (hl)  
-
 rbrace:
 blockEnd:
     ld e,(iy+0)                 ; vTemp1 = oldBP               
@@ -1974,6 +1734,246 @@ scan:
 ; general routines
 ;*******************************************************************
 
+; arg_list - parses arg_list e.g. ab:c
+; -- arg_list* 
+parseArgs:
+    ld de,0                     ; d = count locals, e = count args ()
+    ld hl,(vHeapPtr)            ; hl = heap*
+    push hl                     ; save start of arg_list
+    inc hl                      ; skip length fields to start of string
+    inc hl
+    inc bc                      ; point to next char
+parseArgs1:
+    ld a,(bc)
+    cp ":"                      ; ":" switches from args to locals
+    jr nz,parseArgs1a
+    inc d                       ; non zero value local count acts as flag
+    jr parseArgs3
+parseArgs1a:
+    cp "a"                      ; < "a" terminates arg_list
+    jr c,parseArgs4
+    cp "z"+1                    ; > "z" terminates arg_list
+    jr nc,parseArgs4
+parseArgs2:
+    ld (hl),a
+    inc hl                      
+    inc e                       ; increase arg count
+    xor a
+    or d
+    jr z,parseArgs3
+    inc d                       ; if d > 0 increase local count
+parseArgs3:
+    inc bc                      ; point to next char
+    jr parseArgs1
+parseArgs4:
+    dec bc
+    xor a
+    or d
+    jr z,parseArgs5
+    dec d                       ; remove initial inc
+parseArgs5:
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
+    pop hl                      ; hl = start of arg_list
+    ld (hl),d                   ; write number of locals at start - 1                                      
+    inc hl                      
+    ld (hl),e                   ; write number of args + locals at start - 2
+    dec hl
+    ex (sp),hl
+    jp (hl)  
+
+; create block: parses block e.g. { .... }
+; -- block*
+parseBlock:
+    push bc                     ; return pointer to first { of block    
+    inc bc
+    ld d,1                      ; nesting: count first parenthesis
+parseBlock1:                         ; Skip to end of definition    
+    ld a,(bc)                   ; Get the next character
+    inc bc                      ; Point to next character
+    cp " " + 1                  ; ignore whitespace 
+    jr c,parseBlock1
+
+    cp ")"
+    jr z,parseBlock4
+    cp "}"                       
+    jr z,parseBlock4
+    cp "]"
+    jr z,parseBlock4
+
+    cp "("
+    jr z,parseBlock2
+    cp "{"
+    jr z,parseBlock2
+    cp "["
+    jr z,parseBlock2
+
+    cp "'"
+    jr z,parseBlock3
+    cp "`"
+    jr z,parseBlock3
+    cp DQ
+    jr z,parseBlock3
+    jr parseBlock1
+parseBlock2:
+    inc d
+    jr parseBlock1                   
+parseBlock3:
+    ld a,$80
+    xor d
+    ld d,a
+    jr nz, parseBlock1
+    jr parseBlock5
+parseBlock4:
+    dec d
+    jr nz, parseBlock1          ; get the next element
+parseBlock5:
+    ld hl,bc                    ; hl = IP
+    ld de,HEAP                  ; is IP pointing to object in heap
+    or a                        ; IP - HEAP
+    sbc hl,de
+    bit 7,h                     ; if -ve then copy to heap else skip
+    jr z,parseBlock6
+    ld hl,bc                    ; hl = IP
+    pop de                      ; de = block*
+    ld (vTemp1),bc              ; save IP
+    or a                        ; bc = size
+    sbc hl,de
+    ld bc,hl
+    ex de,hl                    ; hl = block* de = heap*
+    ld de,(vHeapPtr)            
+    push de                     ; return hblock*
+    ldir                        ; copy size bytes from block* to hblock*
+    ld (vHeapPtr),de            ; heap* += size
+    ld bc,(vTemp1)              ; restore IP
+parseBlock6:
+    dec bc                      ; balanced, exit
+    pop hl                      ; hl = block*
+    ex (sp),hl                  ; return to caller
+    jp (hl)  
+
+; create function
+; arg_list* block* -- func*
+createFunc:
+    pop hl                      ; save retrn address
+    ld (vTemp3),hl
+    ld (vTemp1),bc              ; save IP
+    pop hl                      ; hl = block*
+    ld (vTemp2),hl              ; save block*
+    ld e,(iy+4)                 ; de = outer_arg_list 
+    ld d,(iy+5)
+    ld a,e                      ; if arg_list == null then make a func
+    or d
+    jr nz,createFunc0
+    ld hl,0                     ; partial_array = null
+    ld de,(vHeapPtr)            ; de = compile*
+    jr createFunc5                 
+createFunc0:
+    pop hl                      ; hl = inner_arg_list*
+    push hl                     ; save inner_arg_list
+    ld de,(vHeapPtr)            ; de = compile*
+    ld a,(hl)                   ; compile inner_num_locals
+    ld c,a                      ; b = inner_num_locals
+    ld (de),a
+    inc hl
+    inc de
+    ld a,(hl)                   ; compile inner_length
+    ld (de),a
+    sub c                       ; a = inner_num args
+    inc hl
+    inc de
+    or a                        ; compile args if inner_length > 0
+    jr z,createFunc1
+    ld c,a                      ; bc = a
+    ld b,0
+    ldir
+createFunc1:    
+    ex de,hl                    ; hl = outer_arg_list
+    ld e,(iy+4)                  
+    ld d,(iy+5)
+    ex de,hl
+    inc hl                      ; a = outer_length
+    ld a,(hl)
+    inc hl      
+    or a
+    jr z,createFunc2
+    ld c,a
+    ld b,0
+    ldir                        ; append outer_args
+createFunc2:                      ; a = outer_length 
+    ld b,a                      ; b = a = outer_length
+    ld hl,(vHeapPtr)            ; b > 0, hl = start of cloned arg_list
+    inc hl
+    ld a,(hl)                   ; add outer_length to new length
+    add a,b                     
+    ld (hl),a
+    dec hl
+    ld a,b                      ; save outer_length in a'
+    ex af,af'                   
+    ex (sp),hl                  ; hl = inner_arg_list*, (sp) new_arg_list                      
+    ld a,(hl)                   ; c = a = inner_num_locals
+    or a
+    jr z,createFunc2a             ; if inner_num_locals == 0 skip
+    ld c,a                      ; c = inner_num_locals
+    ld b,0                      ; bc = inner_num_locals
+    inc hl                      ; a = inner_length
+    ld a,(hl)                    
+    sub c                       ; a = inner_num_args
+    inc hl                      ; hl = inner_arg_chars
+    add a,l                     ; hl += a
+    ld l,a
+    ld a,0
+    add a,h
+    ld h,a
+    ldir                        ; append inner_locals
+createFunc2a:    
+    ex af,af'                   ; restore outer_length to a, de = partial_array[-2]
+    ld (de),a                   ; compile partial_array length field 
+    inc de
+    xor a
+    ld (de),a
+    inc de
+    push de                     ; push partial_array*
+    ex de,hl                    ; hl = first_arg, copy outer_args+locals to partial_array
+    ld e,(iy+2)                     
+    ld d,(iy+3)
+    ex de,hl
+createFunc3:
+    dec hl                      ; c = MSB of arg from stack (incl. locals)
+    ld c,(hl)
+    dec hl
+    ld a,(hl)                   ; a = LSB of arg from stack (incl. locals)
+    ld (de),a                   ; write LSB and MSB to partial_array*
+    inc de
+    ld a,c
+    ld (de),a
+    inc de
+    djnz createFunc3              ; b = outer_length
+createFunc4:
+    pop hl                      ; hl = partial_array*
+createFunc5:
+    pop bc                      ; bc = new_arg_list*
+    push de                     ; return new func*
+    ex de,hl                    ; hl = new func*, de = partial_array*
+    ld (hl),e                   ; compile partial_array* to func
+    inc hl                       
+    ld (hl),d
+    inc hl
+    ld de,(vTemp2)              ; de = block*
+    ld (hl),e                   ; compile block* to func
+    inc hl
+    ld (hl),d
+    inc hl
+    ld (hl),c                   ; compile new_arg_list* to func
+    inc hl
+    ld (hl),b
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap ptr
+    ld bc,(vTemp1)              ; restore IP
+    ld hl,(vTemp3)              ; jump to return address
+    jp (hl)
+
+
 ; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
 flushBuffer:
     push af
@@ -2431,7 +2431,7 @@ printStack_:
 ; editArray:
 ;     jp (ix)
 
-; editArglist:
+; editparseArgs:
 ;     jp (ix)
 
 ; ; blockLength
