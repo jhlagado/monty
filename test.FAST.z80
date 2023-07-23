@@ -26,15 +26,11 @@ testsStart:
 
     ; ; test "[1 2 5]/as",3
     ; ; ; ; test "0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", 0
-    ; test "$1000 0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", $1000
+    test "$1000 0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", $1000
 
-    ; test "5 :a{%a}^", 5
-    ; test ":a{%a} F=1F^", 1
-    ; test "1 :b{:a{%a}}^F= 3F^",3
-    ; test "1 :b{:a{%a%b-}}^F= 3F^",2
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

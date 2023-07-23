@@ -865,7 +865,7 @@ db        "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 db        "??"                      ; ifte:
 db        "0 1 %T0#^"               ; 0 or 1: get next src data item
 db      "}?"                        
-db    "}; 0 %s^" 
+db    "} 0 %s^" 
 db "}" 
 db 0
 
@@ -877,8 +877,8 @@ db    ":kt{"                              ; :kt sink, type
 db         "0%t==/br"                     ; break if t != 0 
 db         ":dt{"
 db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
-db         "}; 0 %k^"                     ; init sink
-db     "};" 
+db         "} 0 %k^"                     ; init sink
+db     "}" 
 db "}" 
 db 0
 
@@ -898,8 +898,8 @@ db      ":dt{"                      ; call source with tb
 db        "1%t=="                   ; ifte: type == 1 ?
 db        "{%d %f^}{%d}"            ; ifte: func(data) or data
 db        "?? %t %k^"             ; ifte: send to sink
-db      "}; 0 %s^" 
-db    "};" 
+db      "} 0 %s^" 
+db    "}" 
 db "}" 
 db 0
 
@@ -918,8 +918,8 @@ db        "1%t==/br"                ; break if type != 0
 db        "%a %e <"                 ; ifte: in range?
 db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
 db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
-db      "}; 0 %k^"                  ; init sink
-db    "};" 
+db      "} 0 %k^"                   ; init sink
+db    "}" 
 db "}" 
 db 0
 
