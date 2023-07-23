@@ -55,6 +55,7 @@ vSavedBP:   ds 2                ;
 
 vTemp1:     ds 2                ; 
 vTemp2:     ds 2                ; 
+vTemp3:     ds 2                ; 
 vLastDef:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
 
