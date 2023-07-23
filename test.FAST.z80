@@ -28,10 +28,10 @@ testsStart:
     ; ; ; ; ; test "0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", 0
     ; test "$1000 0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", $1000
 
-    test "5 :a{%a}^", 5
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; test "5 :a{%a}^", 5
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

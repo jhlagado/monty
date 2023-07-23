@@ -951,7 +951,7 @@ lambda:
     push ix
     call arglist
     inc bc
-    PERFORM blockStart
+    call blockStart
     call createFunc
     pop hl
     pop ix
@@ -1284,7 +1284,12 @@ assignx:
 assign1:	  
     jp (ix)  
 
+; { block start
+; -- block*
 lbrace:
+    call blockStart
+    jp (ix)
+    
 blockStart:
     push bc                     ; return pointer to first { of block    
     inc bc
@@ -1349,7 +1354,9 @@ blockStart5:
     ld bc,(vTemp1)              ; restore IP
 blockStart6:
     dec bc                      ; balanced, exit
-    jp (ix)  
+    pop hl                      ; hl = block*
+    ex (sp),hl                  ; return to caller
+    jp (hl)  
 
 rbrace:
 blockEnd:
