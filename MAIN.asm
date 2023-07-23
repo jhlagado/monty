@@ -158,7 +158,7 @@ isysVars:
     DW next                     ; nNext
     DW HEAP                     ; vHeapPtr \h start of the free mem
     DW 0                        ; vRecur
-    DW 0                        ; unused
+    DW 0                        ; vDefine
     DW 0                        ; unused
 
 ; **********************************************************************			 
@@ -422,7 +422,7 @@ command:
     db lsb(command_p_)
     db lsb(command_q_)
     db lsb(command_r_)
-    db lsb(command_nop_)
+    db lsb(command_s_)
     db lsb(true_)
     db lsb(command_nop_)
     db lsb(command_v_)
@@ -452,9 +452,6 @@ command_b_:
     db NUL
     jp bytes_                   ; /b bytes
 
-command_f_:
-    jp command_f
-
 command_i_:
     call jumpTable
     db "n"                      ; /in input
@@ -482,6 +479,9 @@ command_q_:
 command_r_:
     jp command_r
 
+command_s_:
+    jp command_s
+
 command_v_:
     jp command_v
 
@@ -499,7 +499,8 @@ div_:
     jp div
 
 error1_:
-    jp error1
+    ld hl,1                     ; error 1: unknown command
+    jp error
 
 hexadecimal_:
     ld hl,16
@@ -619,6 +620,7 @@ printChars_:
     jp (ix)
 
 ; /qt
+; bool -- 
 quit_:
     pop hl                      ; hl = condition, exit if true
     ld a,l
@@ -632,6 +634,9 @@ quit1:
 words:
     ld hl,2
     jp bytes1
+
+command_f_:
+    jr command_f
 
 ; //
 comment:
@@ -649,12 +654,16 @@ comment:
 
 command_f:
     call jumpTable
+    db "d"                      ; /fd fold
+    db lsb(fold_)
     db "e"                      ; /fe forEach
     db lsb(forEach_)
     db "l"                      ; /fl flush output buffer
     db lsb(flush_)
     db "s"                      ; /fs funcSrc
     db lsb(funcSrc_)
+    db "t"                      ; /ft filter
+    db lsb(filter_)
     db "1"                      
     db lsb(f1_)
     db "2"                      
@@ -676,6 +685,12 @@ forEach_:
 flush_:
     call flushBuffer
     jp (ix)
+
+filter_:
+    jp filter
+
+fold_:
+    jp fold
 
 funcSrc_:
     jp funcSrc
@@ -716,6 +731,11 @@ command_r:
     db lsb(remain_)
     db "g"                      ; /rg range src
     db lsb(rangeSrc_)
+    db NUL
+    jp error1_
+
+command_s:
+    call jumpTable
     db NUL
     jp error1_
 
@@ -859,18 +879,87 @@ dotXChars2:
 ; Monty implementations
 ;*******************************************************************
 
-; /fe forEach
-; src proc --
-FUNC forEach, 1, "spT"                               
+; /rg rangeSrc
+; begin end step -- src
+FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
+db "{"
+db    "[%b /t] %L="                 ; init mutable L [index active]                           
+db    "\\kt{"                            
+db      "0%t!=/qt"                  ; break if type != 0 
+db      "\\dt:a{"                   ; return talkback to receive data
+db        "%L1#!/qt"                ; if not active don't send
+db        "%L0# %a="                ; store current index in A 
+db        "%s %L0# +="              ; inc value of index by step
+db        "1%t!=/qt"                ; break if type != 0
+db        "%a %e <"                 ; ifte: in range?
+db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
+db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+db      "} 0 %k^"                   ; init sink
+db    "}" 
+db "}" 
+db 0
+
+; /mp map
+; src func -- src1
+FUNC map, 0, "sf"                   ; map: source, function                 
+db "{"
+db    "\\kt{"                        
+db      "0%t!=/qt"                  ; break if type != 0  
+db      "\\dt{"                     ; call source with tb
+db        "1%t=="                   ; ifte: type == 1 ?
+db        "{%d %f^}{%d}"            ; ifte: func(data) or data
+db        "?? %t %k^"               ; ifte: send to sink
+db      "} 0 %s^" 
+db    "}" 
+db "}" 
+db 0
+
+; /ft filter
+; src pred -- src1
+FUNC filter, 1, "spT"               ; filter: source, predicate, local: T  
 db "{"
 db    "[0]%T="
-db    ":dt{"                        ; return talkback to receive data ; $56AA
-db      "2%t!={"                    ; if type == 2 skip
-db        "0%t=="                   ; ifte: type = 0 ?
-db        "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
-db        "??"                      ; ifte:
-db        "0 1 %T0#^"               ; 0 or 1: get next src data item
-db      "}?"                        
+db    "\\kt{"                       ; return talkback to receive data 
+db      "\\dt{"                     ; call source with tb
+db        "["
+db          "{%d %T0#= /t}"         ; case 0: store talkback in T[0], return true
+db          "{%d %p^}"              ; case 1: return boolean based on predicate
+db          "{/t}"                  ; case 2: return true
+db        "]%t#^"                   ; select on %t
+db        "{%d %t %k^}{0 1 %T0#^}"  ; ifte: true send d to sink, false send 1 to talkback
+db        "??"
+db      "} 0 %s^"                    
+db    "}" 
+db "}" 
+db 0
+
+; /fd fold
+; reducer is a function like: \\da{...}
+; src init reducer -- src1
+FUNC fold, 1, "sirA"                    ; src, init, reducer                      
+db "{"                                  ; reducer: \\da{...}
+db    "[%i]%A="
+db    "\\kt{"                           ; return talkback to receive data 
+db      "\\dt{"                         ; call source with tb
+db        "1%t=="                       ; ifte: type == 1 ?
+db        "{%d %A0# %r^%A0#= %A0#}{%d}" ; ifte: reduce -> acc, acc or data 
+db        "?? %t %k^"                   ; ifte: send to sink
+db      "} 0 %s^"                    
+db    "}" 
+db "}" 
+db 0
+
+; /fe forEach
+; src proc --
+FUNC forEach, 1, "spT"              ; forEach: source, procedure, local: T                          
+db "{"
+db    "[0]%T="
+db    "\\dt{"                       ; return talkback to receive data ; $56AA
+db      "2%t==/qt"                    ; if type == 2 skip
+db      "0%t=="                   ; ifte: type = 0 ?
+db      "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
+db      "??"                      ; ifte:
+db      "0 1 %T0#^"               ; 0 or 1: get next src data item
 db    "} 0 %s^" 
 db "}" 
 db 0
@@ -879,9 +968,9 @@ db 0
 ; ; func -- src
 FUNC funcSrc, 0, "f"                      ; :f func or block                 
 db "{"
-db    ":kt{"                              ; :kt sink, type 
+db    "\\kt{"                              ; :kt sink, type 
 db         "0%t==/br"                     ; break if t != 0 
-db         ":dt{"
+db         "\\dt{"
 db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
 db         "} 0 %k^"                     ; init sink
 db     "}" 
@@ -894,50 +983,13 @@ db "`[ `.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ `]`.s"
 db "}"
 db 0
 
-; /mp map
-; src func -- src1
-FUNC map, 0, "sf"                   ; map                 
-db "{"
-db    ":kt{"                        
-db      "0%t==/br"                  ; break if type != 0  
-db      ":dt{"                      ; call source with tb
-db        "1%t=="                   ; ifte: type == 1 ?
-db        "{%d %f^}{%d}"            ; ifte: func(data) or data
-db        "?? %t %k^"             ; ifte: send to sink
-db      "} 0 %s^" 
-db    "}" 
-db "}" 
-db 0
-
-; /rg rangeSrc
-; begin end step -- src
-FUNC rangeSrc, 1, "besL"            ; range source (begin end step)                 
-db "{"
-db    "[%b /t] %L="                 ; init mutable L [index active]                           
-db    ":kt{"                            
-db      "0%t==/br"                  ; break if type != 0 
-db      ":dt:a{"                          ; return talkback to receive data
-db        "%L1#/br"                 ; if not active don't send
-db        "%L0# %a="                ; store current index in A 
-db        "%s %L0# + %L0#="         ; inc value of index by step
-db        "1%t==/br"                ; break if type != 0
-db        "%a %e <"                 ; ifte: in range?
-db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
-db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
-db      "} 0 %k^"                   ; init sink
-db    "}" 
-db "}" 
-db 0
-
 ;*******************************************************************
 ; unused opcodes (reserved)
 ;*******************************************************************
 
-backslash:
 underscore:
 tilde:
 comma:
-semicolon:
     jp (ix)
 
 ;*******************************************************************
@@ -947,10 +999,28 @@ semicolon:
 ; _ func
 ; -- func*
 colon:
+    inc bc                      ; arg_list must ve immediately followed by {
+    ld a,(bc)
+    cp "="                      ; := definition
+    jr z,defineStart
+    dec bc
+    ld hl,1
+    jp error
+
+backslash:
 lambda:
     push ix
     call parseArgs
-    inc bc
+lambda1:
+    inc bc                      ; arg_list must ve immediately followed by {
+    ld a,(bc)
+    cp " "+1                    ; skip white space
+    jr c,lambda1
+    cp "{"
+    jr z,lambda2
+    ld hl,2                     ; error 2: parse error
+    jp error
+lambda2:
     call parseBlock
     call createFunc
     pop hl
@@ -958,6 +1028,25 @@ lambda:
     push hl
     jp (ix)
 
+defineStart:
+    pop hl                      ; discard variable value
+    ld hl,(vPointer)            ; vDefine = vPointer
+    ld (vDefine),hl
+    jp (ix)
+
+semicolon:
+defineEnd:    
+    ld hl,(vDefine)             ; hl = define*    
+    ld a,l
+    or h
+    jr z,defineEnd1
+    ld de,NUL                   ; set vDefine=NUL
+    ld (vDefine),de
+    pop de                      ; de = value
+    jp assign1
+defineEnd1:
+    jp (ix)
+    
 ; %a .. %z
 ; -- value
 ; returns value of arg
@@ -1101,15 +1190,15 @@ assign:
     pop hl                      ; hl = new value
 assign0:
     ex de,hl                    ; de = new value
-assignx:
     ld hl,(vPointer)     
-    ld (hl),e
+assign1:                        ; entry point from defineEnd
+    ld (hl),e           
     ld a,(vDataWidth)                   
     dec a                       ; is it byte?
-    jr z,assign1
+    jr z,assign2
     inc hl    
     ld (hl),d
-assign1:	  
+assign2:	  
     jp (ix)  
 
 ; { block start
@@ -1720,15 +1809,7 @@ printChars2:
     ret z
     jr printChars1                      ; if not loop
 
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-filter:
-scan:
-    jp (ix)
 
 ;*******************************************************************
 ; general routines
@@ -2302,13 +2383,13 @@ run:
     dec bc
     jp (ix)
 
-error1:
-    ld hl,1                     ; error 1: unknown command
-    push hl
 error:
+    push hl
     call run
     db "`Error `.s .",0
     jp interpret
+
+
 
 backSpace_:
     ld a,c

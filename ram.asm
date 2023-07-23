@@ -40,6 +40,7 @@ vBufPtr:    ds 2                ;
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
 vRecur:     ds 2                ;
+vDefine     ds 2                ;
 
 ; uninitialised sys variables (preserved)
 

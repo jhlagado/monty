@@ -9,29 +9,31 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 1, ""                                  
+FUNC f1, 0, ""                  
 db 0
 
-FUNC f2, 1, ""                               
+FUNC f2, 0, ""                  
 db 0
 
-FUNC f3, 0, ""                                    
+FUNC f3, 0, ""                  
 db 0
 
-FUNC f4, 1, ""                                     
+FUNC f4, 0, ""                  
 db 0
 
 .align $100
 testsStart:
 
-    ; ; ; test "[1 2 5]/as",3
-    ; ; ; ; ; test "0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", 0
-    ; test "$1000 0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", $1000
+    ; test "0 10 1 /rg \\a{%a.} /fe", 0
+    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", $1000
+    test "$1000 0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", $1000
 
-    ; test "5 :a{%a}^", 5
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -97,41 +99,41 @@ testsStart:
     test "5 /t{10} ? +", 15
     test "1 /f{10}{20} ?? +", 21
     test "1 /t{10}{20} ?? +", 11
-    test ":{2}^", 2
-    test ":a{2}^", 2
-    test "5 :a{%a}^", 5
-    test "5 :a:b{%a}^", 5
-    test ":a{{2}^}^", 2
-    test "1 5 :a{{%a}^}^", 5
-    test "1 5 :ab{{%a}^}^", 1
-    test "1 5 :a{{%a 2 +}^}^", 7
-    test "1 5 :ab{{%a %b +}^}^", 6
-    test ":a{2} x= 1 x^", 2
-    test ":a{%a} x= 0 1 x^", 1
-    test ":ab{%b} x= 1 2 x^", 2
-    test ":a:b{%a} x= 1 2 x^", 2
-    test ":ab{%b} x= 1 2 x^", 2
-    test ":ab{%b %a} x= 10 15 x^ -", 5
-    test ":a:b{2} x= 1 x^", 2
-    test "::b{100 %b = %b} x= x^", 100
-    test ":a:b{1 %b = %b} x= 2 x^", 1
-    test ":a:b{%a %b = %b} x= 2 x^", 2
-    test "1 10 20 :ab{/t{%a}{%b} ??}^ +", 11
-    test "1 10 20 :ab{/f{%a}{%b} ??}^ +", 21
+    test "\\{2}^", 2
+    test "\\a{2}^", 2
+    test "5 \\a{%a}^", 5
+    test "5 \\a:b{%a}^", 5
+    test "\\a{{2}^}^", 2
+    test "1 5 \\a{{%a}^}^", 5
+    test "1 5 \\ab{{%a}^}^", 1
+    test "1 5 \\a{{%a 2 +}^}^", 7
+    test "1 5 \\ab{{%a %b +}^}^", 6
+    test "\\a{2} x= 1 x^", 2
+    test "\\a{%a} x= 0 1 x^", 1
+    test "\\ab{%b} x= 1 2 x^", 2
+    test "\\a:b{%a} x= 1 2 x^", 2
+    test "\\ab{%b} x= 1 2 x^", 2
+    test "\\ab{%b %a} x= 10 15 x^ -", 5
+    test "\\a:b{2} x= 1 x^", 2
+    test "\\:b{100 %b = %b} x= x^", 100
+    test "\\a:b{1 %b = %b} x= 2 x^", 1
+    test "\\a:b{%a %b = %b} x= 2 x^", 2
+    test "1 10 20 \\ab{/t{%a}{%b} ??}^ +", 11
+    test "1 10 20 \\ab{/f{%a}{%b} ??}^ +", 21
     test "[10 20 30] 1#", 20
     test "[10 20 30 40] /as", 4
     test "/b [1 2 3] 1#", 2
     test "/b ['A' 'B' 'C'] 1#", 66
     test "[{10}{20}{30}] 0#^ ", 10
-    test "10 20 :ab{[{%a}{%b}] 0#^}^", 10
-    test "0 10 20 :iab{[{%a}{%b}] %i#^}^", 10
-    test "1 10 20 :iab{[{%a}{%b}] %i#^}^", 20
+    test "10 20 \\ab{[{%a}{%b}] 0#^}^", 10
+    test "0 10 20 \\iab{[{%a}{%b}] %i#^}^", 10
+    test "1 10 20 \\iab{[{%a}{%b}] %i#^}^", 20
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1#", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
-    test "3 :a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
-    test "/t :f{1 %f/br 2 +}^",3
-    test "/f :f{1 %f/br 2 +}^",1
+    test "3 \\a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
+    test "/t \\f{1 %f/br 2 +}^",3
+    test "/f \\f{1 %f/br 2 +}^",1
     test "'A' 1 - /ad", NUL
     test "'Z' 1 + /ad", NUL
     test "'a' 1 - /ad", NUL
@@ -143,13 +145,14 @@ testsStart:
     test "-1. /b/vB 0#", $2D
     test {DQ,"A",DQ,".s /b/vB 0#"}, 65
     test "123. /b/vB 1#", $32
-    test ":a{%a} F=1F^", 1
-    test "1 :b{:a{%a}}^F= 3F^",3
-    test "1 :b{:a{%a%b-}}^F= 3F^",2
-    test "1 :b{:a:c{%a%b-%c= %c--%c}}^F= 3F^",1
-    test "1 :b:c{:a{%a%b-%c= %c--%c}}^F= 3F^",1
-    test "1 :b:c{:a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
-    ; test "$1000 0 10 1 /rg :a{%a 1 + 10 *} /mp :a{%a.} /fe", $1000
+    test "\\a{%a} F=1F^", 1
+    test "1 \\b{\\a{%a}}^F= 3F^",3
+    test "1 \\b{\\a{%a%b-}}^F= 3F^",2
+    test "1 \\b{\\a:c{%a%b-%c= %c--%c}}^F= 3F^",1
+    test "1 \\b:c{\\a{%a%b-%c= %c--%c}}^F= 3F^",1
+    test "1 \\b:c{\\a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
+    test "F := \\a{%a 1+} ; 1F^", 2
+    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -159,3 +162,83 @@ testsStart:
     
 .include "test.fast.util.asm"
 .include "ram.asm"
+
+; FUNC rangeSrc, 1, "besL"            ; range source (begin end step)                 
+; db "{"
+; db    "[%b /t] %L="                 ; init mutable L [index active]                           
+; db    "\\kt{"                            
+; db      "0%t!=/qt"                  ; break if type != 0 
+; db      "\\dt:a{"                   ; return talkback to receive data
+; db        "%L1#!/qt"                ; if not active don't send
+; db        "%L0# %a="                ; store current index in A 
+; db        "%s %L0# +="              ; inc value of index by step
+; db        "1%t!=/qt"                ; break if type != 0
+; db        "%a %e <"                 ; ifte: in range?
+; db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
+; db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+; db      "} 0 %k^"                   ; init sink
+; db    "}" 
+; db "}" 
+; db 0
+
+; FUNC map, 0, "sf"                   ; map                 
+; db "{"
+; db    "\\kt{"                        
+; db      "0%t!=/qt"                  ; break if type != 0  
+; db      "\\dt{"                     ; call source with tb
+; db        "1%t=="                   ; ifte: type == 1 ?
+; db        "{%d %f^}{%d}"            ; ifte: func(data) or data
+; db        "?? %t %k^"               ; ifte: send to sink
+; db      "} 0 %s^" 
+; db    "}" 
+; db "}" 
+; db 0
+
+; ; /ft filter
+; ; src pred -- src1
+; FUNC filter, 1, "spT"               ; filter: source, predicate, local: T  
+; db "{"
+; db    "[0]%T="
+; db    "\\kt{"                       ; return talkback to receive data 
+; db      "\\dt{"                     ; call source with tb
+; db        "["
+; db          "{%d %T0#= /t}"         ; case 0: store talkback in T[0], return true
+; db          "{%d %p^}"              ; case 1: return boolean based on predicate
+; db          "{/t}"                  ; case 2: return true
+; db        "]%t#^"                   ; select on %t
+; db        "{%d %t %k^}{0 1 %T0#^}"  ; ifte: true send d to sink, false send 1 to talkback
+; db        "??"
+; db      "} 0 %s^"                    
+; db    "}" 
+; db "}" 
+; db 0
+
+
+; FUNC forEach, 1, "spT"                               
+; db "{"
+; db    "[0]%T="
+; db    "\\dt{"                       ; return talkback to receive data ; $56AA
+; db      "2%t==/qt"                    ; if type == 2 skip
+; db      "0%t=="                   ; ifte: type = 0 ?
+; db      "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
+; db      "??"                      ; ifte:
+; db      "0 1 %T0#^"               ; 0 or 1: get next src data item
+; db    "} 0 %s^" 
+; db "}" 
+; db 0
+
+; FUNC fold, 1, "sirA"                       ; src, init, reducer                      
+; db "{"                                  ; reducer: \\da{...}
+; db    "[%i]%A="
+; db    "\\kt{"                         ; return talkback to receive data 
+; db      "\\dt{"                         ; call source with tb
+; db        "1%t=="                       ; ifte: type == 1 ?
+; db        "{ %d %A0# %r^ %A0#= %A0#}{%d}"      ; ifte: reduce -> acc, acc or data 
+; db        "?? %t %k^"                    ; ifte: send to sink
+; db      "} 0 %s^"                    
+; db    "}" 
+; db "}" 
+; db 0
+
+
+
