@@ -9,7 +9,23 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 0, ""                  
+FUNC f1, 1, "sL"                            
+db "{"
+db    "[0 /t] %L="                  ; init mutable L [index active]                           
+db    "\\kt{"                            
+db      "0%t!=/qt"                  ; break if type != 0 
+db      "\\dt:ic{"                  ; return talkback to receive data
+db        "%L1#!/qt"                ; if not active don't send
+db        "%L0# %i="                ; store current index in A 
+db        "%L0# ++"                 ; inc value of index by step
+db        "/b %s%i# /w %c="         ; read byte at i, store in c as word
+db        "1%t!=/qt"                ; break if type != 0
+db        "%c 0 !="                 ; ifte: c != NUL ?
+db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
+db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+db      "} 0 %k^"                   ; init sink
+db    "}" 
+db "}" 
 db 0
 
 FUNC f2, 0, ""                  
@@ -24,13 +40,14 @@ db 0
 .align $100
 testsStart:
 
-    ; test "0 10 1 /rg \\a{%a.} /fe", 0
-    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", $1000
-    test "$1000 0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", $1000
-
+    ; test "0 10 1 /rg \\a{%i.} /fe", 0
+    ; test "$1000 0 10 1 /rg \\a{%i 1 + 10 *} /mp \\a{%i.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%i 1 + 10 *} /mp \\a{%i.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%i.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%i 3<}/ft \\a{%i.} /fe", $1000
+    ; test "$1000 0 10 1 /rg  0 \\da{%d%i+}/fd \\a{%i 24<}/ft \\a{%i.} /fe", $1000
+    ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
+    test "$1000 `hello there!` /si \\a{%a.c} /fe", $1000
     call printStr
     .cstr "Done!"
     HALT

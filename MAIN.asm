@@ -438,6 +438,8 @@ command_a_:
     db lsb(absolute_)
     db "d"                      ; /ad address of
     db lsb(addrOf_)
+    db "i"                      ; /ad address of
+    db lsb(arrayIter_)
     db "s"                      ; /as array size
     db lsb(arraySize_)
     db NUL
@@ -546,31 +548,11 @@ absolute_:
     push hl
     jp (ix)
 
-; /ad addrOf
-; char -- addr
 addrOf_:
-    pop hl                      ; a = char
-    ld a,l
-    cp "z"+1                    ; if a > z then exit
-    jr nc,addrOf2
-    sub "A"                     ; a - 65
-    jr c,addrOf2                ; if < A then exit
-    cp "Z"+1-"A"                ; if > Z then subtract 7
-    jr c,addrOf1
-    sub "a"-("Z"+1)
-    cp "Z"-"A"+1
-    jr c,addrOf2                ; if < a then exit
-addrOf1:
-    add a,a                     ; double a
-    ld hl,VARS                  ; hl = VARS + a
-    add a,l
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    push hl
-addrOf2:    
-    jp (ix)
+    jp addrOf
+
+arrayIter_:
+    jp arrayIter
 
 ; /as size of an array, num elements, ignores vDataWidth :-/ 
 ; array* -- num     
@@ -583,20 +565,19 @@ arraySize_:
     push de
     jp (ix)
 
-; /br
 break_:
     jp break
 
 ; /by
 coldStart_:
     jp coldStart
+
 ; /b
 bytes_:
     ld hl,1
 bytes1:
     ld (vDataWidth),hl
     jp (ix)
-
 
 ; Z80 port input
 ; port -- value 
@@ -649,7 +630,7 @@ comment:
 
 ;********************** PAGE 3 END *********************************************
 
-
+.align $100
 ;********************** PAGE 4 BEGIN *********************************************
 
 command_f:
@@ -734,11 +715,6 @@ command_r:
     db NUL
     jp error1_
 
-command_s:
-    call jumpTable
-    db NUL
-    jp error1_
-
 recur_:
     pop hl
     ld (vRecur),hl
@@ -748,6 +724,16 @@ remain_:
     ld hl,(vRemain)
     push hl
     jp (ix)
+
+command_s:
+    call jumpTable
+    db "i"
+    db lsb(stringIter_)
+    db NUL
+    jp error1_
+
+stringIter_:
+    jp stringIter
 
 rangeSrc_:
     jp rangeSrc
@@ -892,12 +878,54 @@ db        "%L0# %a="                ; store current index in A
 db        "%s %L0# +="              ; inc value of index by step
 db        "1%t!=/qt"                ; break if type != 0
 db        "%a %e <"                 ; ifte: in range?
-db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
+db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
+db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
+db      "} 0 %k^"                   ; init sink
+db    "}" 
+db "}" 
+db 0
+
+; /ai arrayIter
+; array* -- src
+FUNC arrayIter, 1, "aL"                             
+db "{"
+db    "[0 /t %a/as] %L="            ; init mutable L [index active size]                           
+db    "\\kt{"                            
+db      "0%t!=/qt"                  ; break if type != 0 
+db      "\\dt:i{"                   ; return talkback to receive data
+db        "%L1#!/qt"                ; if not active don't send
+db        "%L0# %i="                ; store current index in i 
+db        "%L0# ++"                 ; inc value of index
+db        "1%t!=/qt"                ; break if type != 0
+db        "%i %L2# <"               ; ifte: index < size
+db          "{%a%i# 1}{/f %L1#= 0 2}"  ; ifte: /t value, /f active = false, quit
+db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
+db      "} 0 %k^"                   ; init sink
+db    "}" 
+db "}" 
+db 0
+
+; /si stringIter
+; string* -- src
+FUNC stringIter, 1, "sL"                            
+db "{"
+db    "[0 /t] %L="                  ; init mutable L [index active]                           
+db    "\\kt{"                            
+db      "0%t!=/qt"                  ; break if type != 0 
+db      "\\dt:ic{"                  ; return talkback to receive data
+db        "%L1#!/qt"                ; if not active don't send
+db        "%L0# %i="                ; store current index in A 
+db        "%L0# ++"                 ; inc value of index by step
+db        "/b %s%i# /w %c="         ; read byte at i, store in c as word
+db        "1%t!=/qt"                ; break if type != 0
+db        "%c 0 !="                 ; ifte: c != NUL ?
+db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
 db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
 db 0
+
 
 ; /mp map
 ; src func -- src1
@@ -1046,7 +1074,33 @@ defineEnd:
     jp assign1
 defineEnd1:
     jp (ix)
-    
+  
+; /ad addrOf
+; char -- addr
+addrOf:
+    pop hl                      ; a = char
+    ld a,l
+    cp "z"+1                    ; if a > z then exit
+    jr nc,addrOf2
+    sub "A"                     ; a - 65
+    jr c,addrOf2                ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,addrOf1
+    sub "a"-("Z"+1)
+    cp "Z"-"A"+1
+    jr c,addrOf2                ; if < a then exit
+addrOf1:
+    add a,a                     ; double a
+    ld hl,VARS                  ; hl = VARS + a
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    push hl
+addrOf2:    
+    jp (ix)
+
 ; %a .. %z
 ; -- value
 ; returns value of arg

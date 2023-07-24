@@ -1,5 +1,9 @@
 # Ideas
 
+- array src
+- string src
+- iter src
+
 - /ss string size
 - loops need to clean up better
 - bring back previous line to edit
