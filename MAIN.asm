@@ -56,7 +56,7 @@ opcodes:
     DB lsb(dollar_)             ; $  
     DB lsb(percent_)            ; %  
     DB lsb(amper_)              ; &
-    DB lsb(tick_)               ; '
+    DB lsb(quote_)              ; '
     DB lsb(lparen_)             ; (    
     DB lsb(rparen_)             ; )
     DB lsb(star_)               ; *  
@@ -113,7 +113,7 @@ opcodes:
     DB lsb(rbrack_)             ; ]
     DB lsb(caret_)              ; ^
     DB lsb(underscore_)         ; _
-    DB lsb(dquote_)             ; `     used for testing string   	    
+    DB lsb(grave_)              ; `     used for testing string   	    
     DB lsb(lowcase_)            ; a     
     DB lsb(lowcase_)            ; b  
     DB lsb(lowcase_)            ; c  
@@ -168,9 +168,247 @@ isysVars:
 titleStr:
     .cstr ESC,"[2JMonty V0.1\r\n",0,0,0
 
-;********************** PAGE 2 BEGIN *********************************************
+;********************** PAGE 2 BEGIN ***********************************
 
-plus_:                           ; add the top 2 members of the stack
+
+; @ addr
+; -- ptr
+at_:
+addr:
+    ld de,(vPointer)
+    ld hl,vPointer
+    jp variable
+
+backslash_:
+    jp backslash
+
+num_:    
+    jp  num
+
+nop_:  
+    jp (ix) 
+rbrack_:
+    jp rbrack
+percent_:        
+    jp percent 
+rbrace_:
+    jp rbrace
+quote_:
+    jp quote
+dot_:  
+    jp dot
+caret_: 		 
+    jp caret
+comma_: 		 
+    jp comma
+dquote_:
+    jp dquote
+grave_:
+    jp grave
+
+underscore_:
+    jp underscore
+
+slash_:
+    jp slash
+
+dollar_:
+    jp dollar
+
+question_:
+    jp question
+
+
+
+
+;                               4
+rparen_:
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
+
+
+
+
+
+; { block start                 ; 4
+; -- block*
+lparen_:
+lbrace_:
+lbrace:
+    call parseBlock
+    jp (ix)
+    
+
+
+
+
+; ~ char                        8
+tilde_:
+tilde:
+char:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    ld l,a
+    ld h,0
+    push hl
+    jp (ix)  
+
+; & and                          11
+; a b -- c
+pipe_: 		 
+pipe:
+or:
+    pop de                      ; Bitwise or the top 2 elements of the stack
+    pop hl
+    ld a,e
+    or l
+    ld l,a
+    ld a,d
+    or h
+    jr and1
+
+
+
+
+
+
+
+
+; := define                     12
+semicolon_:
+semicolon:
+defineEnd:    
+    ld hl,(vDefine)             ; hl = define*    
+    ld a,l
+    or h
+    jr z,defineEnd1
+    ld de,NUL                   ; set vDefine=NUL
+    ld (vDefine),de
+    pop de                      ; de = value
+    jp assign1
+defineEnd1:
+    jp (ix)
+  
+
+
+
+
+
+
+; _ func                        14
+; -- func*
+colon_:
+colon:
+    inc bc                      ; arg_list must ve immediately followed by {
+    ld a,(bc)
+    cp "="                      ; := definition
+    jr z,defineStart
+    dec bc
+    ld hl,1
+    jp error
+defineStart:
+    pop hl                      ; discard variable value
+    ld hl,(vPointer)            ; vDefine = vPointer
+    ld (vDefine),hl
+    jp (ix)
+
+
+
+
+
+; [                             14
+lbrack_:
+lbrack:
+arrayStart:
+    ld de,0                     ; create stack frame
+    push de                     ; push null for IP
+    ld e,(iy+4)                 ; push arg_list* from parent stack frame
+    ld d,(iy+5)                 ; 
+    push de                     ; 
+    ld e,(iy+2)                 ; push first_arg* from parent stack frame
+    ld d,(iy+3)                 ; 
+    push de                     ; 
+    push iy                     ; push BP  
+    ld iy,0                     ; BP = SP
+    add iy,sp
+    jp (ix)
+
+
+
+
+
+; & and                          14
+; a b -- c
+amper_:
+amper:                          
+and:
+    pop de                      ; Bitwise and the top 2 elements of the stack
+    pop hl     
+    ld a,e        
+    and l           
+    ld l,a        
+    ld a,d        
+    and h           
+and1:
+    ld h,a        
+    push hl        
+    jp (ix)    
+
+;                               18
+upcase_:
+upcase:
+    ld a,(bc)                   ; a = identifier char
+    sub 'A'                     ; 'A' = 0
+    jr ident1
+lowcase_:
+lowcase:
+    ld a,(bc)
+    sub 'a' 
+    add a,26
+ident1:
+    add a,a                     ; l = a * 2                             
+    ld l,a
+    ld h,msb(vars)     
+    ld (vPointer),hl            ; store address in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    push de
+    jp (ix)
+
+
+
+; index of an array, based on vDataWidth 22
+; array* num -- value    ; also sets vPointer to address 
+hash_:    
+hash:
+arrayIndex:
+    pop hl                              ; hl = index  
+    pop de                              ; de = array
+    ld a,(vDataWidth)                   ; a = data width
+    dec a
+    jr z,arrayIndex1
+arrayIndex0:
+    add hl,hl                           ; if data width = 2 then double 
+arrayIndex1:
+    add hl,de                           ; add addr
+    ld (vPointer),hl                    ; store address in setter    
+    ld d,0
+    ld e,(hl)
+    or a                                ; check data width again                                
+    jr z,arrayIndex2
+    inc hl
+    ld d,(hl)
+arrayIndex2:
+    push de
+    jp (ix)
+
+plus_:                           
+; + add                         25
+; a b -- c
+plus:
 add:
     inc bc
     ld a,(bc)
@@ -178,7 +416,7 @@ add:
     jr nz,add1
     pop hl
     inc hl
-    jp assign0
+    jr assign0
 add1:
     dec bc
     pop de                      ; second term
@@ -193,43 +431,90 @@ add3:
     push hl        
     jp (ix)    
 add4:
-    jp assign0
+    jr assign0
 
-amper_:
-and:
-    pop de                      ; Bitwise and the top 2 elements of the stack
-    pop hl     
-    ld a,e        
-    and l           
-    ld l,a        
-    ld a,d        
-    and h           
-and1:
-    ld h,a        
-    push hl        
-    jp (ix)    
-    
-pipe_: 		 
-or:
-    pop de                      ; Bitwise or the top 2 elements of the stack
+star_:    
+    jr star 
+minus_:
+    jr minus
+bang_:				             
+    jr bang
+eq_:    
+    jr eq
+gt_:
+    jr gt
+lt_:
+    jr lt
+
+;********************** PAGE 2 END *********************************************
+;********************** PAGE 3 BEGIN (shorter ops) *****************************
+
+;                               21
+star:
+mul:        
+    pop  de                     ; get first value
+    pop  hl
+mul2:
+    push bc                     ; Preserve the IP
+    ld bc,hl                    ; bc = 2nd value
+    ld hl,0
+    ld a,16
+mul3:
+    add hl,hl
+    rl e
+    rl d
+    jr nc,$+6
+    add hl,bc
+    jr nc,$+3
+    inc de
+    dec a
+    jr nz,mul3
+	pop bc			            ; Restore the IP
+    jp add3
+
+; - sub                          23
+; a b -- c
+minus:
+    inc bc                      ; check if sign of a number
+    ld a,(bc)
+    dec bc
+    cp "0"
+    jr c,sub
+    cp "9"+1
+    jp c,num    
+sub:                            ; Subtract the value 2nd on stack from top of stack 
+    inc bc
+    cp "-"
+    jr nz,sub1
     pop hl
-    ld a,e
-    or l
-    ld l,a
-    ld a,d
-    or h
-    jr and1
+    dec hl
+    jr assign0
+sub1:
+    dec bc
+    pop de
+    pop hl
+    or a
+    sbc hl,de    
+    jr add3
 
+; value _oldValue --            ; uses address in vPointer 15
+assign:
+    pop hl                      ; discard last accessed value
+    pop hl                      ; hl = new value
+assign0:
+    ex de,hl                    ; de = new value
+    ld hl,(vPointer)     
+assign1:                        ; entry point from defineEnd
+    ld (hl),e           
+    ld a,(vDataWidth)                   
+    dec a                       ; is it byte?
+    jr z,assign2
+    inc hl    
+    ld (hl),d
+assign2:	  
+    jp (ix)  
 
-; @ addr
-; -- ptr
-at_:
-addr:
-    ld de,(vPointer)
-    ld hl,vPointer
-    jp variable
-
-bang_:				            ; logical invert, any non zero value 
+bang:				            ; logical invert, any non zero value 
     inc bc
     ld a,(bc)
     cp "="
@@ -241,34 +526,7 @@ not:
     dec bc
     ld hl,0                     ; is considered true
     jr eq1    
-
-minus_:
-    inc bc                      ; check if sign of a number
-    ld a,(bc)
-    dec bc
-    cp "0"
-    jr c,sub
-    cp "9"+1
-    jr c,num_    
-sub:                            ; Subtract the value 2nd on stack from top of stack 
-    inc bc
-    cp "-"
-    jr nz,sub1
-    pop hl
-    dec hl
-    jp assign0
-sub1:
-    dec bc
-    pop de
-    pop hl
-    or a
-    sbc hl,de    
-    jr add3
-
-num_:    
-    jp  num
-
-eq_:    
+eq:
     call jumpTable
     db "="                      
     db lsb(eq0_)
@@ -281,19 +539,19 @@ eq1:
     pop de
     jr equals
 
-gt_:
+gt:
     inc bc
     ld a,(bc)
     cp ">"
-    jp z,shiftRight
+    jr z,shiftRight
     pop de
     pop hl
     jr lt1
-lt_:
+lt:
     inc bc
     ld a,(bc)
     cp "<"
-    jp z,shiftLeft
+    jr z,shiftLeft
     pop hl
     pop de
 lt1:
@@ -341,60 +599,485 @@ null1:
 false1:
     ld hl, FALSE
     push hl
-nop_:  
     jp (ix) 
-rparen_:
-    jp rparen
-dollar_:
-    jp dollar
-lbrack_:
-    jp lbrack
-rbrack_:
-    jp rbrack
-percent_:        
-    jp percent 
-lparen_:
-lbrace_:
-    jp lbrace
-rbrace_:
-    jp rbrace
-tick_:
-    jp tick
-semicolon_:
-    jp semicolon
-dot_:  
-    jp dot
-colon_:
-    jp colon
-upcase_:
-    jp upcase
-lowcase_:
-    jp lowcase
-question_:
-    jp question
-star_:    
-    jp star 
-hash_:    
-    jp hash
-caret_: 		 
-    jp caret
-comma_: 		 
-    jp comma
-dquote_:
-    jp dquote
-backslash_:
-    jp backslash
-underscore_:
-    jp underscore
-tilde_:
-    jp tilde
-slash_:
-    jr slash
 
-;********************** PAGE 2 END *********************************************
+; shiftLeft                     15
+; value count -- value2          shift left count places
+shiftLeft:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftLeft2
+shiftLeft1:   
+    add hl,hl                   ; left shift hl
+shiftLeft2:   
+    djnz shiftLeft1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; shiftRight                    16
+; value count -- value2          shift left count places
+shiftRight:
+    ld de,bc                    ; save IP    
+    pop bc                      ; bc = count
+    ld b,c                      ; b = loop counter
+    pop hl                      
+    inc b                       ; test for counter=0 case
+    jr shiftRight2
+shiftRight1:   
+    srl h                       ; right shift hl
+    rr l
+shiftRight2:   
+    djnz shiftRight1
+    push hl
+    ld bc,de                    ; restore IP
+    jp (ix)
+
+; $ hex                         ; 22
+dollar:
+hexnum:        
+	ld hl,0	    		        ; Clear hl to accept the number
+hexnum1:
+    inc bc
+    ld a,(bc)		            ; Get the character which is a numeral
+    bit 6,a                     ; is it uppercase alpha?
+    jr z, hexnum2               ; no a decimal
+    sub 7                       ; sub 7  to make $a - $F
+hexnum2:
+    sub $30                     ; form decimal digit
+    jp c,num2
+    cp $0F+1
+    jp nc,num2
+    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
+    add hl,hl                   ; 4X
+    add hl,hl                   ; 8X
+    add hl,hl                   ; 16X     
+    add a,l                     ; add into bottom of hl
+    ld  l,a        
+    jr  hexnum1
+
+; if                            23
+; condition then -- value
+question:
+if:
+    inc bc
+    ld a,(bc)
+    cp "?"
+    jr z,ifte
+    dec bc
+    ld de,NUL                   ; NUL pointer for else
+    jr ifte1
+; ifte
+; condition then else -- value
+ifte: 
+    pop de                      ; de = else
+ifte1:
+    pop hl                      ; hl = then
+    ex (sp),hl                  ; hl = condition, (sp) = then
+    ld a,h
+    or l
+    pop hl                      ; hl = then
+    jp z,go1                    ; if z de = else                   
+    ex de,hl                    ; condition = false, de = then  
+    jp go1
 
 
-;********************** PAGE 3 BEGIN *********************************************
+
+
+
+; \                             19
+backslash:
+lambda:
+    push ix
+    call parseArgs
+lambda1:
+    inc bc                      ; arg_list must ve immediately followed by {
+    ld a,(bc)
+    cp " "+1                    ; skip white space
+    jr c,lambda1
+    cp "{"
+    jr z,lambda2
+    ld hl,2                     ; error 2: parse error
+    jp error
+lambda2:
+    call parseBlock
+    call createFunc
+    pop hl
+    pop ix
+    push hl
+    jp (ix)
+
+;                               32
+div:
+    pop de
+    pop hl
+    push bc                     ; preserve the IP    
+    ld bc,hl                
+    call divide
+    ex de,hl
+    ld (vRemain),de
+    pop bc
+    jp add3
+
+; division subroutine.
+; bc: divisor, de: dividend, hl: remainder
+
+divide:        
+    ld hl,0    	                ; zero the remainder
+    ld a,16    	                ; loop counter
+divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
+    sla c
+    rl b
+    adc hl,hl
+    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
+    jr c,divide2
+    inc c
+    jr divide3
+divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
+    add hl,de
+divide3:
+    dec a
+    jr nz,divide1
+    ld de,bc                    ; result from bc to de
+    ret
+
+
+; 0..9 number                   37
+num:
+	ld hl,$0000				    ; Clear hl to accept the number
+	ld a,(bc)				    ; Get numeral or -
+    cp '-'
+    jr nz,num0
+    inc bc                      ; move to next char, no flags affected
+num0:
+    ex af,af'                   ; save zero flag = 0 for later
+num1:
+    ld a,(bc)                   ; read digit    
+    sub "0"                     ; less than 0?
+    jr c, num2                  ; not a digit, exit loop 
+    cp 10                       ; greater that 9?
+    jr nc, num2                 ; not a digit, exit loop
+    inc bc                      ; inc IP
+    ld de,hl                    ; multiply hl * 10
+    add hl,hl    
+    add hl,hl    
+    add hl,de    
+    add hl,hl    
+    add a,l                     ; add digit in a to hl
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    jr num1 
+num2:
+    dec bc
+    ex af,af'                   ; restore zero flag
+    jr nz, num3
+    ex de,hl                    ; negate the value of hl
+    ld hl,0
+    or a                        ; jump to sub2
+    sbc hl,de    
+num3:
+    push hl                     ; Put the number on the stack
+    jp (ix)                     ; and process the next character
+
+; string                        ;38
+; -- ptr                        ; points to start of string chars,                                 ; length is stored at start - 2 bytes 
+grave:
+quote:
+dquote:
+string:     
+    ld hl,(vHeapPtr)            ; hl = heap*
+    inc hl                      ; skip length field to start
+    inc hl
+    push hl                     ; save start of string 
+    ld a,(bc)
+    ld e,a                      ; e = matching terminator
+    inc bc                      ; point to next char
+    jr string2
+string1:
+    ld (hl),a
+    inc hl                      ; increase count
+    inc bc                      ; point to next char
+string2:
+    ld a,(bc)
+    cp e                        ; is it the string terminator
+    jr z,string3
+    jr string1
+string3:
+    xor a                       ; write NUL to terminate string
+    ld (hl),a                   ; hl = end of string
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
+    dec hl                      ; hl = end of string without terminator
+    pop de                      ; de = start of string
+    push de                     ; return start of string    
+    or a                        ; hl = length bytes, de = start of string
+    sbc hl,de
+    ex de,hl
+    dec hl                      ; write length bytes to length field at start - 2                                      
+    ld (hl),d
+    dec hl
+    ld (hl),e
+    jp (ix)  
+
+; %a .. %z                      43
+; -- value
+; returns value of arg
+percent:
+arg:
+    ld e,(iy+4)                 ; hl = arg_list* 
+    ld d,(iy+5)
+    ex de,hl                    
+    ld a,l                      ; arg_list* == null, skip
+    or h
+    jr z,arg0a
+    inc hl                      ; a = num_args, hl = arg_list*
+    ld a,(hl)                    
+    inc hl
+    or a
+    jr z,arg0a                  ; num_args == 0, skip 
+    ld e,a                      ; e = a = num_args
+    inc bc                      ; a = next char = dollar_name
+    ld a,(bc)
+    push bc                     ; save IP                         
+    ld b,e                      ; b = e = num_args
+    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
+    ld d,(iy+3)
+arg0:
+    dec de                      ; a = dollar_name, de = next arg*
+    dec de
+    cp (hl)
+    jr z,arg1
+    inc hl                      ; hl = next arg_list*            
+    djnz arg0
+    pop bc                      ; no match, restore IP
+arg0a:
+    ld de,0                     ; return 0
+    jr arg1a
+arg1:
+    pop bc                      ; restore IP
+    ex de,hl                    ; hl = arg*
+    ld (vPointer),hl            ; store arg* in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)                   ; de = arg
+arg1a:
+    push de                     ; push arg
+    jp (ix)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;********************** PAGE 3 END *********************************************
+.align $100
+;********************** PAGE 3a BEGIN *********************************************
+
+;                               67
+dot:
+    call jumpTable
+    db "a"                      ; .a print array
+    db lsb(dotArray)
+    db "c"                      ; .c print char
+    db lsb(dotChar_)
+    db "s"                      ; .s print string
+    db lsb(dotString_)
+    db "x"                      ; .x print x chars
+    db lsb(dotXChars_)
+    db NUL                      ; .  print number
+    jp dotNumber_
+
+; /bd buffer decimal
+; value --                      
+dotNumber_:        
+    ld a,(vNumBase)
+    cp 16
+    jp z,dotHex              ; else falls through
+    jp dotDec
+; print decimal                 ; 70
+; value --                      
+dotDec:        
+    ld de,(vBufPtr)             ; de'= buffer* bc' = IP
+    exx                          
+    pop hl                      ; hl = value
+    call dotDec0
+    exx                         ; de = buffer*' bc = IP
+    ld a," "                    ; append space to buffer
+    ld (de),a
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+    ld hl,(vBufPtr)             ; hl = buffer*
+    ld (vBufPtr),de             ; update buffer* with buffer*'
+    jp (ix)
+
+; hl = value
+; de' = buffer*
+; a, bc, de, hl destroyed
+dotDec0:    
+    bit 7,h
+    jr z,dotDec1
+    exx
+    ld a,'-'
+    ld (de),a
+    inc de
+    exx
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+dotDec1:        
+    ld c,0                      ; leading zeros flag = false
+    ld de,-10000
+    call dotDec2
+    ld de,-1000
+    call dotDec2
+    ld de,-100
+    call dotDec2
+    ld e,-10
+    call dotDec2
+    inc c                       ; flag = true for at least digit
+    ld e,-1
+    call dotDec2
+    ret
+dotDec2:	     
+    ld b,'0'-1
+dotDec3:	    
+    inc b
+    add hl,de
+    jr c,dotDec3
+    sbc hl,de
+    ld a,'0'
+    cp b
+    jr nz,dotDec4
+    xor a
+    or c
+    ret z
+    jr dotDec5
+dotDec4:	    
+    inc c
+dotDec5:	    
+    ld a,b
+    exx
+    ld (de),a
+    inc e
+    call z,flushBuffer
+    exx
+    ret
+
+; buffer hex                    37
+; value --                      
+dotHex:                      
+    pop hl                      ; hl = value
+    ld de,(vBufPtr)
+    ld a,"$"                    ; # prefix
+    ld (de),a
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+    ld a,h
+    call dotHex1
+    ld a,l
+    call dotHex1
+    ld a," "                    ; append space to buffer
+    ld (de),a
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+    ld (vBufPtr),de
+    jp (ix)
+
+dotHex1:		     
+    push af
+	rra 
+	rra 
+	rra 
+	rra 
+    call dotHex2
+    pop af
+dotHex2:		
+    and	0x0F
+	add	a,0x90
+	daa
+	adc	a,0x40
+	daa
+	ld (de),a
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+	ret
+
+; /bs buffered string             
+; string* --
+dotString_:
+    pop hl                      ; hl = string*
+    ld de,(vBufPtr)             ; de = buffer*
+    jr dotString1
+dotString0:
+    ld (de),a                   ; a -> buffer*
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+    inc hl
+dotString1:
+    ld a,(hl)                   ; a <- string*
+    or a                        ; if NUL exit loop
+    jr nz,dotString0
+    ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
+    ld (vBufPtr),de             ; save buffer*' in pointer
+    jp (ix)
+
+; .c print char             
+; char -- 
+dotChar_:
+    ld hl,1
+    jr dotXChars0
+
+; .x print x chars             
+; char length --
+dotXChars_:
+    pop hl                      ; hl = length
+dotXChars0:
+    pop de                      ; a' = char
+    ld a,e
+    ex af,af'
+    ld de,(vBufPtr)             ; de = buffer*
+    jr dotXChars2
+dotXChars1:
+    ex af,af'
+    ld (de),a
+    ex af,af'
+    inc e                       ; buffer*++, wraparound
+    call z,flushBuffer
+    dec hl
+dotXChars2:
+    ld a,l
+    or h
+    jr nz,dotXChars1
+    ld (vBufPtr),de             ; save buffer*'
+    jp (ix)
+
+;********************** PAGE 3a END *********************************************
+
+.align $100
+;********************** PAGE 4 BEGIN *********************************************
 
 slash:
 command:
@@ -432,19 +1115,223 @@ command:
     db lsb(command_nop_)
     db lsb(div_)
 
-command_a_:
+
+
+
+
+
+
+; 2
+command_m_:
+    jp command_m
+
+
+
+
+
+
+
+; 4
+command_p_:
     call jumpTable
-    db "b"                      ; /ab absolute
-    db lsb(absolute_)
-    db "d"                      ; /ad address of
-    db lsb(addrOf_)
-    db "i"                      ; /ad address of
-    db lsb(arrayIter_)
-    db "s"                      ; /as array size
-    db lsb(arraySize_)
     db NUL
     jp error1_
 
+
+
+
+
+; 6
+command_q_:
+    call jumpTable
+    db "t"                      ; /qt quit
+    db lsb(quit_)
+    db NUL
+    jp error1_
+
+
+
+; 2
+command_r_:
+    jp command_r
+
+
+
+
+
+
+
+; 2
+command_s_:
+    jp command_s
+
+
+
+
+
+
+
+; 2
+command_v_:
+    jp command_v
+
+
+
+
+
+
+
+; 2
+command_nop_:
+    jp (ix)
+    
+
+
+
+
+
+
+; 5
+decimal_:
+    ld hl,10
+decimal1:
+    ld (vNumBase),hl
+    jp (ix)
+
+
+
+
+; 3
+div_:
+    db NUL
+    jp div
+
+
+
+
+
+
+; 3
+error1_:
+    ld hl,1                     ; error 1: unknown command
+    jp error
+
+
+
+
+
+
+; 3
+hexadecimal_:
+    ld hl,16
+    jp decimal1
+
+
+
+
+
+
+; 2
+key_:
+    jp key
+
+
+
+
+
+
+
+; 2
+output_:
+    jp output
+    
+
+
+
+
+
+
+; 2
+true_:    
+    jp true1
+
+
+
+
+
+
+
+; 2
+words_:
+    jp words
+
+
+
+
+
+
+
+; 2
+addrOf_:
+    jp addrOf
+
+
+
+
+
+
+
+; 2
+arrayIter_:
+    jp arrayIter
+
+
+
+
+
+
+
+; 3
+; /by
+coldStart_:
+    jp coldStart
+
+
+
+
+
+
+; 4
+; /w
+words:
+    ld hl,2
+    jp bytes1
+
+
+
+
+
+; 6
+; /b
+bytes_:
+    ld hl,1
+bytes1:
+    ld (vDataWidth),hl
+    jp (ix)
+
+
+
+; 6
+command_i_:
+    call jumpTable
+    db "n"                      ; /in input
+    db lsb(input_)
+    db NUL
+    jp error1_
+
+
+
+; 8
 command_b_:
     call jumpTable
     db "r"                      ; /br break
@@ -454,72 +1341,77 @@ command_b_:
     db NUL
     jp bytes_                   ; /b bytes
 
-command_i_:
-    call jumpTable
-    db "n"                      ; /in input
-    db lsb(input_)
-    db NUL
-    jp error1_
+; 8
+; //
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
 
-command_m_:
-    jp command_m
-
-command_p_:
-    call jumpTable
-    db "c"                      ; /pc print chars
-    db lsb(printChars_)
-    db NUL
-    jp error1_
-
-command_q_:
-    call jumpTable
-    db "t"                      ; /qt quit
-    db lsb(quit_)
-    db NUL
-    jp error1_
-
-command_r_:
-    jp command_r
-
-command_s_:
-    jp command_s
-
-command_v_:
-    jp command_v
-
-command_nop_:
+; 10
+; /qt
+; bool -- 
+quit_:
+    pop hl                      ; hl = condition, exit if true
+    ld a,l
+    or h
+    jr nz,quit1
     jp (ix)
-    
-decimal_:
-    ld hl,10
-decimal1:
-    ld (vNumBase),hl
+quit1:    
+    jp blockEnd
+
+
+
+
+
+
+
+
+
+; 11
+; Z80 port input
+; port -- value 
+input_:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    in l,(c)
+    ld h,0
+    ld c,e                      ; restore IP
+    push hl
+    jp (ix)    
+
+
+
+
+
+
+
+
+; 10
+; /as size of an array, num elements, ignores vDataWidth :-/ 
+; array* -- num     
+arraySize_:
+    pop hl
+    dec hl                      ; msb size 
+    ld d,(hl)
+    dec hl                      ; lsb size 
+    ld e,(hl)
+    push de
     jp (ix)
 
-div_:
-    db NUL
-    jp div
 
-error1_:
-    ld hl,1                     ; error 1: unknown command
-    jp error
 
-hexadecimal_:
-    ld hl,16
-    jp decimal1
 
-key_:
-    jp key_
 
-output_:
-    jp output
-    
-true_:    
-    jp true1
 
-words_:
-    jp words
 
+
+
+; 12
 xor_:
     pop de                      ; Bitwise xor the top 2 elements of the stack
 xor1:
@@ -533,6 +1425,54 @@ xor1:
     push hl        
     jp (ix)    
 
+
+
+
+
+
+
+; 12
+command_a_:
+    call jumpTable
+    db "b"                      ; /ab absolute
+    db lsb(absolute_)
+    db "d"                      ; /ad address of
+    db lsb(addrOf_)
+    db "i"                      ; /ad address of
+    db lsb(arrayIter_)
+    db "s"                      ; /as array size
+    db lsb(arraySize_)
+    db NUL
+    jp error1_
+
+
+
+
+
+
+
+; 13
+; /br break from loop             
+; --
+break_:
+break:
+    pop hl                      ; hl = condition, break if false
+    ld a,l
+    or h
+    jr z,break1
+    jp (ix)
+break1:    
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    inc hl
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+    jp blockEnd
+
+; 14
 ; /ab absolute
 ; num -- num
 absolute_:
@@ -548,90 +1488,33 @@ absolute_:
     push hl
     jp (ix)
 
-addrOf_:
-    jp addrOf
-
-arrayIter_:
-    jp arrayIter
-
-; /as size of an array, num elements, ignores vDataWidth :-/ 
-; array* -- num     
-arraySize_:
-    pop hl
-    dec hl                      ; msb size 
-    ld d,(hl)
-    dec hl                      ; lsb size 
-    ld e,(hl)
-    push de
-    jp (ix)
-
-break_:
-    jp break
-
-; /by
-coldStart_:
-    jp coldStart
-
-; /b
-bytes_:
-    ld hl,1
-bytes1:
-    ld (vDataWidth),hl
-    jp (ix)
-
-; Z80 port input
-; port -- value 
-input_:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    in l,(c)
-    ld h,0
-    ld c,e                      ; restore IP
-    push hl
-    jp (ix)    
-
-
-; /pc printChars
-; char* len --
-printChars_:
-    pop hl                              ; hl = count
-    pop de                              ; de = char*
-    call printChars2
-    jp (ix)
-
-; /qt
-; bool -- 
-quit_:
-    pop hl                      ; hl = condition, exit if true
-    ld a,l
-    or h
-    jr nz,quit1
-    jp (ix)
-quit1:    
-    jp blockEnd
-
-; /w
-words:
-    ld hl,2
-    jp bytes1
-
+; 2
 command_f_:
     jr command_f
 
-; //
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
-
-;********************** PAGE 3 END *********************************************
+;********************** PAGE 4 END *********************************************
 
 .align $100
-;********************** PAGE 4 BEGIN *********************************************
+;********************** PAGE 5 BEGIN *********************************************
+
+; /k                              6
+key:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
+    jp (ix)
+
+; /o Z80 port output               9
+; value port --
+output:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    pop hl
+    out (c),l
+    ld c,e                      ; restore IP
+    jp (ix)    
 
 command_f:
     call jumpTable
@@ -653,8 +1536,6 @@ command_f:
     db lsb(f3_)
     db "4"                      
     db lsb(f4_)
-    db "z"                      
-    db lsb(fz_)
     db NUL
     jp false_
 
@@ -687,9 +1568,6 @@ f3_:
 
 f4_:
     jp f4
-
-fz_:
-    jp fz
 
 false_:
     jp false1
@@ -789,77 +1667,7 @@ constant:
     jp (ix)
 
 
-dot:
-    call jumpTable
-    db "a"                      ; .a print array
-    db lsb(dotArray)
-    db "c"                      ; .c print char
-    db lsb(dotChar_)
-    db "s"                      ; .s print string
-    db lsb(dotString_)
-    db "x"                      ; .x print x chars
-    db lsb(dotXChars_)
-    db NUL                      ; .  print number
-    jp dotNumber_
-
-; /bd buffer decimal
-; value --                      
-dotNumber_:        
-    ld a,(vNumBase)
-    cp 16
-    jp z,bufferHex              ; else falls through
-    jp bufferDec
-
-; /bs buffered string             
-; string* --
-dotString_:
-    pop hl                      ; hl = string*
-    ld de,(vBufPtr)             ; de = buffer*
-    jr dotString1
-dotString0:
-    ld (de),a                   ; a -> buffer*
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-    inc hl
-dotString1:
-    ld a,(hl)                   ; a <- string*
-    or a                        ; if NUL exit loop
-    jr nz,dotString0
-    ld hl,(vBufPtr)             ; de = buffer*' hl = buffer*
-    ld (vBufPtr),de             ; save buffer*' in pointer
-    jp (ix)
-
-; /bc buffer char             
-; char -- 
-dotChar_:
-    ld hl,1
-    jr dotXChars0
-
-; /bx buffered x chars             
-; char length --
-dotXChars_:
-    pop hl                      ; hl = length
-dotXChars0:
-    pop de                      ; a' = char
-    ld a,e
-    ex af,af'
-    ld de,(vBufPtr)             ; de = buffer*
-    jr dotXChars2
-dotXChars1:
-    ex af,af'
-    ld (de),a
-    ex af,af'
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-    dec hl
-dotXChars2:
-    ld a,l
-    or h
-    jr nz,dotXChars1
-    ld (vBufPtr),de             ; save buffer*'
-    jp (ix)
-
-;********************** PAGE 4 END *********************************************
+;********************** PAGE 5 END *********************************************
 
 ;*******************************************************************
 ; Monty implementations
@@ -1016,7 +1824,6 @@ db 0
 ;*******************************************************************
 
 underscore:
-tilde:
 comma:
     jp (ix)
 
@@ -1024,58 +1831,7 @@ comma:
 ; implementations
 ;*******************************************************************
 
-; _ func
-; -- func*
-colon:
-    inc bc                      ; arg_list must ve immediately followed by {
-    ld a,(bc)
-    cp "="                      ; := definition
-    jr z,defineStart
-    dec bc
-    ld hl,1
-    jp error
-
-backslash:
-lambda:
-    push ix
-    call parseArgs
-lambda1:
-    inc bc                      ; arg_list must ve immediately followed by {
-    ld a,(bc)
-    cp " "+1                    ; skip white space
-    jr c,lambda1
-    cp "{"
-    jr z,lambda2
-    ld hl,2                     ; error 2: parse error
-    jp error
-lambda2:
-    call parseBlock
-    call createFunc
-    pop hl
-    pop ix
-    push hl
-    jp (ix)
-
-defineStart:
-    pop hl                      ; discard variable value
-    ld hl,(vPointer)            ; vDefine = vPointer
-    ld (vDefine),hl
-    jp (ix)
-
-semicolon:
-defineEnd:    
-    ld hl,(vDefine)             ; hl = define*    
-    ld a,l
-    or h
-    jr z,defineEnd1
-    ld de,NUL                   ; set vDefine=NUL
-    ld (vDefine),de
-    pop de                      ; de = value
-    jp assign1
-defineEnd1:
-    jp (ix)
-  
-; /ad addrOf
+; /ad addrOf                    24
 ; char -- addr
 addrOf:
     pop hl                      ; a = char
@@ -1101,66 +1857,27 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
-; %a .. %z
-; -- value
-; returns value of arg
-percent:
-arg:
-    ld e,(iy+4)                 ; hl = arg_list* 
-    ld d,(iy+5)
-    ex de,hl                    
-    ld a,l                      ; arg_list* == null, skip
-    or h
-    jr z,arg0a
-    inc hl                      ; a = num_args, hl = arg_list*
-    ld a,(hl)                    
-    inc hl
-    or a
-    jr z,arg0a                  ; num_args == 0, skip 
-    ld e,a                      ; e = a = num_args
-    inc bc                      ; a = next char = dollar_name
-    ld a,(bc)
-    push bc                     ; save IP                         
-    ld b,e                      ; b = e = num_args
-    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
-    ld d,(iy+3)
-arg0:
-    dec de                      ; a = dollar_name, de = next arg*
-    dec de
-    cp (hl)
-    jr z,arg1
-    inc hl                      ; hl = next arg_list*            
-    djnz arg0
-    pop bc                      ; no match, restore IP
-arg0a:
-    ld de,0                     ; return 0
-    jr arg1a
-arg1:
-    pop bc                      ; restore IP
-    ex de,hl                    ; hl = arg*
-    ld (vPointer),hl            ; store arg* in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)                   ; de = arg
-arg1a:
-    push de                     ; push arg
-    jp (ix)
 
-lbrack:
-arrayStart:
-    ld de,0                     ; create stack frame
-    push de                     ; push null for IP
-    ld e,(iy+4)                 ; push arg_list* from parent stack frame
-    ld d,(iy+5)                 ; 
-    push de                     ; 
-    ld e,(iy+2)                 ; push first_arg* from parent stack frame
-    ld d,(iy+3)                 ; 
-    push de                     ; 
-    push iy                     ; push BP  
-    ld iy,0                     ; BP = SP
-    add iy,sp
-    jp (ix)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;                               51
 rbrack:
 arrayEnd:
     ld d,iyh                    ; de = BP
@@ -1214,53 +1931,13 @@ arrayEnd3:
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
-; index of an array, based on vDataWidth 
-; array* num -- value    ; also sets vPointer to address 
-hash:
-arrayIndex:
-    pop hl                              ; hl = index  
-    pop de                              ; de = array
-    ld a,(vDataWidth)                   ; a = data width
-    dec a
-    jr z,arrayIndex1
-arrayIndex0:
-    add hl,hl                           ; if data width = 2 then double 
-arrayIndex1:
-    add hl,de                           ; add addr
-    ld (vPointer),hl                    ; store address in setter    
-    ld d,0
-    ld e,(hl)
-    or a                                ; check data width again                                
-    jr z,arrayIndex2
-    inc hl
-    ld d,(hl)
-arrayIndex2:
-    push de
-    jp (ix)
 
-; value _oldValue --            ; uses address in vPointer
-assign:
-    pop hl                      ; discard last accessed value
-    pop hl                      ; hl = new value
-assign0:
-    ex de,hl                    ; de = new value
-    ld hl,(vPointer)     
-assign1:                        ; entry point from defineEnd
-    ld (hl),e           
-    ld a,(vDataWidth)                   
-    dec a                       ; is it byte?
-    jr z,assign2
-    inc hl    
-    ld (hl),d
-assign2:	  
-    jp (ix)  
 
-; { block start
-; -- block*
-lbrace:
-    call parseBlock
-    jp (ix)
-    
+
+
+
+
+;                               58
 rbrace:
 blockEnd:
     ld e,(iy+0)                 ; vTemp1 = oldBP               
@@ -1320,198 +1997,15 @@ blockEnd4:
     ld (vRecur),hl
     jp go1                      ; execute de
     
-; /br break from loop             
-; --
-break:
-    pop hl                      ; hl = condition, break if false
-    ld a,l
-    or h
-    jr z,break1
-    jp (ix)
-break1:    
-    ld e,iyl                    ; get block* just under stack frame
-    ld d,iyh
-    ld hl,8
-    add hl,de
-    inc hl
-    inc hl
-    ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ld (iy+3),h                 ; first_arg* = address of block*
-    jp blockEnd
-
-tick:
-char:
-    ld hl,0                     ; if '' is empty or null
-char1:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp "'"                      ; ' is the terminator
-    jr z,char3
-    cp $5c                      ; \ is the escape
-    jr nz,char2
-    inc bc
-    ld a,(bc)
-char2:
-    ld l,a
-    jr char1
-char3:
-    push hl
-    jp (ix)  
-
-div:
-    pop de
-    pop hl
-    push bc                     ; preserve the IP    
-    ld bc,hl                
-    call divide
-    ex de,hl
-    ld (vRemain),de
-    pop bc
-    jp add3
-
-; /bd buffer decimal
-; value --                      
-bufferDec:        
-    ld de,(vBufPtr)             ; de'= buffer* bc' = IP
-    exx                          
-    pop hl                      ; hl = value
-    call bufferDec0
-    exx                         ; de = buffer*' bc = IP
-    ld a," "                    ; append space to buffer
-    ld (de),a
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-    ld hl,(vBufPtr)             ; hl = buffer*
-    ld (vBufPtr),de             ; update buffer* with buffer*'
-    jp (ix)
-
-; hl = value
-; de' = buffer*
-; a, bc, de, hl destroyed
-bufferDec0:    
-    bit 7,h
-    jr z,bufferDec1
-    exx
-    ld a,'-'
-    ld (de),a
-    inc de
-    exx
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-bufferDec1:        
-    ld c,0                      ; leading zeros flag = false
-    ld de,-10000
-    call bufferDec2
-    ld de,-1000
-    call bufferDec2
-    ld de,-100
-    call bufferDec2
-    ld e,-10
-    call bufferDec2
-    inc c                       ; flag = true for at least digit
-    ld e,-1
-    call bufferDec2
-    ret
-bufferDec2:	     
-    ld b,'0'-1
-bufferDec3:	    
-    inc b
-    add hl,de
-    jr c,bufferDec3
-    sbc hl,de
-    ld a,'0'
-    cp b
-    jr nz,bufferDec4
-    xor a
-    or c
-    ret z
-    jr bufferDec5
-bufferDec4:	    
-    inc c
-bufferDec5:	    
-    ld a,b
-    exx
-    ld (de),a
-    inc e
-    call z,flushBuffer
-    exx
-    ret
-
-; /bh buffer hex
-; value --                      
-bufferHex:                      
-    pop hl                      ; hl = value
-    ld de,(vBufPtr)
-    ld a,"$"                    ; # prefix
-    ld (de),a
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-    ld a,h
-    call bufferHex1
-    ld a,l
-    call bufferHex1
-    ld a," "                    ; append space to buffer
-    ld (de),a
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-    ld (vBufPtr),de
-    jp (ix)
-
-bufferHex1:		     
-    push af
-	rra 
-	rra 
-	rra 
-	rra 
-    call bufferHex2
-    pop af
-bufferHex2:		
-    and	0x0F
-	add	a,0x90
-	daa
-	adc	a,0x40
-	daa
-	ld (de),a
-    inc e                       ; buffer*++, wraparound
-    call z,flushBuffer
-	ret
-
-; division subroutine.
-; bc: divisor, de: dividend, hl: remainder
-
-divide:        
-    ld hl,0    	                ; zero the remainder
-    ld a,16    	                ; loop counter
-divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
-    sla c
-    rl b
-    adc hl,hl
-    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
-    jr c,divide2
-    inc c
-    jr divide3
-divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
-    add hl,de
-divide3:
-    dec a
-    jr nz,divide1
-    ld de,bc                    ; result from bc to de
-    ret
 
 
-fz:
-    ld hl,STACK
-    sbc hl,sp
-    srl h
-    rr l
-    push hl
-    jp dotNumber_
 
-; execute a block of code which ends with }
+
+
+
+
+
+; execute a block of code which ends with } 116
 ; creates a root scope if BP == stack
 ; else uses outer scope 
 caret:
@@ -1529,7 +2023,6 @@ go2:
     cp "("
     jp nz,goFunc
     push de                     ; push de just before stack frame
-
 goBlock:
     ld (vTemp1),de              ; save de
     ld hl,stack                 ; de = BP, hl = stack, (sp) = code*
@@ -1630,238 +2123,7 @@ goFunc8:
     add hl,sp
     jr goBlock2
 
-dollar:
-hexnum:        
-	ld hl,0	    		        ; Clear hl to accept the number
-hexnum1:
-    inc bc
-    ld a,(bc)		            ; Get the character which is a numeral
-    bit 6,a                     ; is it uppercase alpha?
-    jr z, hexnum2               ; no a decimal
-    sub 7                       ; sub 7  to make $a - $F
-hexnum2:
-    sub $30                     ; form decimal digit
-    jp c,num2
-    cp $0F+1
-    jp nc,num2
-    add hl,hl                   ; 2X ; Multiply digit(s) in hl by 16
-    add hl,hl                   ; 4X
-    add hl,hl                   ; 8X
-    add hl,hl                   ; 16X     
-    add a,l                     ; add into bottom of hl
-    ld  l,a        
-    jr  hexnum1
 
-upcase:
-    ld a,(bc)                   ; a = identifier char
-    sub 'A'                     ; 'A' = 0
-    jr ident1
-lowcase:
-    ld a,(bc)
-    sub 'a' 
-    add a,26
-ident1:
-    add a,a                     ; l = a * 2                             
-    ld l,a
-    ld h,msb(vars)     
-    ld (vPointer),hl            ; store address in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    push de
-    jp (ix)
-
-; if
-; condition then -- value
-question:
-if:
-    inc bc
-    ld a,(bc)
-    cp "?"
-    jr z,ifte
-    dec bc
-    ld de,NUL                   ; NUL pointer for else
-    jr ifte1
-; ifte
-; condition then else -- value
-ifte: 
-    pop de                      ; de = else
-ifte1:
-    pop hl                      ; hl = then
-    ex (sp),hl                  ; hl = condition, (sp) = then
-    ld a,h
-    or l
-    pop hl                      ; hl = then
-    jp z,go1                    ; if z de = else                   
-    ex de,hl                    ; condition = false, de = then  
-    jp go1
-
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
-
-; Z80 port output
-; value port --
-output:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    pop hl
-    out (c),l
-    ld c,e                      ; restore IP
-    jp (ix)    
-
-star:
-mul:        
-    pop  de                     ; get first value
-    pop  hl
-mul2:
-    push bc                     ; Preserve the IP
-    ld bc,hl                    ; bc = 2nd value
-    ld hl,0
-    ld a,16
-mul3:
-    add hl,hl
-    rl e
-    rl d
-    jr nc,$+6
-    add hl,bc
-    jr nc,$+3
-    inc de
-    dec a
-    jr nz,mul3
-	pop bc			            ; Restore the IP
-    jp add3
-
-num:
-	ld hl,$0000				    ; Clear hl to accept the number
-	ld a,(bc)				    ; Get numeral or -
-    cp '-'
-    jr nz,num0
-    inc bc                      ; move to next char, no flags affected
-num0:
-    ex af,af'                   ; save zero flag = 0 for later
-num1:
-    ld a,(bc)                   ; read digit    
-    sub "0"                     ; less than 0?
-    jr c, num2                  ; not a digit, exit loop 
-    cp 10                       ; greater that 9?
-    jr nc, num2                 ; not a digit, exit loop
-    inc bc                      ; inc IP
-    ld de,hl                    ; multiply hl * 10
-    add hl,hl    
-    add hl,hl    
-    add hl,de    
-    add hl,hl    
-    add a,l                     ; add digit in a to hl
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    jr num1 
-num2:
-    dec bc
-    ex af,af'                   ; restore zero flag
-    jr nz, num3
-    ex de,hl                    ; negate the value of hl
-    ld hl,0
-    or a                        ; jump to sub2
-    sbc hl,de    
-num3:
-    push hl                     ; Put the number on the stack
-    jp (ix)                     ; and process the next character
-
-rparen:
-    ld c,(iy+8)                 ; IP = block* just under stack frame
-    ld b,(iy+9)
-    jp (ix)
-
-; shiftLeft  
-; value count -- value2          shift left count places
-shiftLeft:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftLeft2
-shiftLeft1:   
-    add hl,hl                   ; left shift hl
-shiftLeft2:   
-    djnz shiftLeft1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-; shiftRight  
-; value count -- value2          shift left count places
-shiftRight:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
-    inc b                       ; test for counter=0 case
-    jr shiftRight2
-shiftRight1:   
-    srl h                       ; right shift hl
-    rr l
-shiftRight2:   
-    djnz shiftRight1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
-
-; string
-; -- ptr                        ; points to start of string chars, 
-                                ; length is stored at start - 2 bytes 
-dquote:
-string:     
-    ld hl,(vHeapPtr)            ; hl = heap*
-    inc hl                      ; skip length field to start
-    inc hl
-    push hl                     ; save start of string 
-    inc bc                      ; point to next char
-    jr string2
-string1:
-    ld (hl),a
-    inc hl                      ; increase count
-    inc bc                      ; point to next char
-string2:
-    ld a,(bc)
-    cp DQ                      ; " is the string terminator
-    jr z,string3
-    cp "`"                      ; ` is the string terminator used in testing
-    jr nz,string1
-string3:
-    xor a                       ; write NUL to terminate string
-    ld (hl),a                   ; hl = end of string
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap* to after end of string
-    dec hl                      ; hl = end of string without terminator
-    pop de                      ; de = start of string
-    push de                     ; return start of string    
-    or a                        ; hl = length bytes, de = start of string
-    sbc hl,de
-    ex de,hl
-    dec hl                      ; write length bytes to length field at start - 2                                      
-    ld (hl),d
-    dec hl
-    ld (hl),e
-    jp (ix)  
-
-printChars1:
-    ld a,(de)                           ; print char at char*
-    call putchar
-    inc de                              ; char*++
-    dec hl                              ; count--
-printChars2:
-    ld a,l                              ; count == 0?
-    or h
-    ret z
-    jr printChars1                      ; if not loop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2124,6 +2386,17 @@ flushBuffer:
     pop de
     pop af
     ret
+printChars1:
+    ld a,(de)                           ; print char at char*
+    call putchar
+    inc de                              ; char*++
+    dec hl                              ; count--
+printChars2:
+    ld a,l                              ; count == 0?
+    or h
+    ret z
+    jr printChars1                      ; if not loop
+
 
 commandTable:
     inc bc
@@ -2189,7 +2462,7 @@ prtstr:
 ; **************************************************************************    
 
 nesting:    
-    cp DQ                      ; quote char
+    cp DQ                       ; quote char
     jr z,nesting0
     cp "`"                      ; quote char
     jr z,nesting0

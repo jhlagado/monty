@@ -10,22 +10,6 @@
 .include "MAIN.asm"
 
 FUNC f1, 1, "sL"                            
-db "{"
-db    "[0 /t] %L="                  ; init mutable L [index active]                           
-db    "\\kt{"                            
-db      "0%t!=/qt"                  ; break if type != 0 
-db      "\\dt:ic{"                  ; return talkback to receive data
-db        "%L1#!/qt"                ; if not active don't send
-db        "%L0# %i="                ; store current index in A 
-db        "%L0# ++"                 ; inc value of index by step
-db        "/b %s%i# /w %c="         ; read byte at i, store in c as word
-db        "1%t!=/qt"                ; break if type != 0
-db        "%c 0 !="                 ; ifte: c != NUL ?
-db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
-db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
-db      "} 0 %k^"                   ; init sink
-db    "}" 
-db "}" 
 db 0
 
 FUNC f2, 0, ""                  
@@ -47,7 +31,8 @@ testsStart:
     ; test "$1000 0 10 1 /rg \\a{%i 3<}/ft \\a{%i.} /fe", $1000
     ; test "$1000 0 10 1 /rg  0 \\da{%d%i+}/fd \\a{%i 24<}/ft \\a{%i.} /fe", $1000
     ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
-    test "$1000 `hello there!` /si \\a{%a.c} /fe", $1000
+    test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
+
     call printStr
     .cstr "Done!"
     HALT
@@ -63,9 +48,8 @@ testsStart:
     test "10", 10
     test "123", 123
     test "-1",-1
-    test "''", 0
-    test "'a'", $61
-    test "'\\''", $27
+    test "~a", $61
+    test "~~", $7e
     test "$10", $10
     test "$FF", $FF
     test "-1 2 +",1
@@ -140,7 +124,7 @@ testsStart:
     test "[10 20 30] 1#", 20
     test "[10 20 30 40] /as", 4
     test "/b [1 2 3] 1#", 2
-    test "/b ['A' 'B' 'C'] 1#", 66
+    test "/b [~A ~B ~C] 1#", 66
     test "[{10}{20}{30}] 0#^ ", 10
     test "10 20 \\ab{[{%a}{%b}] 0#^}^", 10
     test "0 10 20 \\iab{[{%a}{%b}] %i#^}^", 10
@@ -151,14 +135,14 @@ testsStart:
     test "3 \\a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
     test "/t \\f{1 %f/br 2 +}^",3
     test "/f \\f{1 %f/br 2 +}^",1
-    test "'A' 1 - /ad", NUL
-    test "'Z' 1 + /ad", NUL
-    test "'a' 1 - /ad", NUL
-    test "'z' 1 + /ad", NUL
-    test "'z' /ad", VARS + (("z"-"a")+("Z"-"A")+1)*2
-    test "'a' /ad", VARS + ("Z"-"A"+1)*2
-    test "'Z' /ad", VARS + ("Z"-"A")*2
-    test "'A' /ad", VARS
+    test "~A 1 - /ad", NUL
+    test "~Z 1 + /ad", NUL
+    test "~a 1 - /ad", NUL
+    test "~z 1 + /ad", NUL
+    test "~z /ad", VARS + (("z"-"a")+("Z"-"A")+1)*2
+    test "~a /ad", VARS + ("Z"-"A"+1)*2
+    test "~Z /ad", VARS + ("Z"-"A")*2
+    test "~A /ad", VARS
     test "-1. /b/vB 0#", $2D
     test {DQ,"A",DQ,".s /b/vB 0#"}, 65
     test "123. /b/vB 1#", $32

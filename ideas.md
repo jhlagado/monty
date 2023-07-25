@@ -1,8 +1,23 @@
 # Ideas
 
-- array src
-- string src
-- iter src
+- print length should be stored in a variable
+this could be used in formatting
+
+512 7.#
+
+....512
+    
+where spaces are shown here as dots     
+or 
+
+7 /pd 512 .
+
+....512
+
+sets the padding for numeric printing
+only needed for decimals
+
+0 /pd is padding off
 
 - /ss string size
 - loops need to clean up better
@@ -34,6 +49,9 @@ where
 %a is array ... based on current data width
 
 ---- done July
+- array src
+- string src
+- iter src
 
 - filter, scan
 - eliminate ; from functions by making param block parse bodies
