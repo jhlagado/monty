@@ -1690,26 +1690,6 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ;                               51
 rbrack:
 arrayEnd:
@@ -1763,12 +1743,6 @@ arrayEnd3:
     ld (vHeapPtr),hl            ; move heap* to end of array
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
-
-
-
-
-
-
 
 ;                               58
 rbrace:
@@ -1830,14 +1804,6 @@ blockEnd4:
     ld (vRecur),hl
     jp go1                      ; execute de
     
-
-
-
-
-
-
-
-
 ; execute a block of code which ends with } 116
 ; creates a root scope if BP == stack
 ; else uses outer scope 
@@ -1955,8 +1921,6 @@ goFunc8:
     ld l,a
     add hl,sp
     jr goBlock2
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
