@@ -447,7 +447,7 @@ lt_:
     jr lt
 
 ;********************** PAGE 2 END *********************************************
-;********************** PAGE 3 BEGIN (shorter ops) *****************************
+;********************** PAGE 3,4 BEGIN (shorter ops) *****************************
 
 ;                               21
 star:
@@ -684,10 +684,6 @@ ifte1:
     ex de,hl                    ; condition = false, de = then  
     jp go1
 
-
-
-
-
 ; \                             19
 backslash:
 lambda:
@@ -870,28 +866,9 @@ arg1a:
     jp (ix)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;********************** PAGE 3 END *********************************************
+;********************** PAGE 3,4 END *********************************************
 .align $100
-;********************** PAGE 3a BEGIN *********************************************
+;********************** PAGE 5X BEGIN *********************************************
 
 ;                               67
 dot:
@@ -1074,10 +1051,10 @@ dotXChars2:
     ld (vBufPtr),de             ; save buffer*'
     jp (ix)
 
-;********************** PAGE 3a END *********************************************
+;********************** PAGE 5 END *********************************************
 
 .align $100
-;********************** PAGE 4 BEGIN *********************************************
+;********************** PAGE 6 BEGIN *********************************************
 
 slash:
 command:
@@ -1115,31 +1092,15 @@ command:
     db lsb(command_nop_)
     db lsb(div_)
 
-
-
-
-
-
-
 ; 2
 command_m_:
     jp command_m
-
-
-
-
-
-
 
 ; 4
 command_p_:
     call jumpTable
     db NUL
     jp error1_
-
-
-
-
 
 ; 6
 command_q_:
@@ -1149,48 +1110,22 @@ command_q_:
     db NUL
     jp error1_
 
-
-
 ; 2
 command_r_:
     jp command_r
-
-
-
-
-
-
 
 ; 2
 command_s_:
     jp command_s
 
-
-
-
-
-
-
 ; 2
 command_v_:
     jp command_v
-
-
-
-
-
-
 
 ; 2
 command_nop_:
     jp (ix)
     
-
-
-
-
-
-
 ; 5
 decimal_:
     ld hl,10
@@ -1198,118 +1133,55 @@ decimal1:
     ld (vNumBase),hl
     jp (ix)
 
-
-
-
 ; 3
 div_:
     db NUL
     jp div
-
-
-
-
-
 
 ; 3
 error1_:
     ld hl,1                     ; error 1: unknown command
     jp error
 
-
-
-
-
-
 ; 3
 hexadecimal_:
     ld hl,16
     jp decimal1
 
-
-
-
-
-
 ; 2
 key_:
     jp key
-
-
-
-
-
-
 
 ; 2
 output_:
     jp output
     
-
-
-
-
-
-
 ; 2
 true_:    
     jp true1
-
-
-
-
-
-
 
 ; 2
 words_:
     jp words
 
-
-
-
-
-
-
 ; 2
 addrOf_:
     jp addrOf
 
-
-
-
-
-
-
 ; 2
 arrayIter_:
     jp arrayIter
-
-
-
-
-
-
 
 ; 3
 ; /by
 coldStart_:
     jp coldStart
 
-
-
-
-
-
 ; 4
 ; /w
 words:
     ld hl,2
     jp bytes1
-
-
-
-
 
 ; 6
 ; /b
@@ -1319,8 +1191,6 @@ bytes1:
     ld (vDataWidth),hl
     jp (ix)
 
-
-
 ; 6
 command_i_:
     call jumpTable
@@ -1328,8 +1198,6 @@ command_i_:
     db lsb(input_)
     db NUL
     jp error1_
-
-
 
 ; 8
 command_b_:
@@ -1363,14 +1231,6 @@ quit_:
 quit1:    
     jp blockEnd
 
-
-
-
-
-
-
-
-
 ; 11
 ; Z80 port input
 ; port -- value 
@@ -1384,13 +1244,6 @@ input_:
     push hl
     jp (ix)    
 
-
-
-
-
-
-
-
 ; 10
 ; /as size of an array, num elements, ignores vDataWidth :-/ 
 ; array* -- num     
@@ -1402,14 +1255,6 @@ arraySize_:
     ld e,(hl)
     push de
     jp (ix)
-
-
-
-
-
-
-
-
 
 ; 12
 xor_:
@@ -1425,12 +1270,6 @@ xor1:
     push hl        
     jp (ix)    
 
-
-
-
-
-
-
 ; 12
 command_a_:
     call jumpTable
@@ -1444,12 +1283,6 @@ command_a_:
     db lsb(arraySize_)
     db NUL
     jp error1_
-
-
-
-
-
-
 
 ; 13
 ; /br break from loop             
@@ -1492,10 +1325,10 @@ absolute_:
 command_f_:
     jr command_f
 
-;********************** PAGE 4 END *********************************************
+;********************** PAGE 6 END *********************************************
 
 .align $100
-;********************** PAGE 5 BEGIN *********************************************
+;********************** PAGE 7 BEGIN *********************************************
 
 ; /k                              6
 key:
@@ -1667,7 +1500,7 @@ constant:
     jp (ix)
 
 
-;********************** PAGE 5 END *********************************************
+;********************** PAGE 7 END *********************************************
 
 ;*******************************************************************
 ; Monty implementations
