@@ -1,7 +1,57 @@
 # Ideas
 
+all print statements should have the option to print to the output 
+or to a string. It should probably be limited to a string of 255 chars
+other wise it might go rogue and wipe memory.
+
+All print routines either a print char routine or an append routine
+the routine could use a flag to terminate the caller.
+Some print routines use other print routines e.g. arrays
+instead og a Buffer, just use the first available location on heap. 
+this could create a string if desired
+
+/ps // print to string
+/pt // print to terminal
+/sb string begin
+/se string end, pushes start address, null terminates
+/sb `hello ` 1. 2. 3. /se
+
+same as "hello 123"
+
+/vB and /vb keep track of the printing on the heap. 
+If /vb - /vB > 1000 then terminate
+
+formatting of primitive might happen in BAF or PAD and get 
+copied to heap?
+If print to terminal then immediately print pad
+
+if writing to string, 
+
+set vB to vHeap + 1000
+set vb to vHeap
+
+use vB as the upper limit for vb
+
+if printing to terminal then after operation, 
+"next" prints everything from vHeap to vb and then sets vb to vHeap
+terminates if vb >= vB
+
+if printing to string, vb is incremented up to limit vB
+when /se occurs: 
+vHeap is pushed on heap
+NUL is written
+vHeap moved to vb
+vB = vHeap + 1000
+
+vB might be unneccesary because it is alway 1000 more than vHeap
+
+- string compare
+
 - print length should be stored in a variable
 this could be used in formatting
+
+
+----------------------------------------------------------------
 
 512 7.#
 

@@ -6,7 +6,6 @@
     call coldInit
     call execStr
     db %%1,0
-    call flushBuffer
     pop HL
     push HL
     ld DE,%%2
@@ -26,7 +25,6 @@
     push hl
     call run
     .cstr ". /h./d"
-    call flushBuffer
 
     call printStr
     .cstr "\r\n\r\nActual: "
@@ -35,7 +33,6 @@
     push hl
     call run
     .cstr ". /h./d `\r\n`.s"
-    call flushBuffer
     halt
 expect%%M:
     pop HL

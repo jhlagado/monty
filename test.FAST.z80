@@ -31,8 +31,10 @@ testsStart:
     ; test "$1000 0 10 1 /rg \\a{%i 3<}/ft \\a{%i.} /fe", $1000
     ; test "$1000 0 10 1 /rg  0 \\da{%d%i+}/fd \\a{%i 24<}/ft \\a{%i.} /fe", $1000
     ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
-    test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
+    ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
+    ; test "[1 2 3].a", 0
 
+    test "`xyz`", 0
     call printStr
     .cstr "Done!"
     HALT
@@ -143,9 +145,6 @@ testsStart:
     test "~a /ad", VARS + ("Z"-"A"+1)*2
     test "~Z /ad", VARS + ("Z"-"A")*2
     test "~A /ad", VARS
-    test "-1. /b/vB 0#", $2D
-    test {DQ,"A",DQ,".s /b/vB 0#"}, 65
-    test "123. /b/vB 1#", $32
     test "\\a{%a} F=1F^", 1
     test "1 \\b{\\a{%a}}^F= 3F^",3
     test "1 \\b{\\a{%a%b-}}^F= 3F^",2
@@ -243,3 +242,4 @@ testsStart:
 
 
 
+; 
