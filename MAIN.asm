@@ -862,16 +862,16 @@ dot:
     db lsb(dotChar_)
     db "s"                      ; .s print string
     db lsb(dotString_)
-    db "x"                      ; .x print x chars
-    db lsb(dotXChars_)
     db NUL                      ; .  print number
     jp dotNumber_
 
+.align 2
 dotArray_:
     jp dotArray
 
 ; /bd buffer decimal
 ; value --                      
+.align 2
 dotNumber_:        
     ld a,(vNumBase)
     cp 16
@@ -984,6 +984,7 @@ dotHex2:
 
 ; /bs buffered string             
 ; string* --
+.align 2
 dotString_:
     pop hl                      ; hl = string*
     ld de,(vStrPtr)             ; de = buffer*
@@ -1001,30 +1002,13 @@ dotString1:
 
 ; .c print char             
 ; char -- 
+.align 2
 dotChar_:
-    ld hl,1
-    jr dotXChars0
-
-; .x print x chars             
-; char length --
-dotXChars_:
-    pop hl                      ; hl = length
-dotXChars0:
-    pop de                      ; a' = char
-    ld a,e
-    ex af,af'
-    ld de,(vStrPtr)             ; de = buffer*
-    jr dotXChars2
-dotXChars1:
-    ex af,af'
-    ld (de),a
-    ex af,af'
-    inc de                      ; string*++, 
-    dec hl
-dotXChars2:
+    pop hl                      ; a = char
     ld a,l
-    or h
-    jr nz,dotXChars1
+    ld de,(vStrPtr)             ; de = buffer*
+    ld (de),a
+    inc de
     ld (vStrPtr),de             ; save buffer*'
     jp dotNext
 

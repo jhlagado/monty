@@ -988,12 +988,13 @@
 0356   21 00 00               LD   hl,0   ; is considered true
 0359   18 0A                  JR   eq1   
 035B                EQ:          
-035B   CD 10 0E               CALL   jumpTable   
-035E   3D                     DB   "="   
-035F   64                     DB   lsb(eq0_)   
-0360   00                     DB   NUL   
-0361   C3 3A 03               JP   assign   
-0364                EQ0_:        
+035B   03                     INC   bc   
+035C   0A                     LD   a,(bc)   
+035D   FE 3D                  CP   "="   
+035F   28 03                  JR   z,eq0   
+0361   0B                     DEC   bc   
+0362   18 D6                  JR   assign   
+0364                EQ0:         
 0364   E1                     POP   hl   
 0365                EQ1:         
 0365   D1                     POP   de   
@@ -1328,19 +1329,19 @@
 0500                DOT:         
 0500   CD 10 0E               CALL   jumpTable   
 0503   61                     DB   "a"   ; .a print array
-0504   0F                     DB   lsb(dotArray_)   
+0504   0E                     DB   lsb(dotArray_)   
 0505   63                     DB   "c"   ; .c print char
-0506   C0                     DB   lsb(dotChar_)   
+0506   C2                     DB   lsb(dotChar_)   
 0507   73                     DB   "s"   ; .s print string
-0508   AB                     DB   lsb(dotString_)   
-0509   78                     DB   "x"   ; .x print x chars
-050A   C5                     DB   lsb(dotXChars_)   
-050B   00                     DB   NUL   ; .  print number
-050C   C3 12 05               JP   dotNumber_   
-050F                DOTARRAY_:      
-050F   C3 9B 0A               JP   dotArray   
-0512                             ; /bd buffer decimal
-0512                             ; value --
+0508   AC                     DB   lsb(dotString_)   
+0509   00                     DB   NUL   ; .  print number
+050A   C3 12 05               JP   dotNumber_   
+050D                          ALIGN   2   
+050E                DOTARRAY_:      
+050E   C3 9B 0A               JP   dotArray   
+0511                             ; /bd buffer decimal
+0511                             ; value --
+0511                          ALIGN   2   
 0512                DOTNUMBER_:      
 0512   3A E8 23               LD   a,(vNumBase)   
 0515   FE 10                  CP   16   
@@ -1449,49 +1450,34 @@
 05AA   C9                     RET      
 05AB                             ; /bs buffered string
 05AB                             ; string* --
-05AB                DOTSTRING_:      
-05AB   E1                     POP   hl   ; hl = string*
-05AC   ED 5B EC 23            LD   de,(vStrPtr)   ; de = buffer*
-05B0   18 03                  JR   dotString1   
-05B2                DOTSTRING0:      
-05B2   12                     LD   (de),a   ; a -> buffer*
-05B3   13                     INC   de   ; string*++,
-05B4   23                     INC   hl   
-05B5                DOTSTRING1:      
-05B5   7E                     LD   a,(hl)   ; a <- string*
-05B6   B7                     OR   a   ; if NUL exit loop
-05B7   20 F9                  JR   nz,dotString0   
-05B9   ED 53 EC 23            LD   (vStrPtr),de   ; save buffer*' in pointer
-05BD   C3 E5 0A               JP   dotNext   
-05C0                             ; .c print char
-05C0                             ; char --
-05C0                DOTCHAR_:      
-05C0   21 01 00               LD   hl,1   
-05C3   18 01                  JR   dotXChars0   
-05C5                             ; .x print x chars
-05C5                             ; char length --
-05C5                DOTXCHARS_:      
-05C5   E1                     POP   hl   ; hl = length
-05C6                DOTXCHARS0:      
-05C6   D1                     POP   de   ; a' = char
-05C7   7B                     LD   a,e   
-05C8   08                     EX   af,af'   
-05C9   ED 5B EC 23            LD   de,(vStrPtr)   ; de = buffer*
-05CD   18 05                  JR   dotXChars2   
-05CF                DOTXCHARS1:      
-05CF   08                     EX   af,af'   
-05D0   12                     LD   (de),a   
-05D1   08                     EX   af,af'   
-05D2   13                     INC   de   ; string*++,
-05D3   2B                     DEC   hl   
-05D4                DOTXCHARS2:      
-05D4   7D                     LD   a,l   
-05D5   B4                     OR   h   
-05D6   20 F7                  JR   nz,dotXChars1   
-05D8   ED 53 EC 23            LD   (vStrPtr),de   ; save buffer*'
-05DC   C3 E5 0A               JP   dotNext   
-05DF                             ;********************** PAGE 5 END *********************************************
-05DF                          ALIGN   $100   
+05AB                          ALIGN   2   
+05AC                DOTSTRING_:      
+05AC   E1                     POP   hl   ; hl = string*
+05AD   ED 5B EC 23            LD   de,(vStrPtr)   ; de = buffer*
+05B1   18 03                  JR   dotString1   
+05B3                DOTSTRING0:      
+05B3   12                     LD   (de),a   ; a -> buffer*
+05B4   13                     INC   de   ; string*++,
+05B5   23                     INC   hl   
+05B6                DOTSTRING1:      
+05B6   7E                     LD   a,(hl)   ; a <- string*
+05B7   B7                     OR   a   ; if NUL exit loop
+05B8   20 F9                  JR   nz,dotString0   
+05BA   ED 53 EC 23            LD   (vStrPtr),de   ; save buffer*' in pointer
+05BE   C3 E5 0A               JP   dotNext   
+05C1                             ; .c print char
+05C1                             ; char --
+05C1                          ALIGN   2   
+05C2                DOTCHAR_:      
+05C2   E1                     POP   hl   ; a = char
+05C3   7D                     LD   a,l   
+05C4   ED 5B EC 23            LD   de,(vStrPtr)   ; de = buffer*
+05C8   12                     LD   (de),a   
+05C9   13                     INC   de   
+05CA   ED 53 EC 23            LD   (vStrPtr),de   ; save buffer*'
+05CE   C3 E5 0A               JP   dotNext   
+05D1                             ;********************** PAGE 5 END *********************************************
+05D1                          ALIGN   $100   
 0600                             ;********************** PAGE 6 BEGIN *********************************************
 0600                SLASH:       
 0600                COMMAND:      
@@ -1866,11 +1852,11 @@
 07A1                RANGESRC:      ; range source: begin, end, step, local: L
 07A1   CD 11 0C               CALL   go   
 07A4   00 00                  DW   NUL   
-07A6   B0 07                  DW   rangeSrcM_1864S1468   
+07A6   B0 07                  DW   rangeSrcM_1850S1452   
 07A8   AA 07                  DW   $+2   
 07AA   01                     DB   1   
 07AB   04 62 65 73 4C         .PSTR   "besL"   
-07B0                RANGESRCM_1864S1468:      
+07B0                RANGESRCM_1850S1452:      
 07B0   7B                     DB   "{"   
 07B1   5B 25 62 20 2F 74 5D 20 25 4C 3D DB   "[%b /t] %L="   ; init mutable L [index active]
 07BC   5C 6B 74 7B            DB   "\\kt{"   
@@ -1893,11 +1879,11 @@
 081D                ARRAYITER:      
 081D   CD 11 0C               CALL   go   
 0820   00 00                  DW   NUL   
-0822   2A 08                  DW   arrayIterM_1883S1488   
+0822   2A 08                  DW   arrayIterM_1869S1472   
 0824   26 08                  DW   $+2   
 0826   01                     DB   1   
 0827   02 61 4C               .PSTR   "aL"   
-082A                ARRAYITERM_1883S1488:      
+082A                ARRAYITERM_1869S1472:      
 082A   7B                     DB   "{"   
 082B   5B 30 20 2F 74 20 25 61 2F 61 73 5D 20 25 4C 3D DB   "[0 /t %a/as] %L="   ; init mutable L [index active size]
 083B   5C 6B 74 7B            DB   "\\kt{"   
@@ -1920,11 +1906,11 @@
 089E                STRINGITER:      
 089E   CD 11 0C               CALL   go   
 08A1   00 00                  DW   NUL   
-08A3   AB 08                  DW   stringIterM_1902S1508   
+08A3   AB 08                  DW   stringIterM_1888S1492   
 08A5   A7 08                  DW   $+2   
 08A7   01                     DB   1   
 08A8   02 73 4C               .PSTR   "sL"   
-08AB                STRINGITERM_1902S1508:      
+08AB                STRINGITERM_1888S1492:      
 08AB   7B                     DB   "{"   
 08AC   5B 30 20 2F 74 5D 20 25 4C 3D DB   "[0 /t] %L="   ; init mutable L [index active]
 08B6   5C 6B 74 7B            DB   "\\kt{"   
@@ -1948,11 +1934,11 @@
 0924                MAP:         ; map: source, function
 0924   CD 11 0C               CALL   go   
 0927   00 00                  DW   NUL   
-0929   31 09                  DW   mapM_1922S1530   
+0929   31 09                  DW   mapM_1908S1514   
 092B   2D 09                  DW   $+2   
 092D   00                     DB   0   
 092E   02 73 66               .PSTR   "sf"   
-0931                MAPM_1922S1530:      
+0931                MAPM_1908S1514:      
 0931   7B                     DB   "{"   
 0932   5C 6B 74 7B            DB   "\\kt{"   
 0936   30 25 74 21 3D 2F 71 74 DB   "0%t!=/qt"   ; break if type != 0
@@ -1970,11 +1956,11 @@
 0966                FILTER:      ; filter: source, predicate, local: T
 0966   CD 11 0C               CALL   go   
 0969   00 00                  DW   NUL   
-096B   74 09                  DW   filterM_1936S1545   
+096B   74 09                  DW   filterM_1922S1529   
 096D   6F 09                  DW   $+2   
 096F   01                     DB   1   
 0970   03 73 70 54            .PSTR   "spT"   
-0974                FILTERM_1936S1545:      
+0974                FILTERM_1922S1529:      
 0974   7B                     DB   "{"   
 0975   5B 30 5D 25 54 3D      DB   "[0]%T="   
 097B   5C 6B 74 7B            DB   "\\kt{"   ; return talkback to receive data
@@ -1997,11 +1983,11 @@
 09C4                FOLD:        ; src, init, reducer
 09C4   CD 11 0C               CALL   go   
 09C7   00 00                  DW   NUL   
-09C9   D3 09                  DW   foldM_1955S1565   
+09C9   D3 09                  DW   foldM_1941S1549   
 09CB   CD 09                  DW   $+2   
 09CD   01                     DB   1   
 09CE   04 73 69 72 41         .PSTR   "sirA"   
-09D3                FOLDM_1955S1565:      
+09D3                FOLDM_1941S1549:      
 09D3   7B                     DB   "{"   ; reducer: \\da00bbLi4u
 09D4   5B 25 69 5D 25 41 3D   DB   "[%i]%A="   
 09DB   5C 6B 74 7B            DB   "\\kt{"   ; return talkback to receive data
@@ -2019,11 +2005,11 @@
 0A16                FOREACH:      ; forEach: source, procedure, local: T
 0A16   CD 11 0C               CALL   go   
 0A19   00 00                  DW   NUL   
-0A1B   24 0A                  DW   forEachM_1969S1580   
+0A1B   24 0A                  DW   forEachM_1955S1564   
 0A1D   1F 0A                  DW   $+2   
 0A1F   01                     DB   1   
 0A20   03 73 70 54            .PSTR   "spT"   
-0A24                FOREACHM_1969S1580:      
+0A24                FOREACHM_1955S1564:      
 0A24   7B                     DB   "{"   
 0A25   5B 30 5D 25 54 3D      DB   "[0]%T="   
 0A2B   5C 64 74 7B            DB   "\\dt{"   ; return talkback to receive data ; $56AA
@@ -2041,11 +2027,11 @@
 0A62                FUNCSRC:      ; :f func or block
 0A62   CD 11 0C               CALL   go   
 0A65   00 00                  DW   NUL   
-0A67   6E 0A                  DW   funcSrcM_1983S1595   
+0A67   6E 0A                  DW   funcSrcM_1969S1579   
 0A69   6B 0A                  DW   $+2   
 0A6B   00                     DB   0   
 0A6C   01 66                  .PSTR   "f"   
-0A6E                FUNCSRCM_1983S1595:      
+0A6E                FUNCSRCM_1969S1579:      
 0A6E   7B                     DB   "{"   
 0A6F   5C 6B 74 7B            DB   "\\kt{"   ; :kt sink, type
 0A73   30 25 74 3D 3D 2F 62 72 DB   "0%t==/br"   ; break if t != 0
@@ -2059,11 +2045,11 @@
 0A9B                DOTARRAY:      
 0A9B   CD 11 0C               CALL   go   
 0A9E   00 00                  DW   NUL   
-0AA0   A9 0A                  DW   dotArrayM_1993S1606   
+0AA0   A9 0A                  DW   dotArrayM_1979S1590   
 0AA2   A4 0A                  DW   $+2   
 0AA4   02                     DB   2   
 0AA5   03 61 62 63            .PSTR   "abc"   
-0AA9                DOTARRAYM_1993S1606:      
+0AA9                DOTARRAYM_1979S1590:      
 0AA9   7B                     DB   "{"   
 0AAA   27 5B 20 27 2E 73 20 25 61 2F 61 73 25 63 3D 20 30 25 62 3D 20 28 25 61 20 25 62 20 23 2E 20 25 62 20 2B 2B 20 25 62 20 25 63 20 3C 2F 62 72 29 5E 20 27 5D 27 2E 73 DB   "'[ '.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"   
 0AE1   7D                     DB   "}"   
@@ -3259,37 +3245,36 @@ RXDATA:             0078 DEFINED AT LINE 315 IN IOSerial.asm
 RXCHAR:             0078 DEFINED AT LINE 316 IN IOSerial.asm
                     > USED AT LINE 320 IN IOSerial.asm
 GETCHAR:            0081 DEFINED AT LINE 440 IN IOSerial.asm
-                    > USED AT LINE 1299 IN MAIN.asm
-                    > USED AT LINE 2442 IN MAIN.asm
-PUTCHAR:            0085 DEFINED AT LINE 444 IN IOSerial.asm
-                    > USED AT LINE 1637 IN MAIN.asm
-                    > USED AT LINE 2280 IN MAIN.asm
+                    > USED AT LINE 1283 IN MAIN.asm
                     > USED AT LINE 2426 IN MAIN.asm
-                    > USED AT LINE 2488 IN MAIN.asm
+PUTCHAR:            0085 DEFINED AT LINE 444 IN IOSerial.asm
+                    > USED AT LINE 1621 IN MAIN.asm
+                    > USED AT LINE 2264 IN MAIN.asm
+                    > USED AT LINE 2410 IN MAIN.asm
+                    > USED AT LINE 2472 IN MAIN.asm
 RESET:              008B DEFINED AT LINE 450 IN IOSerial.asm
                     > USED AT LINE 103 IN IOSerial.asm
 TRUE:               00-1 DEFINED AT LINE 16 IN MAIN.asm
                     > USED AT LINE 561 IN MAIN.asm
-                    > USED AT LINE 1649 IN MAIN.asm
+                    > USED AT LINE 1633 IN MAIN.asm
 FALSE:              0000 DEFINED AT LINE 17 IN MAIN.asm
                     > USED AT LINE 566 IN MAIN.asm
-                    > USED AT LINE 1655 IN MAIN.asm
+                    > USED AT LINE 1639 IN MAIN.asm
 NUL:                0000 DEFINED AT LINE 18 IN MAIN.asm
                     > USED AT LINE 269 IN MAIN.asm
-                    > USED AT LINE 499 IN MAIN.asm
                     > USED AT LINE 637 IN MAIN.asm
-                    > USED AT LINE 867 IN MAIN.asm
-                    > USED AT LINE 1083 IN MAIN.asm
-                    > USED AT LINE 1092 IN MAIN.asm
-                    > USED AT LINE 1100 IN MAIN.asm
-                    > USED AT LINE 1106 IN MAIN.asm
-                    > USED AT LINE 1114 IN MAIN.asm
-                    > USED AT LINE 1197 IN MAIN.asm
-                    > USED AT LINE 1348 IN MAIN.asm
-                    > USED AT LINE 1355 IN MAIN.asm
-                    > USED AT LINE 1366 IN MAIN.asm
-                    > USED AT LINE 1379 IN MAIN.asm
-                    > USED AT LINE 1386 IN MAIN.asm
+                    > USED AT LINE 865 IN MAIN.asm
+                    > USED AT LINE 1067 IN MAIN.asm
+                    > USED AT LINE 1076 IN MAIN.asm
+                    > USED AT LINE 1084 IN MAIN.asm
+                    > USED AT LINE 1090 IN MAIN.asm
+                    > USED AT LINE 1098 IN MAIN.asm
+                    > USED AT LINE 1181 IN MAIN.asm
+                    > USED AT LINE 1332 IN MAIN.asm
+                    > USED AT LINE 1339 IN MAIN.asm
+                    > USED AT LINE 1350 IN MAIN.asm
+                    > USED AT LINE 1363 IN MAIN.asm
+                    > USED AT LINE 1370 IN MAIN.asm
                     > USED AT LINE 34
                     > USED AT LINE 34
                     > USED AT LINE 34
@@ -3299,27 +3284,27 @@ NUL:                0000 DEFINED AT LINE 18 IN MAIN.asm
                     > USED AT LINE 34
                     > USED AT LINE 34
                     > USED AT LINE 34
-                    > USED AT LINE 2445 IN MAIN.asm
-                    > USED AT LINE 2533 IN MAIN.asm
+                    > USED AT LINE 2429 IN MAIN.asm
+                    > USED AT LINE 2517 IN MAIN.asm
 DQ:                 0022 DEFINED AT LINE 19 IN MAIN.asm
-                    > USED AT LINE 2013 IN MAIN.asm
-                    > USED AT LINE 2299 IN MAIN.asm
+                    > USED AT LINE 1997 IN MAIN.asm
+                    > USED AT LINE 2283 IN MAIN.asm
 CTRL_C:             0003 DEFINED AT LINE 20 IN MAIN.asm
 CTRL_E:             0005 DEFINED AT LINE 21 IN MAIN.asm
-                    > USED AT LINE 2451 IN MAIN.asm
+                    > USED AT LINE 2435 IN MAIN.asm
 CTRL_H:             0008 DEFINED AT LINE 22 IN MAIN.asm
-                    > USED AT LINE 2453 IN MAIN.asm
+                    > USED AT LINE 2437 IN MAIN.asm
 CTRL_J:             000A DEFINED AT LINE 23 IN MAIN.asm
-                    > USED AT LINE 2455 IN MAIN.asm
+                    > USED AT LINE 2439 IN MAIN.asm
 CTRL_L:             000C DEFINED AT LINE 24 IN MAIN.asm
 CTRL_P:             0010 DEFINED AT LINE 25 IN MAIN.asm
 CTRL_S:             0013 DEFINED AT LINE 26 IN MAIN.asm
 OPCODES:            0180 DEFINED AT LINE 52 IN MAIN.asm
 ISYSVARS:           01DE DEFINED AT LINE 153 IN MAIN.asm
-                    > USED AT LINE 2380 IN MAIN.asm
+                    > USED AT LINE 2364 IN MAIN.asm
 TITLESTR:           01F0 DEFINED AT LINE 168 IN MAIN.asm
-                    > USED AT LINE 2355 IN MAIN.asm
-                    > USED AT LINE 2374 IN MAIN.asm
+                    > USED AT LINE 2339 IN MAIN.asm
+                    > USED AT LINE 2358 IN MAIN.asm
 AT_:                0204 DEFINED AT LINE 176 IN MAIN.asm
 ADDR:               0204 DEFINED AT LINE 177 IN MAIN.asm
 BACKSLASH_:         020E DEFINED AT LINE 182 IN MAIN.asm
@@ -3410,7 +3395,7 @@ SUB:                0329 DEFINED AT LINE 451 IN MAIN.asm
 SUB1:               0332 DEFINED AT LINE 458 IN MAIN.asm
                     > USED AT LINE 454 IN MAIN.asm
 ASSIGN:             033A DEFINED AT LINE 467 IN MAIN.asm
-                    > USED AT LINE 500 IN MAIN.asm
+                    > USED AT LINE 501 IN MAIN.asm
 ASSIGN0:            033C DEFINED AT LINE 470 IN MAIN.asm
                     > USED AT LINE 385 IN MAIN.asm
                     > USED AT LINE 400 IN MAIN.asm
@@ -3425,7 +3410,8 @@ NOT:                0355 DEFINED AT LINE 491 IN MAIN.asm
                     > USED AT LINE 487 IN MAIN.asm
 EQ:                 035B DEFINED AT LINE 495 IN MAIN.asm
                     > USED AT LINE 409 IN MAIN.asm
-EQ0_:               0364 DEFINED AT LINE 502 IN MAIN.asm
+EQ0:                0364 DEFINED AT LINE 502 IN MAIN.asm
+                    > USED AT LINE 499 IN MAIN.asm
 EQ1:                0365 DEFINED AT LINE 504 IN MAIN.asm
                     > USED AT LINE 494 IN MAIN.asm
 GT:                 0368 DEFINED AT LINE 508 IN MAIN.asm
@@ -3447,14 +3433,14 @@ LESSTHAN1:          0399 DEFINED AT LINE 557 IN MAIN.asm
 TRUE1:              039C DEFINED AT LINE 560 IN MAIN.asm
                     > USED AT LINE 534 IN MAIN.asm
                     > USED AT LINE 540 IN MAIN.asm
-                    > USED AT LINE 1212 IN MAIN.asm
+                    > USED AT LINE 1196 IN MAIN.asm
 NULL1:              03A2 DEFINED AT LINE 564 IN MAIN.asm
 FALSE1:             03A2 DEFINED AT LINE 565 IN MAIN.asm
                     > USED AT LINE 535 IN MAIN.asm
                     > USED AT LINE 541 IN MAIN.asm
                     > USED AT LINE 555 IN MAIN.asm
                     > USED AT LINE 558 IN MAIN.asm
-                    > USED AT LINE 1414 IN MAIN.asm
+                    > USED AT LINE 1398 IN MAIN.asm
 SHIFTLEFT:          03A8 DEFINED AT LINE 572 IN MAIN.asm
                     > USED AT LINE 520 IN MAIN.asm
 SHIFTLEFT1:         03B0 DEFINED AT LINE 579 IN MAIN.asm
@@ -3489,7 +3475,7 @@ LAMBDA1:            0406 DEFINED AT LINE 658 IN MAIN.asm
 LAMBDA2:            0416 DEFINED AT LINE 667 IN MAIN.asm
                     > USED AT LINE 664 IN MAIN.asm
 DIV:                0422 DEFINED AT LINE 676 IN MAIN.asm
-                    > USED AT LINE 1198 IN MAIN.asm
+                    > USED AT LINE 1182 IN MAIN.asm
 DIVIDE:             0433 DEFINED AT LINE 690 IN MAIN.asm
                     > USED AT LINE 681 IN MAIN.asm
 DIVIDE1:            0438 DEFINED AT LINE 693 IN MAIN.asm
@@ -3544,9 +3530,9 @@ ARG1A:              04EE DEFINED AT LINE 847 IN MAIN.asm
                     > USED AT LINE 839 IN MAIN.asm
 DOT:                0500 DEFINED AT LINE 857 IN MAIN.asm
                     > USED AT LINE 199 IN MAIN.asm
-DOTARRAY_:          050F DEFINED AT LINE 870 IN MAIN.asm
+DOTARRAY_:          050E DEFINED AT LINE 869 IN MAIN.asm
 DOTNUMBER_:         0512 DEFINED AT LINE 875 IN MAIN.asm
-                    > USED AT LINE 868 IN MAIN.asm
+                    > USED AT LINE 866 IN MAIN.asm
 DOTDEC:             051D DEFINED AT LINE 882 IN MAIN.asm
                     > USED AT LINE 879 IN MAIN.asm
 DOTDEC0:            0532 DEFINED AT LINE 897 IN MAIN.asm
@@ -3572,203 +3558,196 @@ DOTHEX1:            0597 DEFINED AT LINE 967 IN MAIN.asm
                     > USED AT LINE 960 IN MAIN.asm
 DOTHEX2:            05A0 DEFINED AT LINE 975 IN MAIN.asm
                     > USED AT LINE 973 IN MAIN.asm
-DOTSTRING_:         05AB DEFINED AT LINE 987 IN MAIN.asm
-DOTSTRING0:         05B2 DEFINED AT LINE 991 IN MAIN.asm
-                    > USED AT LINE 998 IN MAIN.asm
-DOTSTRING1:         05B5 DEFINED AT LINE 995 IN MAIN.asm
-                    > USED AT LINE 990 IN MAIN.asm
-DOTCHAR_:           05C0 DEFINED AT LINE 1004 IN MAIN.asm
-DOTXCHARS_:         05C5 DEFINED AT LINE 1010 IN MAIN.asm
-DOTXCHARS0:         05C6 DEFINED AT LINE 1012 IN MAIN.asm
-                    > USED AT LINE 1006 IN MAIN.asm
-DOTXCHARS1:         05CF DEFINED AT LINE 1018 IN MAIN.asm
-                    > USED AT LINE 1027 IN MAIN.asm
-DOTXCHARS2:         05D4 DEFINED AT LINE 1024 IN MAIN.asm
-                    > USED AT LINE 1017 IN MAIN.asm
-SLASH:              0600 DEFINED AT LINE 1036 IN MAIN.asm
+DOTSTRING_:         05AC DEFINED AT LINE 988 IN MAIN.asm
+DOTSTRING0:         05B3 DEFINED AT LINE 992 IN MAIN.asm
+                    > USED AT LINE 999 IN MAIN.asm
+DOTSTRING1:         05B6 DEFINED AT LINE 996 IN MAIN.asm
+                    > USED AT LINE 991 IN MAIN.asm
+DOTCHAR_:           05C2 DEFINED AT LINE 1006 IN MAIN.asm
+SLASH:              0600 DEFINED AT LINE 1020 IN MAIN.asm
                     > USED AT LINE 213 IN MAIN.asm
-COMMAND:            0600 DEFINED AT LINE 1037 IN MAIN.asm
-COMMAND_A_:         0626 DEFINED AT LINE 1073 IN MAIN.asm
-COMMAND_B_:         0635 DEFINED AT LINE 1086 IN MAIN.asm
-COMMAND_I_:         0640 DEFINED AT LINE 1096 IN MAIN.asm
-COMMAND_P_:         0649 DEFINED AT LINE 1104 IN MAIN.asm
-COMMAND_Q_:         0650 DEFINED AT LINE 1110 IN MAIN.asm
-ABSOLUTE_:          0659 DEFINED AT LINE 1120 IN MAIN.asm
-BREAK_:             0666 DEFINED AT LINE 1137 IN MAIN.asm
-BREAK:              0666 DEFINED AT LINE 1138 IN MAIN.asm
-BREAK1:             066D DEFINED AT LINE 1144 IN MAIN.asm
-                    > USED AT LINE 1142 IN MAIN.asm
-INPUT_:             0680 DEFINED AT LINE 1158 IN MAIN.asm
-COMMAND_M_:         068B DEFINED AT LINE 1169 IN MAIN.asm
-COMMAND_R_:         068E DEFINED AT LINE 1173 IN MAIN.asm
-COMMAND_S_:         0691 DEFINED AT LINE 1177 IN MAIN.asm
-COMMAND_V_:         0694 DEFINED AT LINE 1181 IN MAIN.asm
-COMMAND_NOP_:       0697 DEFINED AT LINE 1185 IN MAIN.asm
-DECIMAL_:           0699 DEFINED AT LINE 1189 IN MAIN.asm
-DECIMAL1:           069C DEFINED AT LINE 1191 IN MAIN.asm
-                    > USED AT LINE 1208 IN MAIN.asm
-DIV_:               06A1 DEFINED AT LINE 1196 IN MAIN.asm
-ERROR1_:            06A5 DEFINED AT LINE 1201 IN MAIN.asm
-                    > USED AT LINE 1084 IN MAIN.asm
-                    > USED AT LINE 1101 IN MAIN.asm
-                    > USED AT LINE 1107 IN MAIN.asm
-                    > USED AT LINE 1115 IN MAIN.asm
-                    > USED AT LINE 1356 IN MAIN.asm
-                    > USED AT LINE 1367 IN MAIN.asm
-                    > USED AT LINE 1380 IN MAIN.asm
-                    > USED AT LINE 1387 IN MAIN.asm
-HEXADECIMAL_:       06AB DEFINED AT LINE 1206 IN MAIN.asm
-TRUE_:              06B1 DEFINED AT LINE 1211 IN MAIN.asm
-WORDS_:             06B4 DEFINED AT LINE 1215 IN MAIN.asm
-ADDROF_:            06B7 DEFINED AT LINE 1219 IN MAIN.asm
-ARRAYITER_:         06BA DEFINED AT LINE 1223 IN MAIN.asm
-COLDSTART_:         06BD DEFINED AT LINE 1228 IN MAIN.asm
-WORDS:              06C0 DEFINED AT LINE 1233 IN MAIN.asm
-                    > USED AT LINE 1216 IN MAIN.asm
-COMMENT:            06C6 DEFINED AT LINE 1239 IN MAIN.asm
-                    > USED AT LINE 1041 IN MAIN.asm
-                    > USED AT LINE 1243 IN MAIN.asm
-BYTES_:             06CF DEFINED AT LINE 1249 IN MAIN.asm
-                    > USED AT LINE 1093 IN MAIN.asm
-BYTES1:             06D2 DEFINED AT LINE 1251 IN MAIN.asm
-                    > USED AT LINE 1235 IN MAIN.asm
-QUIT_:              06D7 DEFINED AT LINE 1258 IN MAIN.asm
-QUIT1:              06DE DEFINED AT LINE 1264 IN MAIN.asm
-                    > USED AT LINE 1262 IN MAIN.asm
-ARRAYSIZE_:         06E1 DEFINED AT LINE 1270 IN MAIN.asm
-XOR_:               06E9 DEFINED AT LINE 1280 IN MAIN.asm
-XOR1:               06EA DEFINED AT LINE 1282 IN MAIN.asm
-KEY_:               06F4 DEFINED AT LINE 1297 IN MAIN.asm
-KEY:                06F4 DEFINED AT LINE 1298 IN MAIN.asm
-OUTPUT_:            06FD DEFINED AT LINE 1307 IN MAIN.asm
-COMMAND_F_:         06FF DEFINED AT LINE 1311 IN MAIN.asm
-OUTPUT:             0701 DEFINED AT LINE 1321 IN MAIN.asm
-                    > USED AT LINE 1308 IN MAIN.asm
-COMMAND_F:          070A DEFINED AT LINE 1330 IN MAIN.asm
-                    > USED AT LINE 1312 IN MAIN.asm
-COMMAND_M:          0721 DEFINED AT LINE 1351 IN MAIN.asm
-                    > USED AT LINE 1170 IN MAIN.asm
-COMMAND_R:          072A DEFINED AT LINE 1358 IN MAIN.asm
-                    > USED AT LINE 1174 IN MAIN.asm
-COMMAND_V:          0737 DEFINED AT LINE 1369 IN MAIN.asm
-                    > USED AT LINE 1182 IN MAIN.asm
-COMMAND_S:          0746 DEFINED AT LINE 1382 IN MAIN.asm
-                    > USED AT LINE 1178 IN MAIN.asm
-FOREACH_:           074F DEFINED AT LINE 1389 IN MAIN.asm
-FILTER_:            0752 DEFINED AT LINE 1392 IN MAIN.asm
-FOLD_:              0755 DEFINED AT LINE 1395 IN MAIN.asm
-FUNCSRC_:           0758 DEFINED AT LINE 1398 IN MAIN.asm
-F1_:                075B DEFINED AT LINE 1401 IN MAIN.asm
-F2_:                075E DEFINED AT LINE 1404 IN MAIN.asm
-F3_:                0761 DEFINED AT LINE 1407 IN MAIN.asm
-F4_:                0764 DEFINED AT LINE 1410 IN MAIN.asm
-FALSE_:             0767 DEFINED AT LINE 1413 IN MAIN.asm
-                    > USED AT LINE 1349 IN MAIN.asm
-MAP_:               076A DEFINED AT LINE 1416 IN MAIN.asm
-RECUR_:             076D DEFINED AT LINE 1419 IN MAIN.asm
-REMAIN_:            0773 DEFINED AT LINE 1424 IN MAIN.asm
-STRINGITER_:        0779 DEFINED AT LINE 1429 IN MAIN.asm
-RANGESRC_:          077C DEFINED AT LINE 1432 IN MAIN.asm
-CONSTHEAPSTART_:    077F DEFINED AT LINE 1435 IN MAIN.asm
-CONSTTIBSTART_:     0784 DEFINED AT LINE 1439 IN MAIN.asm
-VARHEAPPTR_:        0789 DEFINED AT LINE 1443 IN MAIN.asm
-VARTIBPTR_:         0792 DEFINED AT LINE 1448 IN MAIN.asm
-VARIABLE:           079B DEFINED AT LINE 1453 IN MAIN.asm
+COMMAND:            0600 DEFINED AT LINE 1021 IN MAIN.asm
+COMMAND_A_:         0626 DEFINED AT LINE 1057 IN MAIN.asm
+COMMAND_B_:         0635 DEFINED AT LINE 1070 IN MAIN.asm
+COMMAND_I_:         0640 DEFINED AT LINE 1080 IN MAIN.asm
+COMMAND_P_:         0649 DEFINED AT LINE 1088 IN MAIN.asm
+COMMAND_Q_:         0650 DEFINED AT LINE 1094 IN MAIN.asm
+ABSOLUTE_:          0659 DEFINED AT LINE 1104 IN MAIN.asm
+BREAK_:             0666 DEFINED AT LINE 1121 IN MAIN.asm
+BREAK:              0666 DEFINED AT LINE 1122 IN MAIN.asm
+BREAK1:             066D DEFINED AT LINE 1128 IN MAIN.asm
+                    > USED AT LINE 1126 IN MAIN.asm
+INPUT_:             0680 DEFINED AT LINE 1142 IN MAIN.asm
+COMMAND_M_:         068B DEFINED AT LINE 1153 IN MAIN.asm
+COMMAND_R_:         068E DEFINED AT LINE 1157 IN MAIN.asm
+COMMAND_S_:         0691 DEFINED AT LINE 1161 IN MAIN.asm
+COMMAND_V_:         0694 DEFINED AT LINE 1165 IN MAIN.asm
+COMMAND_NOP_:       0697 DEFINED AT LINE 1169 IN MAIN.asm
+DECIMAL_:           0699 DEFINED AT LINE 1173 IN MAIN.asm
+DECIMAL1:           069C DEFINED AT LINE 1175 IN MAIN.asm
+                    > USED AT LINE 1192 IN MAIN.asm
+DIV_:               06A1 DEFINED AT LINE 1180 IN MAIN.asm
+ERROR1_:            06A5 DEFINED AT LINE 1185 IN MAIN.asm
+                    > USED AT LINE 1068 IN MAIN.asm
+                    > USED AT LINE 1085 IN MAIN.asm
+                    > USED AT LINE 1091 IN MAIN.asm
+                    > USED AT LINE 1099 IN MAIN.asm
+                    > USED AT LINE 1340 IN MAIN.asm
+                    > USED AT LINE 1351 IN MAIN.asm
+                    > USED AT LINE 1364 IN MAIN.asm
+                    > USED AT LINE 1371 IN MAIN.asm
+HEXADECIMAL_:       06AB DEFINED AT LINE 1190 IN MAIN.asm
+TRUE_:              06B1 DEFINED AT LINE 1195 IN MAIN.asm
+WORDS_:             06B4 DEFINED AT LINE 1199 IN MAIN.asm
+ADDROF_:            06B7 DEFINED AT LINE 1203 IN MAIN.asm
+ARRAYITER_:         06BA DEFINED AT LINE 1207 IN MAIN.asm
+COLDSTART_:         06BD DEFINED AT LINE 1212 IN MAIN.asm
+WORDS:              06C0 DEFINED AT LINE 1217 IN MAIN.asm
+                    > USED AT LINE 1200 IN MAIN.asm
+COMMENT:            06C6 DEFINED AT LINE 1223 IN MAIN.asm
+                    > USED AT LINE 1025 IN MAIN.asm
+                    > USED AT LINE 1227 IN MAIN.asm
+BYTES_:             06CF DEFINED AT LINE 1233 IN MAIN.asm
+                    > USED AT LINE 1077 IN MAIN.asm
+BYTES1:             06D2 DEFINED AT LINE 1235 IN MAIN.asm
+                    > USED AT LINE 1219 IN MAIN.asm
+QUIT_:              06D7 DEFINED AT LINE 1242 IN MAIN.asm
+QUIT1:              06DE DEFINED AT LINE 1248 IN MAIN.asm
+                    > USED AT LINE 1246 IN MAIN.asm
+ARRAYSIZE_:         06E1 DEFINED AT LINE 1254 IN MAIN.asm
+XOR_:               06E9 DEFINED AT LINE 1264 IN MAIN.asm
+XOR1:               06EA DEFINED AT LINE 1266 IN MAIN.asm
+KEY_:               06F4 DEFINED AT LINE 1281 IN MAIN.asm
+KEY:                06F4 DEFINED AT LINE 1282 IN MAIN.asm
+OUTPUT_:            06FD DEFINED AT LINE 1291 IN MAIN.asm
+COMMAND_F_:         06FF DEFINED AT LINE 1295 IN MAIN.asm
+OUTPUT:             0701 DEFINED AT LINE 1305 IN MAIN.asm
+                    > USED AT LINE 1292 IN MAIN.asm
+COMMAND_F:          070A DEFINED AT LINE 1314 IN MAIN.asm
+                    > USED AT LINE 1296 IN MAIN.asm
+COMMAND_M:          0721 DEFINED AT LINE 1335 IN MAIN.asm
+                    > USED AT LINE 1154 IN MAIN.asm
+COMMAND_R:          072A DEFINED AT LINE 1342 IN MAIN.asm
+                    > USED AT LINE 1158 IN MAIN.asm
+COMMAND_V:          0737 DEFINED AT LINE 1353 IN MAIN.asm
+                    > USED AT LINE 1166 IN MAIN.asm
+COMMAND_S:          0746 DEFINED AT LINE 1366 IN MAIN.asm
+                    > USED AT LINE 1162 IN MAIN.asm
+FOREACH_:           074F DEFINED AT LINE 1373 IN MAIN.asm
+FILTER_:            0752 DEFINED AT LINE 1376 IN MAIN.asm
+FOLD_:              0755 DEFINED AT LINE 1379 IN MAIN.asm
+FUNCSRC_:           0758 DEFINED AT LINE 1382 IN MAIN.asm
+F1_:                075B DEFINED AT LINE 1385 IN MAIN.asm
+F2_:                075E DEFINED AT LINE 1388 IN MAIN.asm
+F3_:                0761 DEFINED AT LINE 1391 IN MAIN.asm
+F4_:                0764 DEFINED AT LINE 1394 IN MAIN.asm
+FALSE_:             0767 DEFINED AT LINE 1397 IN MAIN.asm
+                    > USED AT LINE 1333 IN MAIN.asm
+MAP_:               076A DEFINED AT LINE 1400 IN MAIN.asm
+RECUR_:             076D DEFINED AT LINE 1403 IN MAIN.asm
+REMAIN_:            0773 DEFINED AT LINE 1408 IN MAIN.asm
+STRINGITER_:        0779 DEFINED AT LINE 1413 IN MAIN.asm
+RANGESRC_:          077C DEFINED AT LINE 1416 IN MAIN.asm
+CONSTHEAPSTART_:    077F DEFINED AT LINE 1419 IN MAIN.asm
+CONSTTIBSTART_:     0784 DEFINED AT LINE 1423 IN MAIN.asm
+VARHEAPPTR_:        0789 DEFINED AT LINE 1427 IN MAIN.asm
+VARTIBPTR_:         0792 DEFINED AT LINE 1432 IN MAIN.asm
+VARIABLE:           079B DEFINED AT LINE 1437 IN MAIN.asm
                     > USED AT LINE 180 IN MAIN.asm
-                    > USED AT LINE 1446 IN MAIN.asm
-                    > USED AT LINE 1451 IN MAIN.asm
-CONSTANT:           079E DEFINED AT LINE 1455 IN MAIN.asm
-                    > USED AT LINE 1437 IN MAIN.asm
-                    > USED AT LINE 1441 IN MAIN.asm
+                    > USED AT LINE 1430 IN MAIN.asm
+                    > USED AT LINE 1435 IN MAIN.asm
+CONSTANT:           079E DEFINED AT LINE 1439 IN MAIN.asm
+                    > USED AT LINE 1421 IN MAIN.asm
+                    > USED AT LINE 1425 IN MAIN.asm
 RANGESRC:           07A1 DEFINED AT LINE 32
-                    > USED AT LINE 1433 IN MAIN.asm
-RANGESRCM_1864S1468: 07B0 DEFINED AT LINE 39
+                    > USED AT LINE 1417 IN MAIN.asm
+RANGESRCM_1850S1452: 07B0 DEFINED AT LINE 39
                     > USED AT LINE 35
 ARRAYITER:          081D DEFINED AT LINE 32
-                    > USED AT LINE 1224 IN MAIN.asm
-ARRAYITERM_1883S1488: 082A DEFINED AT LINE 39
+                    > USED AT LINE 1208 IN MAIN.asm
+ARRAYITERM_1869S1472: 082A DEFINED AT LINE 39
                     > USED AT LINE 35
 STRINGITER:         089E DEFINED AT LINE 32
-                    > USED AT LINE 1430 IN MAIN.asm
-STRINGITERM_1902S1508: 08AB DEFINED AT LINE 39
+                    > USED AT LINE 1414 IN MAIN.asm
+STRINGITERM_1888S1492: 08AB DEFINED AT LINE 39
                     > USED AT LINE 35
 MAP:                0924 DEFINED AT LINE 32
-                    > USED AT LINE 1417 IN MAIN.asm
-MAPM_1922S1530:     0931 DEFINED AT LINE 39
+                    > USED AT LINE 1401 IN MAIN.asm
+MAPM_1908S1514:     0931 DEFINED AT LINE 39
                     > USED AT LINE 35
 FILTER:             0966 DEFINED AT LINE 32
-                    > USED AT LINE 1393 IN MAIN.asm
-FILTERM_1936S1545:  0974 DEFINED AT LINE 39
+                    > USED AT LINE 1377 IN MAIN.asm
+FILTERM_1922S1529:  0974 DEFINED AT LINE 39
                     > USED AT LINE 35
 FOLD:               09C4 DEFINED AT LINE 32
-                    > USED AT LINE 1396 IN MAIN.asm
-FOLDM_1955S1565:    09D3 DEFINED AT LINE 39
+                    > USED AT LINE 1380 IN MAIN.asm
+FOLDM_1941S1549:    09D3 DEFINED AT LINE 39
                     > USED AT LINE 35
 FOREACH:            0A16 DEFINED AT LINE 32
-                    > USED AT LINE 1390 IN MAIN.asm
-FOREACHM_1969S1580: 0A24 DEFINED AT LINE 39
+                    > USED AT LINE 1374 IN MAIN.asm
+FOREACHM_1955S1564: 0A24 DEFINED AT LINE 39
                     > USED AT LINE 35
 FUNCSRC:            0A62 DEFINED AT LINE 32
-                    > USED AT LINE 1399 IN MAIN.asm
-FUNCSRCM_1983S1595: 0A6E DEFINED AT LINE 39
+                    > USED AT LINE 1383 IN MAIN.asm
+FUNCSRCM_1969S1579: 0A6E DEFINED AT LINE 39
                     > USED AT LINE 35
 DOTARRAY:           0A9B DEFINED AT LINE 32
-                    > USED AT LINE 871 IN MAIN.asm
-DOTARRAYM_1993S1606: 0AA9 DEFINED AT LINE 39
+                    > USED AT LINE 870 IN MAIN.asm
+DOTARRAYM_1979S1590: 0AA9 DEFINED AT LINE 39
                     > USED AT LINE 35
-UNDERSCORE:         0AE3 DEFINED AT LINE 1616 IN MAIN.asm
+UNDERSCORE:         0AE3 DEFINED AT LINE 1600 IN MAIN.asm
                     > USED AT LINE 210 IN MAIN.asm
-COMMA:              0AE3 DEFINED AT LINE 1617 IN MAIN.asm
+COMMA:              0AE3 DEFINED AT LINE 1601 IN MAIN.asm
                     > USED AT LINE 203 IN MAIN.asm
-DOTNEXT:            0AE5 DEFINED AT LINE 1624 IN MAIN.asm
+DOTNEXT:            0AE5 DEFINED AT LINE 1608 IN MAIN.asm
                     > USED AT LINE 764 IN MAIN.asm
                     > USED AT LINE 892 IN MAIN.asm
                     > USED AT LINE 965 IN MAIN.asm
-                    > USED AT LINE 1000 IN MAIN.asm
-                    > USED AT LINE 1029 IN MAIN.asm
-DOTNEXT1:           0AED DEFINED AT LINE 1629 IN MAIN.asm
+                    > USED AT LINE 1001 IN MAIN.asm
+                    > USED AT LINE 1013 IN MAIN.asm
+DOTNEXT1:           0AED DEFINED AT LINE 1613 IN MAIN.asm
+                    > USED AT LINE 1611 IN MAIN.asm
+DOTNEXT2:           0AFA DEFINED AT LINE 1619 IN MAIN.asm
                     > USED AT LINE 1627 IN MAIN.asm
-DOTNEXT2:           0AFA DEFINED AT LINE 1635 IN MAIN.asm
-                    > USED AT LINE 1643 IN MAIN.asm
-DOTNEXT3:           0B00 DEFINED AT LINE 1640 IN MAIN.asm
-                    > USED AT LINE 1634 IN MAIN.asm
-STRINGMODEENTER:    0B0C DEFINED AT LINE 1648 IN MAIN.asm
-STRINGMODEEXIT:     0B17 DEFINED AT LINE 1654 IN MAIN.asm
-STRINGMODEEXIT1:    0B2B DEFINED AT LINE 1664 IN MAIN.asm
-                    > USED AT LINE 1652 IN MAIN.asm
-ADDROF:             0B30 DEFINED AT LINE 1670 IN MAIN.asm
-                    > USED AT LINE 1220 IN MAIN.asm
-ADDROF1:            0B44 DEFINED AT LINE 1682 IN MAIN.asm
-                    > USED AT LINE 1678 IN MAIN.asm
-ADDROF2:            0B4F DEFINED AT LINE 1691 IN MAIN.asm
-                    > USED AT LINE 1674 IN MAIN.asm
-                    > USED AT LINE 1676 IN MAIN.asm
-                    > USED AT LINE 1681 IN MAIN.asm
-RBRACK:             0B51 DEFINED AT LINE 1696 IN MAIN.asm
+DOTNEXT3:           0B00 DEFINED AT LINE 1624 IN MAIN.asm
+                    > USED AT LINE 1618 IN MAIN.asm
+STRINGMODEENTER:    0B0C DEFINED AT LINE 1632 IN MAIN.asm
+STRINGMODEEXIT:     0B17 DEFINED AT LINE 1638 IN MAIN.asm
+STRINGMODEEXIT1:    0B2B DEFINED AT LINE 1648 IN MAIN.asm
+                    > USED AT LINE 1636 IN MAIN.asm
+ADDROF:             0B30 DEFINED AT LINE 1654 IN MAIN.asm
+                    > USED AT LINE 1204 IN MAIN.asm
+ADDROF1:            0B44 DEFINED AT LINE 1666 IN MAIN.asm
+                    > USED AT LINE 1662 IN MAIN.asm
+ADDROF2:            0B4F DEFINED AT LINE 1675 IN MAIN.asm
+                    > USED AT LINE 1658 IN MAIN.asm
+                    > USED AT LINE 1660 IN MAIN.asm
+                    > USED AT LINE 1665 IN MAIN.asm
+RBRACK:             0B51 DEFINED AT LINE 1680 IN MAIN.asm
                     > USED AT LINE 191 IN MAIN.asm
-ARRAYEND:           0B51 DEFINED AT LINE 1697 IN MAIN.asm
-ARRAYEND1:          0B6D DEFINED AT LINE 1714 IN MAIN.asm
-                    > USED AT LINE 1731 IN MAIN.asm
-ARRAYEND2:          0B7D DEFINED AT LINE 1724 IN MAIN.asm
-                    > USED AT LINE 1720 IN MAIN.asm
-ARRAYEND3:          0B82 DEFINED AT LINE 1728 IN MAIN.asm
-                    > USED AT LINE 1713 IN MAIN.asm
-RBRACE:             0BA4 DEFINED AT LINE 1751 IN MAIN.asm
+ARRAYEND:           0B51 DEFINED AT LINE 1681 IN MAIN.asm
+ARRAYEND1:          0B6D DEFINED AT LINE 1698 IN MAIN.asm
+                    > USED AT LINE 1715 IN MAIN.asm
+ARRAYEND2:          0B7D DEFINED AT LINE 1708 IN MAIN.asm
+                    > USED AT LINE 1704 IN MAIN.asm
+ARRAYEND3:          0B82 DEFINED AT LINE 1712 IN MAIN.asm
+                    > USED AT LINE 1697 IN MAIN.asm
+RBRACE:             0BA4 DEFINED AT LINE 1735 IN MAIN.asm
                     > USED AT LINE 195 IN MAIN.asm
-BLOCKEND:           0BA4 DEFINED AT LINE 1752 IN MAIN.asm
-                    > USED AT LINE 1153 IN MAIN.asm
-                    > USED AT LINE 1265 IN MAIN.asm
-BLOCKEND1:          0BD6 DEFINED AT LINE 1774 IN MAIN.asm
-                    > USED AT LINE 1767 IN MAIN.asm
-BLOCKEND2:          0BE2 DEFINED AT LINE 1781 IN MAIN.asm
-                    > USED AT LINE 1773 IN MAIN.asm
-BLOCKEND3:          0BF4 DEFINED AT LINE 1795 IN MAIN.asm
+BLOCKEND:           0BA4 DEFINED AT LINE 1736 IN MAIN.asm
+                    > USED AT LINE 1137 IN MAIN.asm
+                    > USED AT LINE 1249 IN MAIN.asm
+BLOCKEND1:          0BD6 DEFINED AT LINE 1758 IN MAIN.asm
+                    > USED AT LINE 1751 IN MAIN.asm
+BLOCKEND2:          0BE2 DEFINED AT LINE 1765 IN MAIN.asm
+                    > USED AT LINE 1757 IN MAIN.asm
+BLOCKEND3:          0BF4 DEFINED AT LINE 1779 IN MAIN.asm
+                    > USED AT LINE 1771 IN MAIN.asm
+BLOCKEND4:          0C08 DEFINED AT LINE 1789 IN MAIN.asm
                     > USED AT LINE 1787 IN MAIN.asm
-BLOCKEND4:          0C08 DEFINED AT LINE 1805 IN MAIN.asm
-                    > USED AT LINE 1803 IN MAIN.asm
-CARET:              0C11 DEFINED AT LINE 1813 IN MAIN.asm
+CARET:              0C11 DEFINED AT LINE 1797 IN MAIN.asm
                     > USED AT LINE 201 IN MAIN.asm
-GO:                 0C11 DEFINED AT LINE 1814 IN MAIN.asm
+GO:                 0C11 DEFINED AT LINE 1798 IN MAIN.asm
                     > USED AT LINE 33
                     > USED AT LINE 33
                     > USED AT LINE 33
@@ -3778,226 +3757,225 @@ GO:                 0C11 DEFINED AT LINE 1814 IN MAIN.asm
                     > USED AT LINE 33
                     > USED AT LINE 33
                     > USED AT LINE 33
-GO1:                0C12 DEFINED AT LINE 1816 IN MAIN.asm
+GO1:                0C12 DEFINED AT LINE 1800 IN MAIN.asm
                     > USED AT LINE 649 IN MAIN.asm
                     > USED AT LINE 651 IN MAIN.asm
+                    > USED AT LINE 1792 IN MAIN.asm
+GO2:                0C18 DEFINED AT LINE 1805 IN MAIN.asm
+                    > USED AT LINE 1803 IN MAIN.asm
+GOBLOCK:            0C23 DEFINED AT LINE 1812 IN MAIN.asm
                     > USED AT LINE 1808 IN MAIN.asm
-GO2:                0C18 DEFINED AT LINE 1821 IN MAIN.asm
-                    > USED AT LINE 1819 IN MAIN.asm
-GOBLOCK:            0C23 DEFINED AT LINE 1828 IN MAIN.asm
-                    > USED AT LINE 1824 IN MAIN.asm
-GOBLOCK2:           0C48 DEFINED AT LINE 1845 IN MAIN.asm
-                    > USED AT LINE 1926 IN MAIN.asm
-GOBLOCK3:           0C52 DEFINED AT LINE 1851 IN MAIN.asm
-GOFUNC:             0C56 DEFINED AT LINE 1855 IN MAIN.asm
-                    > USED AT LINE 1826 IN MAIN.asm
-GOFUNC1:            0C6F DEFINED AT LINE 1874 IN MAIN.asm
-                    > USED AT LINE 1884 IN MAIN.asm
-GOFUNC2:            0C75 DEFINED AT LINE 1881 IN MAIN.asm
-                    > USED AT LINE 1873 IN MAIN.asm
-GOFUNC3:            0C80 DEFINED AT LINE 1887 IN MAIN.asm
-                    > USED AT LINE 1863 IN MAIN.asm
-GOFUNC4:            0C98 DEFINED AT LINE 1904 IN MAIN.asm
-                    > USED AT LINE 1901 IN MAIN.asm
-GOFUNC5:            0C9B DEFINED AT LINE 1907 IN MAIN.asm
-                    > USED AT LINE 1913 IN MAIN.asm
-GOFUNC6:            0C9E DEFINED AT LINE 1911 IN MAIN.asm
-                    > USED AT LINE 1906 IN MAIN.asm
-GOFUNC7:            0CA1 DEFINED AT LINE 1914 IN MAIN.asm
-GOFUNC8:            0CA5 DEFINED AT LINE 1919 IN MAIN.asm
-                    > USED AT LINE 1839 IN MAIN.asm
-                    > USED AT LINE 1903 IN MAIN.asm
-PARSEARGS:          0CB0 DEFINED AT LINE 1936 IN MAIN.asm
+GOBLOCK2:           0C48 DEFINED AT LINE 1829 IN MAIN.asm
+                    > USED AT LINE 1910 IN MAIN.asm
+GOBLOCK3:           0C52 DEFINED AT LINE 1835 IN MAIN.asm
+GOFUNC:             0C56 DEFINED AT LINE 1839 IN MAIN.asm
+                    > USED AT LINE 1810 IN MAIN.asm
+GOFUNC1:            0C6F DEFINED AT LINE 1858 IN MAIN.asm
+                    > USED AT LINE 1868 IN MAIN.asm
+GOFUNC2:            0C75 DEFINED AT LINE 1865 IN MAIN.asm
+                    > USED AT LINE 1857 IN MAIN.asm
+GOFUNC3:            0C80 DEFINED AT LINE 1871 IN MAIN.asm
+                    > USED AT LINE 1847 IN MAIN.asm
+GOFUNC4:            0C98 DEFINED AT LINE 1888 IN MAIN.asm
+                    > USED AT LINE 1885 IN MAIN.asm
+GOFUNC5:            0C9B DEFINED AT LINE 1891 IN MAIN.asm
+                    > USED AT LINE 1897 IN MAIN.asm
+GOFUNC6:            0C9E DEFINED AT LINE 1895 IN MAIN.asm
+                    > USED AT LINE 1890 IN MAIN.asm
+GOFUNC7:            0CA1 DEFINED AT LINE 1898 IN MAIN.asm
+GOFUNC8:            0CA5 DEFINED AT LINE 1903 IN MAIN.asm
+                    > USED AT LINE 1823 IN MAIN.asm
+                    > USED AT LINE 1887 IN MAIN.asm
+PARSEARGS:          0CB0 DEFINED AT LINE 1920 IN MAIN.asm
                     > USED AT LINE 657 IN MAIN.asm
-PARSEARGS1:         0CBA DEFINED AT LINE 1943 IN MAIN.asm
-                    > USED AT LINE 1964 IN MAIN.asm
-PARSEARGS1A:        0CC2 DEFINED AT LINE 1949 IN MAIN.asm
-                    > USED AT LINE 1946 IN MAIN.asm
-PARSEARGS2:         0CCA DEFINED AT LINE 1954 IN MAIN.asm
-PARSEARGS3:         0CD2 DEFINED AT LINE 1962 IN MAIN.asm
+PARSEARGS1:         0CBA DEFINED AT LINE 1927 IN MAIN.asm
                     > USED AT LINE 1948 IN MAIN.asm
-                    > USED AT LINE 1960 IN MAIN.asm
-PARSEARGS4:         0CD5 DEFINED AT LINE 1965 IN MAIN.asm
-                    > USED AT LINE 1951 IN MAIN.asm
+PARSEARGS1A:        0CC2 DEFINED AT LINE 1933 IN MAIN.asm
+                    > USED AT LINE 1930 IN MAIN.asm
+PARSEARGS2:         0CCA DEFINED AT LINE 1938 IN MAIN.asm
+PARSEARGS3:         0CD2 DEFINED AT LINE 1946 IN MAIN.asm
+                    > USED AT LINE 1932 IN MAIN.asm
+                    > USED AT LINE 1944 IN MAIN.asm
+PARSEARGS4:         0CD5 DEFINED AT LINE 1949 IN MAIN.asm
+                    > USED AT LINE 1935 IN MAIN.asm
+                    > USED AT LINE 1937 IN MAIN.asm
+PARSEARGS5:         0CDB DEFINED AT LINE 1955 IN MAIN.asm
                     > USED AT LINE 1953 IN MAIN.asm
-PARSEARGS5:         0CDB DEFINED AT LINE 1971 IN MAIN.asm
-                    > USED AT LINE 1969 IN MAIN.asm
-PARSEBLOCK:         0CE9 DEFINED AT LINE 1985 IN MAIN.asm
+PARSEBLOCK:         0CE9 DEFINED AT LINE 1969 IN MAIN.asm
                     > USED AT LINE 233 IN MAIN.asm
                     > USED AT LINE 668 IN MAIN.asm
-PARSEBLOCK1:        0CED DEFINED AT LINE 1989 IN MAIN.asm
-                    > USED AT LINE 1993 IN MAIN.asm
-                    > USED AT LINE 2015 IN MAIN.asm
-                    > USED AT LINE 2018 IN MAIN.asm
-                    > USED AT LINE 2023 IN MAIN.asm
-                    > USED AT LINE 2027 IN MAIN.asm
-PARSEBLOCK2:        0D19 DEFINED AT LINE 2016 IN MAIN.asm
-                    > USED AT LINE 2003 IN MAIN.asm
-                    > USED AT LINE 2005 IN MAIN.asm
+PARSEBLOCK1:        0CED DEFINED AT LINE 1973 IN MAIN.asm
+                    > USED AT LINE 1977 IN MAIN.asm
+                    > USED AT LINE 1999 IN MAIN.asm
+                    > USED AT LINE 2002 IN MAIN.asm
                     > USED AT LINE 2007 IN MAIN.asm
-PARSEBLOCK3:        0D1C DEFINED AT LINE 2019 IN MAIN.asm
-                    > USED AT LINE 2010 IN MAIN.asm
-                    > USED AT LINE 2012 IN MAIN.asm
-                    > USED AT LINE 2014 IN MAIN.asm
-PARSEBLOCK4:        0D24 DEFINED AT LINE 2025 IN MAIN.asm
+                    > USED AT LINE 2011 IN MAIN.asm
+PARSEBLOCK2:        0D19 DEFINED AT LINE 2000 IN MAIN.asm
+                    > USED AT LINE 1987 IN MAIN.asm
+                    > USED AT LINE 1989 IN MAIN.asm
+                    > USED AT LINE 1991 IN MAIN.asm
+PARSEBLOCK3:        0D1C DEFINED AT LINE 2003 IN MAIN.asm
+                    > USED AT LINE 1994 IN MAIN.asm
                     > USED AT LINE 1996 IN MAIN.asm
                     > USED AT LINE 1998 IN MAIN.asm
-                    > USED AT LINE 2000 IN MAIN.asm
-PARSEBLOCK5:        0D27 DEFINED AT LINE 2028 IN MAIN.asm
-                    > USED AT LINE 2024 IN MAIN.asm
-PARSEBLOCK6:        0D53 DEFINED AT LINE 2048 IN MAIN.asm
-                    > USED AT LINE 2034 IN MAIN.asm
-CREATEFUNC:         0D57 DEFINED AT LINE 2056 IN MAIN.asm
+PARSEBLOCK4:        0D24 DEFINED AT LINE 2009 IN MAIN.asm
+                    > USED AT LINE 1980 IN MAIN.asm
+                    > USED AT LINE 1982 IN MAIN.asm
+                    > USED AT LINE 1984 IN MAIN.asm
+PARSEBLOCK5:        0D27 DEFINED AT LINE 2012 IN MAIN.asm
+                    > USED AT LINE 2008 IN MAIN.asm
+PARSEBLOCK6:        0D53 DEFINED AT LINE 2032 IN MAIN.asm
+                    > USED AT LINE 2018 IN MAIN.asm
+CREATEFUNC:         0D57 DEFINED AT LINE 2040 IN MAIN.asm
                     > USED AT LINE 669 IN MAIN.asm
-CREATEFUNC0:        0D76 DEFINED AT LINE 2070 IN MAIN.asm
-                    > USED AT LINE 2066 IN MAIN.asm
-CREATEFUNC1:        0D8E DEFINED AT LINE 2089 IN MAIN.asm
-                    > USED AT LINE 2085 IN MAIN.asm
-CREATEFUNC2:        0DA1 DEFINED AT LINE 2102 IN MAIN.asm
-                    > USED AT LINE 2098 IN MAIN.asm
-CREATEFUNC2A:       0DC0 DEFINED AT LINE 2128 IN MAIN.asm
-                    > USED AT LINE 2115 IN MAIN.asm
-CREATEFUNC3:        0DCF DEFINED AT LINE 2140 IN MAIN.asm
-                    > USED AT LINE 2150 IN MAIN.asm
-CREATEFUNC4:        0DDA DEFINED AT LINE 2151 IN MAIN.asm
-CREATEFUNC5:        0DDB DEFINED AT LINE 2153 IN MAIN.asm
+CREATEFUNC0:        0D76 DEFINED AT LINE 2054 IN MAIN.asm
+                    > USED AT LINE 2050 IN MAIN.asm
+CREATEFUNC1:        0D8E DEFINED AT LINE 2073 IN MAIN.asm
                     > USED AT LINE 2069 IN MAIN.asm
-COMMANDTABLE:       0DFC DEFINED AT LINE 2204 IN MAIN.asm
-                    > USED AT LINE 1043 IN MAIN.asm
-COMMANDTABLE1:      0E06 DEFINED AT LINE 2211 IN MAIN.asm
-                    > USED AT LINE 2220 IN MAIN.asm
-COMMANDTABLE2:      0E0B DEFINED AT LINE 2217 IN MAIN.asm
-                    > USED AT LINE 2208 IN MAIN.asm
-                    > USED AT LINE 2210 IN MAIN.asm
-JUMPTABLE:          0E10 DEFINED AT LINE 2226 IN MAIN.asm
-                    > USED AT LINE 496 IN MAIN.asm
+CREATEFUNC2:        0DA1 DEFINED AT LINE 2086 IN MAIN.asm
+                    > USED AT LINE 2082 IN MAIN.asm
+CREATEFUNC2A:       0DC0 DEFINED AT LINE 2112 IN MAIN.asm
+                    > USED AT LINE 2099 IN MAIN.asm
+CREATEFUNC3:        0DCF DEFINED AT LINE 2124 IN MAIN.asm
+                    > USED AT LINE 2134 IN MAIN.asm
+CREATEFUNC4:        0DDA DEFINED AT LINE 2135 IN MAIN.asm
+CREATEFUNC5:        0DDB DEFINED AT LINE 2137 IN MAIN.asm
+                    > USED AT LINE 2053 IN MAIN.asm
+COMMANDTABLE:       0DFC DEFINED AT LINE 2188 IN MAIN.asm
+                    > USED AT LINE 1027 IN MAIN.asm
+COMMANDTABLE1:      0E06 DEFINED AT LINE 2195 IN MAIN.asm
+                    > USED AT LINE 2204 IN MAIN.asm
+COMMANDTABLE2:      0E0B DEFINED AT LINE 2201 IN MAIN.asm
+                    > USED AT LINE 2192 IN MAIN.asm
+                    > USED AT LINE 2194 IN MAIN.asm
+JUMPTABLE:          0E10 DEFINED AT LINE 2210 IN MAIN.asm
                     > USED AT LINE 858 IN MAIN.asm
-                    > USED AT LINE 1074 IN MAIN.asm
-                    > USED AT LINE 1087 IN MAIN.asm
-                    > USED AT LINE 1097 IN MAIN.asm
-                    > USED AT LINE 1105 IN MAIN.asm
-                    > USED AT LINE 1111 IN MAIN.asm
-                    > USED AT LINE 1331 IN MAIN.asm
-                    > USED AT LINE 1352 IN MAIN.asm
-                    > USED AT LINE 1359 IN MAIN.asm
-                    > USED AT LINE 1370 IN MAIN.asm
-                    > USED AT LINE 1383 IN MAIN.asm
-JUMPTABLE0:         0E12 DEFINED AT LINE 2229 IN MAIN.asm
-                    > USED AT LINE 2238 IN MAIN.asm
-JUMPTABLE1:         0E1E DEFINED AT LINE 2239 IN MAIN.asm
-                    > USED AT LINE 2235 IN MAIN.asm
-JUMPTABLE2:         0E21 DEFINED AT LINE 2243 IN MAIN.asm
-                    > USED AT LINE 2232 IN MAIN.asm
-XJUMPTABLE:         0E24 DEFINED AT LINE 2252 IN MAIN.asm
-XJUMPTABLE0:        0E26 DEFINED AT LINE 2255 IN MAIN.asm
-                    > USED AT LINE 2264 IN MAIN.asm
-XJUMPTABLE1:        0E32 DEFINED AT LINE 2265 IN MAIN.asm
-                    > USED AT LINE 2261 IN MAIN.asm
-XJUMPTABLE2:        0E3A DEFINED AT LINE 2273 IN MAIN.asm
-                    > USED AT LINE 2258 IN MAIN.asm
-PRTSTR0:            0E3D DEFINED AT LINE 2279 IN MAIN.asm
-                    > USED AT LINE 2285 IN MAIN.asm
-PRTSTR:             0E41 DEFINED AT LINE 2282 IN MAIN.asm
-                    > USED AT LINE 2349 IN MAIN.asm
-                    > USED AT LINE 2406 IN MAIN.asm
-NESTING:            0E46 DEFINED AT LINE 2298 IN MAIN.asm
-                    > USED AT LINE 2431 IN MAIN.asm
-                    > USED AT LINE 2489 IN MAIN.asm
-NESTING0:           0E50 DEFINED AT LINE 2304 IN MAIN.asm
+                    > USED AT LINE 1058 IN MAIN.asm
+                    > USED AT LINE 1071 IN MAIN.asm
+                    > USED AT LINE 1081 IN MAIN.asm
+                    > USED AT LINE 1089 IN MAIN.asm
+                    > USED AT LINE 1095 IN MAIN.asm
+                    > USED AT LINE 1315 IN MAIN.asm
+                    > USED AT LINE 1336 IN MAIN.asm
+                    > USED AT LINE 1343 IN MAIN.asm
+                    > USED AT LINE 1354 IN MAIN.asm
+                    > USED AT LINE 1367 IN MAIN.asm
+JUMPTABLE0:         0E12 DEFINED AT LINE 2213 IN MAIN.asm
+                    > USED AT LINE 2222 IN MAIN.asm
+JUMPTABLE1:         0E1E DEFINED AT LINE 2223 IN MAIN.asm
+                    > USED AT LINE 2219 IN MAIN.asm
+JUMPTABLE2:         0E21 DEFINED AT LINE 2227 IN MAIN.asm
+                    > USED AT LINE 2216 IN MAIN.asm
+XJUMPTABLE:         0E24 DEFINED AT LINE 2236 IN MAIN.asm
+XJUMPTABLE0:        0E26 DEFINED AT LINE 2239 IN MAIN.asm
+                    > USED AT LINE 2248 IN MAIN.asm
+XJUMPTABLE1:        0E32 DEFINED AT LINE 2249 IN MAIN.asm
+                    > USED AT LINE 2245 IN MAIN.asm
+XJUMPTABLE2:        0E3A DEFINED AT LINE 2257 IN MAIN.asm
+                    > USED AT LINE 2242 IN MAIN.asm
+PRTSTR0:            0E3D DEFINED AT LINE 2263 IN MAIN.asm
+                    > USED AT LINE 2269 IN MAIN.asm
+PRTSTR:             0E41 DEFINED AT LINE 2266 IN MAIN.asm
+                    > USED AT LINE 2333 IN MAIN.asm
+                    > USED AT LINE 2390 IN MAIN.asm
+NESTING:            0E46 DEFINED AT LINE 2282 IN MAIN.asm
+                    > USED AT LINE 2415 IN MAIN.asm
+                    > USED AT LINE 2473 IN MAIN.asm
+NESTING0:           0E50 DEFINED AT LINE 2288 IN MAIN.asm
+                    > USED AT LINE 2284 IN MAIN.asm
+                    > USED AT LINE 2286 IN MAIN.asm
+NESTING1A:          0E57 DEFINED AT LINE 2293 IN MAIN.asm
+                    > USED AT LINE 2290 IN MAIN.asm
+NESTING1:           0E5A DEFINED AT LINE 2296 IN MAIN.asm
+                    > USED AT LINE 2287 IN MAIN.asm
+NESTING2:           0E69 DEFINED AT LINE 2305 IN MAIN.asm
                     > USED AT LINE 2300 IN MAIN.asm
                     > USED AT LINE 2302 IN MAIN.asm
-NESTING1A:          0E57 DEFINED AT LINE 2309 IN MAIN.asm
-                    > USED AT LINE 2306 IN MAIN.asm
-NESTING1:           0E5A DEFINED AT LINE 2312 IN MAIN.asm
-                    > USED AT LINE 2303 IN MAIN.asm
-NESTING2:           0E69 DEFINED AT LINE 2321 IN MAIN.asm
-                    > USED AT LINE 2316 IN MAIN.asm
-                    > USED AT LINE 2318 IN MAIN.asm
-NESTING3:           0E6B DEFINED AT LINE 2324 IN MAIN.asm
+NESTING3:           0E6B DEFINED AT LINE 2308 IN MAIN.asm
+                    > USED AT LINE 2304 IN MAIN.asm
+NESTING4:           0E76 DEFINED AT LINE 2315 IN MAIN.asm
+                    > USED AT LINE 2310 IN MAIN.asm
+                    > USED AT LINE 2312 IN MAIN.asm
+PROMPT:             0E78 DEFINED AT LINE 2319 IN MAIN.asm
+                    > USED AT LINE 2394 IN MAIN.asm
+CRLF:               0E81 DEFINED AT LINE 2324 IN MAIN.asm
+                    > USED AT LINE 2486 IN MAIN.asm
+PRINTSTR:           0E88 DEFINED AT LINE 2331 IN MAIN.asm
                     > USED AT LINE 2320 IN MAIN.asm
-NESTING4:           0E76 DEFINED AT LINE 2331 IN MAIN.asm
-                    > USED AT LINE 2326 IN MAIN.asm
-                    > USED AT LINE 2328 IN MAIN.asm
-PROMPT:             0E78 DEFINED AT LINE 2335 IN MAIN.asm
-                    > USED AT LINE 2410 IN MAIN.asm
-CRLF:               0E81 DEFINED AT LINE 2340 IN MAIN.asm
-                    > USED AT LINE 2502 IN MAIN.asm
-PRINTSTR:           0E88 DEFINED AT LINE 2347 IN MAIN.asm
-                    > USED AT LINE 2336 IN MAIN.asm
-                    > USED AT LINE 2341 IN MAIN.asm
-                    > USED AT LINE 2559 IN MAIN.asm
-INIT:               0E8F DEFINED AT LINE 2354 IN MAIN.asm
-                    > USED AT LINE 2403 IN MAIN.asm
-INIT1:              0E97 DEFINED AT LINE 2358 IN MAIN.asm
-                    > USED AT LINE 2364 IN MAIN.asm
-WARMINIT:           0E9F DEFINED AT LINE 2366 IN MAIN.asm
-COLDBOOT0:          0EB2 DEFINED AT LINE 2373 IN MAIN.asm
-                    > USED AT LINE 2361 IN MAIN.asm
-                    > USED AT LINE 2399 IN MAIN.asm
-COLDINIT:           0EBC DEFINED AT LINE 2379 IN MAIN.asm
-COLDBOOT1:          0ECD DEFINED AT LINE 2388 IN MAIN.asm
-                    > USED AT LINE 2391 IN MAIN.asm
-COLDSTART:          0EDA DEFINED AT LINE 2397 IN MAIN.asm
-                    > USED AT LINE 1229 IN MAIN.asm
-START:              0EE3 DEFINED AT LINE 2401 IN MAIN.asm
+                    > USED AT LINE 2325 IN MAIN.asm
+                    > USED AT LINE 2543 IN MAIN.asm
+INIT:               0E8F DEFINED AT LINE 2338 IN MAIN.asm
+                    > USED AT LINE 2387 IN MAIN.asm
+INIT1:              0E97 DEFINED AT LINE 2342 IN MAIN.asm
+                    > USED AT LINE 2348 IN MAIN.asm
+WARMINIT:           0E9F DEFINED AT LINE 2350 IN MAIN.asm
+COLDBOOT0:          0EB2 DEFINED AT LINE 2357 IN MAIN.asm
+                    > USED AT LINE 2345 IN MAIN.asm
+                    > USED AT LINE 2383 IN MAIN.asm
+COLDINIT:           0EBC DEFINED AT LINE 2363 IN MAIN.asm
+COLDBOOT1:          0ECD DEFINED AT LINE 2372 IN MAIN.asm
+                    > USED AT LINE 2375 IN MAIN.asm
+COLDSTART:          0EDA DEFINED AT LINE 2381 IN MAIN.asm
+                    > USED AT LINE 1213 IN MAIN.asm
+START:              0EE3 DEFINED AT LINE 2385 IN MAIN.asm
                     > USED AT LINE 7
-START1:             0EE9 DEFINED AT LINE 2404 IN MAIN.asm
-                    > USED AT LINE 2371 IN MAIN.asm
-                    > USED AT LINE 2400 IN MAIN.asm
-INTERPRET:          0EEF DEFINED AT LINE 2408 IN MAIN.asm
-                    > USED AT LINE 2535 IN MAIN.asm
-                    > USED AT LINE 2550 IN MAIN.asm
-                    > USED AT LINE 2567 IN MAIN.asm
-                    > USED AT LINE 2570 IN MAIN.asm
-                    > USED AT LINE 2575 IN MAIN.asm
-INTERPRET2:         0EFB DEFINED AT LINE 2416 IN MAIN.asm
-                    > USED AT LINE 2480 IN MAIN.asm
-                    > USED AT LINE 2557 IN MAIN.asm
-                    > USED AT LINE 2561 IN MAIN.asm
-INTERPRET3:         0F03 DEFINED AT LINE 2424 IN MAIN.asm
-                    > USED AT LINE 2437 IN MAIN.asm
-INTERPRET4:         0F0E DEFINED AT LINE 2433 IN MAIN.asm
-                    > USED AT LINE 2422 IN MAIN.asm
-INTERPRET5:         0F13 DEFINED AT LINE 2440 IN MAIN.asm
-                    > USED AT LINE 2490 IN MAIN.asm
-                    > USED AT LINE 2505 IN MAIN.asm
-INTERPRET5A:        0F31 DEFINED AT LINE 2477 IN MAIN.asm
-INTERPRET6:         0F33 DEFINED AT LINE 2482 IN MAIN.asm
-                    > USED AT LINE 2444 IN MAIN.asm
-INTERPRET7:         0F41 DEFINED AT LINE 2492 IN MAIN.asm
-                    > USED AT LINE 2449 IN MAIN.asm
-INTERPRET8:         0F54 DEFINED AT LINE 2507 IN MAIN.asm
-                    > USED AT LINE 2447 IN MAIN.asm
-NEXT:               0F6F DEFINED AT LINE 2520 IN MAIN.asm
-                    > USED AT LINE 158 IN MAIN.asm
-                    > USED AT LINE 2524 IN MAIN.asm
-NEXT1:              0F7F DEFINED AT LINE 2532 IN MAIN.asm
-                    > USED AT LINE 2525 IN MAIN.asm
-EXIT:               0F86 DEFINED AT LINE 2537 IN MAIN.asm
+START1:             0EE9 DEFINED AT LINE 2388 IN MAIN.asm
+                    > USED AT LINE 2355 IN MAIN.asm
+                    > USED AT LINE 2384 IN MAIN.asm
+INTERPRET:          0EEF DEFINED AT LINE 2392 IN MAIN.asm
+                    > USED AT LINE 2519 IN MAIN.asm
                     > USED AT LINE 2534 IN MAIN.asm
-RUN:                0F8A DEFINED AT LINE 2541 IN MAIN.asm
-                    > USED AT LINE 2548 IN MAIN.asm
-                    > USED AT LINE 2565 IN MAIN.asm
-                    > USED AT LINE 2573 IN MAIN.asm
-ERROR:              0F8E DEFINED AT LINE 2546 IN MAIN.asm
+                    > USED AT LINE 2551 IN MAIN.asm
+                    > USED AT LINE 2554 IN MAIN.asm
+                    > USED AT LINE 2559 IN MAIN.asm
+INTERPRET2:         0EFB DEFINED AT LINE 2400 IN MAIN.asm
+                    > USED AT LINE 2464 IN MAIN.asm
+                    > USED AT LINE 2541 IN MAIN.asm
+                    > USED AT LINE 2545 IN MAIN.asm
+INTERPRET3:         0F03 DEFINED AT LINE 2408 IN MAIN.asm
+                    > USED AT LINE 2421 IN MAIN.asm
+INTERPRET4:         0F0E DEFINED AT LINE 2417 IN MAIN.asm
+                    > USED AT LINE 2406 IN MAIN.asm
+INTERPRET5:         0F13 DEFINED AT LINE 2424 IN MAIN.asm
+                    > USED AT LINE 2474 IN MAIN.asm
+                    > USED AT LINE 2489 IN MAIN.asm
+INTERPRET5A:        0F31 DEFINED AT LINE 2461 IN MAIN.asm
+INTERPRET6:         0F33 DEFINED AT LINE 2466 IN MAIN.asm
+                    > USED AT LINE 2428 IN MAIN.asm
+INTERPRET7:         0F41 DEFINED AT LINE 2476 IN MAIN.asm
+                    > USED AT LINE 2433 IN MAIN.asm
+INTERPRET8:         0F54 DEFINED AT LINE 2491 IN MAIN.asm
+                    > USED AT LINE 2431 IN MAIN.asm
+NEXT:               0F6F DEFINED AT LINE 2504 IN MAIN.asm
+                    > USED AT LINE 158 IN MAIN.asm
+                    > USED AT LINE 2508 IN MAIN.asm
+NEXT1:              0F7F DEFINED AT LINE 2516 IN MAIN.asm
+                    > USED AT LINE 2509 IN MAIN.asm
+EXIT:               0F86 DEFINED AT LINE 2521 IN MAIN.asm
+                    > USED AT LINE 2518 IN MAIN.asm
+RUN:                0F8A DEFINED AT LINE 2525 IN MAIN.asm
+                    > USED AT LINE 2532 IN MAIN.asm
+                    > USED AT LINE 2549 IN MAIN.asm
+                    > USED AT LINE 2557 IN MAIN.asm
+ERROR:              0F8E DEFINED AT LINE 2530 IN MAIN.asm
                     > USED AT LINE 286 IN MAIN.asm
                     > USED AT LINE 666 IN MAIN.asm
-                    > USED AT LINE 1203 IN MAIN.asm
-BACKSPACE_:         0FA2 DEFINED AT LINE 2554 IN MAIN.asm
-                    > USED AT LINE 2454 IN MAIN.asm
-EDIT_:              0FB2 DEFINED AT LINE 2564 IN MAIN.asm
-                    > USED AT LINE 2452 IN MAIN.asm
-REEDIT_:            0FCA DEFINED AT LINE 2569 IN MAIN.asm
-                    > USED AT LINE 2456 IN MAIN.asm
-PRINTSTACK_:        0FCD DEFINED AT LINE 2572 IN MAIN.asm
+                    > USED AT LINE 1187 IN MAIN.asm
+BACKSPACE_:         0FA2 DEFINED AT LINE 2538 IN MAIN.asm
+                    > USED AT LINE 2438 IN MAIN.asm
+EDIT_:              0FB2 DEFINED AT LINE 2548 IN MAIN.asm
+                    > USED AT LINE 2436 IN MAIN.asm
+REEDIT_:            0FCA DEFINED AT LINE 2553 IN MAIN.asm
+                    > USED AT LINE 2440 IN MAIN.asm
+PRINTSTACK_:        0FCD DEFINED AT LINE 2556 IN MAIN.asm
 F1:                 0FD7 DEFINED AT LINE 10
-                    > USED AT LINE 1402 IN MAIN.asm
+                    > USED AT LINE 1386 IN MAIN.asm
 F2:                 0FD7 DEFINED AT LINE 11
-                    > USED AT LINE 1405 IN MAIN.asm
+                    > USED AT LINE 1389 IN MAIN.asm
 F3:                 0FD7 DEFINED AT LINE 12
-                    > USED AT LINE 1408 IN MAIN.asm
+                    > USED AT LINE 1392 IN MAIN.asm
 F4:                 0FD7 DEFINED AT LINE 13
-                    > USED AT LINE 1411 IN MAIN.asm
+                    > USED AT LINE 1395 IN MAIN.asm
 STKSIZE:            0100 DEFINED AT LINE 1 IN ram.asm
                     > USED AT LINE 6 IN ram.asm
 TIBSIZE:            0100 DEFINED AT LINE 2 IN ram.asm
@@ -4007,23 +3985,23 @@ BUFSIZE:            0100 DEFINED AT LINE 3 IN ram.asm
 STACK:              2100 DEFINED AT LINE 7 IN ram.asm
                     > USED AT LINE 451 IN IOSerial.asm
                     > USED AT LINE 6
-                    > USED AT LINE 1830 IN MAIN.asm
-                    > USED AT LINE 2394 IN MAIN.asm
-                    > USED AT LINE 2398 IN MAIN.asm
-                    > USED AT LINE 2402 IN MAIN.asm
+                    > USED AT LINE 1814 IN MAIN.asm
+                    > USED AT LINE 2378 IN MAIN.asm
+                    > USED AT LINE 2382 IN MAIN.asm
+                    > USED AT LINE 2386 IN MAIN.asm
 TIB:                2100 DEFINED AT LINE 10 IN ram.asm
                     > USED AT LINE 156 IN MAIN.asm
-                    > USED AT LINE 1440 IN MAIN.asm
-                    > USED AT LINE 2413 IN MAIN.asm
-                    > USED AT LINE 2421 IN MAIN.asm
-                    > USED AT LINE 2484 IN MAIN.asm
-                    > USED AT LINE 2494 IN MAIN.asm
-                    > USED AT LINE 2509 IN MAIN.asm
-                    > USED AT LINE 2512 IN MAIN.asm
+                    > USED AT LINE 1424 IN MAIN.asm
+                    > USED AT LINE 2397 IN MAIN.asm
+                    > USED AT LINE 2405 IN MAIN.asm
+                    > USED AT LINE 2468 IN MAIN.asm
+                    > USED AT LINE 2478 IN MAIN.asm
+                    > USED AT LINE 2493 IN MAIN.asm
+                    > USED AT LINE 2496 IN MAIN.asm
 BUF:                2200 DEFINED AT LINE 13 IN ram.asm
 VARS:               2300 DEFINED AT LINE 16 IN ram.asm
-                    > USED AT LINE 1684 IN MAIN.asm
-                    > USED AT LINE 2385 IN MAIN.asm
+                    > USED AT LINE 1668 IN MAIN.asm
+                    > USED AT LINE 2369 IN MAIN.asm
 RESTARTS:           23D0 DEFINED AT LINE 18 IN ram.asm
 RST08:              23D0 DEFINED AT LINE 20 IN ram.asm
                     > USED AT LINE 107 IN IOSerial.asm
@@ -4057,20 +4035,20 @@ PUTCVEC:            23E4 DEFINED AT LINE 30 IN ram.asm
                     > USED AT LINE 446 IN IOSerial.asm
                     > USED AT LINE 465 IN IOSerial.asm
 SYSVARS:            23E6 DEFINED AT LINE 32 IN ram.asm
-                    > USED AT LINE 2381 IN MAIN.asm
+                    > USED AT LINE 2365 IN MAIN.asm
 VDATAWIDTH:         23E6 DEFINED AT LINE 36 IN ram.asm
                     > USED AT LINE 356 IN MAIN.asm
                     > USED AT LINE 475 IN MAIN.asm
-                    > USED AT LINE 1252 IN MAIN.asm
-                    > USED AT LINE 1718 IN MAIN.asm
+                    > USED AT LINE 1236 IN MAIN.asm
+                    > USED AT LINE 1702 IN MAIN.asm
 VNUMBASE:           23E8 DEFINED AT LINE 37 IN ram.asm
                     > USED AT LINE 876 IN MAIN.asm
-                    > USED AT LINE 1192 IN MAIN.asm
+                    > USED AT LINE 1176 IN MAIN.asm
 VTIBPTR:            23EA DEFINED AT LINE 38 IN ram.asm
-                    > USED AT LINE 1449 IN MAIN.asm
-                    > USED AT LINE 1450 IN MAIN.asm
-                    > USED AT LINE 2414 IN MAIN.asm
-                    > USED AT LINE 2511 IN MAIN.asm
+                    > USED AT LINE 1433 IN MAIN.asm
+                    > USED AT LINE 1434 IN MAIN.asm
+                    > USED AT LINE 2398 IN MAIN.asm
+                    > USED AT LINE 2495 IN MAIN.asm
 VSTRPTR:            23EC DEFINED AT LINE 39 IN ram.asm
                     > USED AT LINE 752 IN MAIN.asm
                     > USED AT LINE 763 IN MAIN.asm
@@ -4079,53 +4057,53 @@ VSTRPTR:            23EC DEFINED AT LINE 39 IN ram.asm
                     > USED AT LINE 891 IN MAIN.asm
                     > USED AT LINE 953 IN MAIN.asm
                     > USED AT LINE 964 IN MAIN.asm
-                    > USED AT LINE 989 IN MAIN.asm
-                    > USED AT LINE 999 IN MAIN.asm
-                    > USED AT LINE 1016 IN MAIN.asm
-                    > USED AT LINE 1028 IN MAIN.asm
-                    > USED AT LINE 1631 IN MAIN.asm
-                    > USED AT LINE 1645 IN MAIN.asm
-                    > USED AT LINE 1657 IN MAIN.asm
-                    > USED AT LINE 1665 IN MAIN.asm
-                    > USED AT LINE 1746 IN MAIN.asm
-                    > USED AT LINE 1974 IN MAIN.asm
-                    > USED AT LINE 2046 IN MAIN.asm
-                    > USED AT LINE 2171 IN MAIN.asm
+                    > USED AT LINE 990 IN MAIN.asm
+                    > USED AT LINE 1000 IN MAIN.asm
+                    > USED AT LINE 1009 IN MAIN.asm
+                    > USED AT LINE 1012 IN MAIN.asm
+                    > USED AT LINE 1615 IN MAIN.asm
+                    > USED AT LINE 1629 IN MAIN.asm
+                    > USED AT LINE 1641 IN MAIN.asm
+                    > USED AT LINE 1649 IN MAIN.asm
+                    > USED AT LINE 1730 IN MAIN.asm
+                    > USED AT LINE 1958 IN MAIN.asm
+                    > USED AT LINE 2030 IN MAIN.asm
+                    > USED AT LINE 2155 IN MAIN.asm
 VNEXT:              23EE DEFINED AT LINE 40 IN ram.asm
-                    > USED AT LINE 2393 IN MAIN.asm
+                    > USED AT LINE 2377 IN MAIN.asm
 VHEAPPTR:           23F0 DEFINED AT LINE 41 IN ram.asm
                     > USED AT LINE 771 IN MAIN.asm
                     > USED AT LINE 792 IN MAIN.asm
-                    > USED AT LINE 1444 IN MAIN.asm
-                    > USED AT LINE 1445 IN MAIN.asm
-                    > USED AT LINE 1630 IN MAIN.asm
-                    > USED AT LINE 1644 IN MAIN.asm
-                    > USED AT LINE 1651 IN MAIN.asm
-                    > USED AT LINE 1661 IN MAIN.asm
-                    > USED AT LINE 1663 IN MAIN.asm
-                    > USED AT LINE 1707 IN MAIN.asm
-                    > USED AT LINE 1741 IN MAIN.asm
-                    > USED AT LINE 1745 IN MAIN.asm
-                    > USED AT LINE 1938 IN MAIN.asm
-                    > USED AT LINE 1973 IN MAIN.asm
-                    > USED AT LINE 2042 IN MAIN.asm
-                    > USED AT LINE 2045 IN MAIN.asm
-                    > USED AT LINE 2068 IN MAIN.asm
-                    > USED AT LINE 2073 IN MAIN.asm
-                    > USED AT LINE 2104 IN MAIN.asm
-                    > USED AT LINE 2170 IN MAIN.asm
+                    > USED AT LINE 1428 IN MAIN.asm
+                    > USED AT LINE 1429 IN MAIN.asm
+                    > USED AT LINE 1614 IN MAIN.asm
+                    > USED AT LINE 1628 IN MAIN.asm
+                    > USED AT LINE 1635 IN MAIN.asm
+                    > USED AT LINE 1645 IN MAIN.asm
+                    > USED AT LINE 1647 IN MAIN.asm
+                    > USED AT LINE 1691 IN MAIN.asm
+                    > USED AT LINE 1725 IN MAIN.asm
+                    > USED AT LINE 1729 IN MAIN.asm
+                    > USED AT LINE 1922 IN MAIN.asm
+                    > USED AT LINE 1957 IN MAIN.asm
+                    > USED AT LINE 2026 IN MAIN.asm
+                    > USED AT LINE 2029 IN MAIN.asm
+                    > USED AT LINE 2052 IN MAIN.asm
+                    > USED AT LINE 2057 IN MAIN.asm
+                    > USED AT LINE 2088 IN MAIN.asm
+                    > USED AT LINE 2154 IN MAIN.asm
 VRECUR:             23F2 DEFINED AT LINE 42 IN ram.asm
-                    > USED AT LINE 1421 IN MAIN.asm
-                    > USED AT LINE 1800 IN MAIN.asm
-                    > USED AT LINE 1807 IN MAIN.asm
+                    > USED AT LINE 1405 IN MAIN.asm
+                    > USED AT LINE 1784 IN MAIN.asm
+                    > USED AT LINE 1791 IN MAIN.asm
 VDEFINE:            23F4 DEFINED AT LINE 43 IN ram.asm
                     > USED AT LINE 265 IN MAIN.asm
                     > USED AT LINE 270 IN MAIN.asm
                     > USED AT LINE 290 IN MAIN.asm
 VSTRMODE:           23F6 DEFINED AT LINE 44 IN ram.asm
-                    > USED AT LINE 1625 IN MAIN.asm
-                    > USED AT LINE 1650 IN MAIN.asm
-                    > USED AT LINE 1656 IN MAIN.asm
+                    > USED AT LINE 1609 IN MAIN.asm
+                    > USED AT LINE 1634 IN MAIN.asm
+                    > USED AT LINE 1640 IN MAIN.asm
 VPOINTER:           23F8 DEFINED AT LINE 48 IN ram.asm
                     > USED AT LINE 178 IN MAIN.asm
                     > USED AT LINE 179 IN MAIN.asm
@@ -4134,55 +4112,55 @@ VPOINTER:           23F8 DEFINED AT LINE 48 IN ram.asm
                     > USED AT LINE 363 IN MAIN.asm
                     > USED AT LINE 472 IN MAIN.asm
                     > USED AT LINE 843 IN MAIN.asm
-                    > USED AT LINE 1454 IN MAIN.asm
+                    > USED AT LINE 1438 IN MAIN.asm
 VREMAIN:            23FA DEFINED AT LINE 49 IN ram.asm
                     > USED AT LINE 683 IN MAIN.asm
-                    > USED AT LINE 1425 IN MAIN.asm
+                    > USED AT LINE 1409 IN MAIN.asm
 VSAVEDIP:           23FC DEFINED AT LINE 51 IN ram.asm
-                    > USED AT LINE 2367 IN MAIN.asm
-                    > USED AT LINE 2514 IN MAIN.asm
+                    > USED AT LINE 2351 IN MAIN.asm
+                    > USED AT LINE 2498 IN MAIN.asm
 VSAVEDSP:           23FE DEFINED AT LINE 52 IN ram.asm
-                    > USED AT LINE 2368 IN MAIN.asm
-                    > USED AT LINE 2515 IN MAIN.asm
+                    > USED AT LINE 2352 IN MAIN.asm
+                    > USED AT LINE 2499 IN MAIN.asm
 VSAVEDNEXT:         2400 DEFINED AT LINE 53 IN ram.asm
-                    > USED AT LINE 2369 IN MAIN.asm
-                    > USED AT LINE 2516 IN MAIN.asm
+                    > USED AT LINE 2353 IN MAIN.asm
+                    > USED AT LINE 2500 IN MAIN.asm
 VSAVEDBP:           2402 DEFINED AT LINE 54 IN ram.asm
-                    > USED AT LINE 2370 IN MAIN.asm
-                    > USED AT LINE 2517 IN MAIN.asm
+                    > USED AT LINE 2354 IN MAIN.asm
+                    > USED AT LINE 2501 IN MAIN.asm
 VTEMP1:             2404 DEFINED AT LINE 58 IN ram.asm
-                    > USED AT LINE 1700 IN MAIN.asm
-                    > USED AT LINE 1747 IN MAIN.asm
-                    > USED AT LINE 1755 IN MAIN.asm
-                    > USED AT LINE 1799 IN MAIN.asm
-                    > USED AT LINE 1829 IN MAIN.asm
-                    > USED AT LINE 1835 IN MAIN.asm
-                    > USED AT LINE 1864 IN MAIN.asm
-                    > USED AT LINE 1885 IN MAIN.asm
-                    > USED AT LINE 1892 IN MAIN.asm
-                    > USED AT LINE 1898 IN MAIN.asm
-                    > USED AT LINE 2037 IN MAIN.asm
-                    > USED AT LINE 2047 IN MAIN.asm
-                    > USED AT LINE 2059 IN MAIN.asm
-                    > USED AT LINE 2172 IN MAIN.asm
+                    > USED AT LINE 1684 IN MAIN.asm
+                    > USED AT LINE 1731 IN MAIN.asm
+                    > USED AT LINE 1739 IN MAIN.asm
+                    > USED AT LINE 1783 IN MAIN.asm
+                    > USED AT LINE 1813 IN MAIN.asm
+                    > USED AT LINE 1819 IN MAIN.asm
+                    > USED AT LINE 1848 IN MAIN.asm
+                    > USED AT LINE 1869 IN MAIN.asm
+                    > USED AT LINE 1876 IN MAIN.asm
+                    > USED AT LINE 1882 IN MAIN.asm
+                    > USED AT LINE 2021 IN MAIN.asm
+                    > USED AT LINE 2031 IN MAIN.asm
+                    > USED AT LINE 2043 IN MAIN.asm
+                    > USED AT LINE 2156 IN MAIN.asm
 VTEMP2:             2406 DEFINED AT LINE 59 IN ram.asm
-                    > USED AT LINE 1758 IN MAIN.asm
-                    > USED AT LINE 1798 IN MAIN.asm
-                    > USED AT LINE 1865 IN MAIN.asm
-                    > USED AT LINE 1886 IN MAIN.asm
-                    > USED AT LINE 2061 IN MAIN.asm
-                    > USED AT LINE 2161 IN MAIN.asm
+                    > USED AT LINE 1742 IN MAIN.asm
+                    > USED AT LINE 1782 IN MAIN.asm
+                    > USED AT LINE 1849 IN MAIN.asm
+                    > USED AT LINE 1870 IN MAIN.asm
+                    > USED AT LINE 2045 IN MAIN.asm
+                    > USED AT LINE 2145 IN MAIN.asm
 VTEMP3:             2408 DEFINED AT LINE 60 IN ram.asm
-                    > USED AT LINE 2058 IN MAIN.asm
-                    > USED AT LINE 2173 IN MAIN.asm
+                    > USED AT LINE 2042 IN MAIN.asm
+                    > USED AT LINE 2157 IN MAIN.asm
 VLASTDEF:           240A DEFINED AT LINE 61 IN ram.asm
 TBPTR:              240C DEFINED AT LINE 62 IN ram.asm
 TITLEBUF:           240E DEFINED AT LINE 64 IN ram.asm
-                    > USED AT LINE 2356 IN MAIN.asm
-                    > USED AT LINE 2375 IN MAIN.asm
-                    > USED AT LINE 2405 IN MAIN.asm
+                    > USED AT LINE 2340 IN MAIN.asm
+                    > USED AT LINE 2359 IN MAIN.asm
+                    > USED AT LINE 2389 IN MAIN.asm
 HEAP:               2422 DEFINED AT LINE 66 IN ram.asm
                     > USED AT LINE 157 IN MAIN.asm
                     > USED AT LINE 159 IN MAIN.asm
-                    > USED AT LINE 1436 IN MAIN.asm
-                    > USED AT LINE 2030 IN MAIN.asm
+                    > USED AT LINE 1420 IN MAIN.asm
+                    > USED AT LINE 2014 IN MAIN.asm
