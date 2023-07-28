@@ -1,4 +1,4 @@
-.engine mycomputer
+; .engine mycomputer
 
 .include "constants.asm"
 .include "test.fast.mac.asm"
@@ -9,10 +9,13 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 1, "sL"                            
+FUNC f1, 2, "abc"
+db "{"
+db "'[ '.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"
+db "}"
 db 0
 
-FUNC f2, 0, ""                  
+FUNC f2, 0, ""                               
 db 0
 
 FUNC f3, 0, ""                  
@@ -24,17 +27,15 @@ db 0
 .align $100
 testsStart:
 
-    ; test "0 10 1 /rg \\a{%i.} /fe", 0
-    ; test "$1000 0 10 1 /rg \\a{%i 1 + 10 *} /mp \\a{%i.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%i 1 + 10 *} /mp \\a{%i.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%i.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%i 3<}/ft \\a{%i.} /fe", $1000
-    ; test "$1000 0 10 1 /rg  0 \\da{%d%i+}/fd \\a{%i 24<}/ft \\a{%i.} /fe", $1000
+    ; test "0 10 1 /rg \\a{%a.} /fe", 0
+    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", $1000
+    ; test "$1000 0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", $1000
     ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
-    ; test "[1 2 3].a", 0
+    test "[1 2 3].a", 0
 
-    test "`xyz`", 0
     call printStr
     .cstr "Done!"
     HALT
@@ -212,7 +213,6 @@ testsStart:
 ; db    "}" 
 ; db "}" 
 ; db 0
-
 
 ; FUNC forEach, 1, "spT"                               
 ; db "{"

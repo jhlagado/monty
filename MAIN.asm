@@ -746,6 +746,23 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
+grave:
+printString:
+    inc bc                      ; move to first char
+    ld de,(vStrPtr)             ; de = buffer*
+    jr printString1
+printString0:
+    ld (de),a                   ; a -> buffer*
+    inc de                      ; string*++, 
+    inc bc
+printString1:
+    ld a,(bc)                   ; a <- string*
+    cp "`"                      ; if ` exit loop
+    jr nz,printString0
+    ; inc bc
+    ld (vStrPtr),de             ; save buffer*' in pointer
+    jp dotNext
+
 ; string                        ;38
 ; -- ptr                        ; points to start of string chars,                                 ; length is stored at start - 2 bytes 
 quote:
@@ -840,7 +857,7 @@ arg1a:
 dot:
     call jumpTable
     db "a"                      ; .a print array
-    db lsb(dotArray)
+    db lsb(dotArray_)
     db "c"                      ; .c print char
     db lsb(dotChar_)
     db "s"                      ; .s print string
@@ -849,6 +866,9 @@ dot:
     db lsb(dotXChars_)
     db NUL                      ; .  print number
     jp dotNumber_
+
+dotArray_:
+    jp dotArray
 
 ; /bd buffer decimal
 ; value --                      
@@ -1049,9 +1069,36 @@ command:
     db lsb(command_nop_)
     db lsb(div_)
 
-; 2
-command_m_:
-    jp command_m
+; 12
+command_a_:
+    call jumpTable
+    db "b"                      ; /ab absolute
+    db lsb(absolute_)
+    db "d"                      ; /ad address of
+    db lsb(addrOf_)
+    db "i"                      ; /ad address of
+    db lsb(arrayIter_)
+    db "s"                      ; /as array size
+    db lsb(arraySize_)
+    db NUL
+    jp error1_
+
+command_b_:
+    call jumpTable
+    db "r"                      ; /br break
+    db lsb(break_)
+    db "y"                      ; /by cold boot
+    db lsb(coldStart_)
+    db NUL
+    jp bytes_                   ; /b bytes
+
+; 6
+command_i_:
+    call jumpTable
+    db "n"                      ; /in input
+    db lsb(input_)
+    db NUL
+    jp error1_
 
 ; 4
 command_p_:
@@ -1066,6 +1113,61 @@ command_q_:
     db lsb(quit_)
     db NUL
     jp error1_
+
+; 14
+; /ab absolute
+; num -- num
+absolute_:
+    pop hl
+    bit 7,h
+    ret z
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+    push hl
+    jp (ix)
+
+; 8
+; 13
+; /br break from loop             
+; --
+break_:
+break:
+    pop hl                      ; hl = condition, break if false
+    ld a,l
+    or h
+    jr z,break1
+    jp (ix)
+break1:    
+    ld e,iyl                    ; get block* just under stack frame
+    ld d,iyh
+    ld hl,8
+    add hl,de
+    inc hl
+    inc hl
+    ld (iy+2),l                 ; force first_arg* into this scope for clean up
+    ld (iy+3),h                 ; first_arg* = address of block*
+    jp blockEnd
+
+; 11
+; Z80 port input
+; port -- value 
+input_:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    in l,(c)
+    ld h,0
+    ld c,e                      ; restore IP
+    push hl
+    jp (ix)    
+
+; 2
+command_m_:
+    jp command_m
 
 ; 2
 command_r_:
@@ -1150,45 +1252,6 @@ bytes1:
     ld (vDataWidth),hl
     jp (ix)
 
-; 6
-command_i_:
-    call jumpTable
-    db "n"                      ; /in input
-    db lsb(input_)
-    db NUL
-    jp error1_
-
-; 8
-command_b_:
-    call jumpTable
-    db "r"                      ; /br break
-    db lsb(break_)
-    db "y"                      ; /by cold boot
-    db lsb(coldStart_)
-    db NUL
-    jp bytes_                   ; /b bytes
-
-; 13
-; /br break from loop             
-; --
-break_:
-break:
-    pop hl                      ; hl = condition, break if false
-    ld a,l
-    or h
-    jr z,break1
-    jp (ix)
-break1:    
-    ld e,iyl                    ; get block* just under stack frame
-    ld d,iyh
-    ld hl,8
-    add hl,de
-    inc hl
-    inc hl
-    ld (iy+2),l                 ; force first_arg* into this scope for clean up
-    ld (iy+3),h                 ; first_arg* = address of block*
-    jp blockEnd
-
 ; 10
 ; /qt
 ; bool -- 
@@ -1200,19 +1263,6 @@ quit_:
     jp (ix)
 quit1:    
     jp blockEnd
-
-; 11
-; Z80 port input
-; port -- value 
-input_:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    in l,(c)
-    ld h,0
-    ld c,e                      ; restore IP
-    push hl
-    jp (ix)    
 
 ; 10
 ; /as size of an array, num elements, ignores vDataWidth :-/ 
@@ -1239,36 +1289,6 @@ xor1:
     ld h,a        
     push hl        
     jp (ix)    
-
-; 12
-command_a_:
-    call jumpTable
-    db "b"                      ; /ab absolute
-    db lsb(absolute_)
-    db "d"                      ; /ad address of
-    db lsb(addrOf_)
-    db "i"                      ; /ad address of
-    db lsb(arrayIter_)
-    db "s"                      ; /as array size
-    db lsb(arraySize_)
-    db NUL
-    jp error1_
-
-; 14
-; /ab absolute
-; num -- num
-absolute_:
-    pop hl
-    bit 7,h
-    ret z
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-    push hl
-    jp (ix)
 
 ; 2
 ; key_:
@@ -1328,6 +1348,44 @@ command_f:
     db NUL
     jp false_
 
+command_m:
+    call jumpTable
+    db "p"                      ; /mp map
+    db lsb(map_)
+    db NUL
+    jp error1_
+
+command_r:
+    call jumpTable
+    db "c"                      ; /rc tail call optimisation
+    db lsb(recur_)
+    db "e"                      ; /re remainder
+    db lsb(remain_)
+    db "g"                      ; /rg range src
+    db lsb(rangeSrc_)
+    db NUL
+    jp error1_
+
+command_v:
+    call jumpTable
+    db "h"
+    db lsb(varHeapPtr_)
+    db "t"
+    db lsb(varTIBPtr_)
+    db "H"
+    db lsb(constHeapStart_)
+    db "T"
+    db lsb(constTIBStart_)
+    db NUL
+    jp error1_
+
+command_s:
+    call jumpTable
+    db "i"
+    db lsb(stringIter_)
+    db NUL
+    jp error1_
+
 forEach_:
     jp forEach
 
@@ -1355,26 +1413,8 @@ f4_:
 false_:
     jp false1
 
-command_m:
-    call jumpTable
-    db "p"                      ; /mp map
-    db lsb(map_)
-    db NUL
-    jp error1_
-
 map_:
     jp map
-
-command_r:
-    call jumpTable
-    db "c"                      ; /rc tail call optimisation
-    db lsb(recur_)
-    db "e"                      ; /re remainder
-    db lsb(remain_)
-    db "g"                      ; /rg range src
-    db lsb(rangeSrc_)
-    db NUL
-    jp error1_
 
 recur_:
     pop hl
@@ -1386,31 +1426,11 @@ remain_:
     push hl
     jp (ix)
 
-command_s:
-    call jumpTable
-    db "i"
-    db lsb(stringIter_)
-    db NUL
-    jp error1_
-
 stringIter_:
     jp stringIter
 
 rangeSrc_:
     jp rangeSrc
-
-command_v:
-    call jumpTable
-    db "h"
-    db lsb(varHeapPtr_)
-    db "t"
-    db lsb(varTIBPtr_)
-    db "H"
-    db lsb(constHeapStart_)
-    db "T"
-    db lsb(constTIBStart_)
-    db NUL
-    jp error1_
 
 constHeapStart_:
     ld de,HEAP
@@ -1600,23 +1620,6 @@ comma:
 ;*******************************************************************
 ; implementations
 ;*******************************************************************
-
-grave:
-printString:
-    inc bc                      ; move to first char
-    ld de,(vStrPtr)             ; de = buffer*
-    jr printString1
-printString0:
-    ld (de),a                   ; a -> buffer*
-    inc de                      ; string*++, 
-    inc bc
-printString1:
-    ld a,(bc)                   ; a <- string*
-    cp "`"                      ; if ` exit loop
-    jr nz,printString0
-    ; inc bc
-    ld (vStrPtr),de             ; save buffer*' in pointer
-    jp dotNext
 
 dotNext:
     ld a,(vStrMode)             ; if string mode then exit
