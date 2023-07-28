@@ -493,13 +493,13 @@ not:
     ld hl,0                     ; is considered true
     jr eq1    
 eq:
-    call jumpTable
-    db "="                      
-    db lsb(eq0_)
-    db NUL
-    jp assign
-
-eq0_:
+    inc bc
+    ld a,(bc)
+    cp "="
+    jr z,eq0
+    dec bc
+    jr assign
+eq0:
     pop hl
 eq1:
     pop de
@@ -2244,6 +2244,37 @@ jumpTable2:
     dec bc
     inc hl
     jp (hl)
+
+; followed by a table
+; db char
+; db lsb(addr)
+; the final item must have char == NUL
+xjumpTable:
+    pop hl
+    inc bc
+xjumpTable0:
+    xor a
+    cp (hl)
+    jr z,xjumpTable2
+    ld a,(bc)
+    cp (hl)
+    jr z,xjumpTable1
+    inc hl
+    inc hl
+    jr xjumpTable0
+xjumpTable1:
+    inc hl
+    ld a,(hl)                   
+    add a,a
+    ld l,a
+    ld a,0
+    adc a,h
+    jp (hl)
+xjumpTable2:
+    dec bc
+    inc hl
+    jp (hl)
+
 
 prtstr0:
     call putchar
