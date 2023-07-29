@@ -1043,7 +1043,6 @@ command:
 
 ; 12
 command_a_:
-    call xjumpTable
     db "b"                      ; /ab absolute
     dw absolute
     db "d"                      ; /ad address of
@@ -1056,7 +1055,6 @@ command_a_:
     jp error1
 
 command_b_:
-    call xjumpTable
     db "b"                      ; /bb bye bye cold boot
     dw coldStart
     db "m"                      ; /bm byte mode
@@ -1067,14 +1065,12 @@ command_b_:
     jp byteMode                 ; /b byte mode
 
 command_d_:
-    call xjumpTable
     db "b"                      ; /db decimal base
     dw decBase
     db NUL
     jp decBase                  ; /d decimal
 
 command_f_:
-    call xjumpTable
     db "d"                      ; /fd fold
     dw fold
     db "e"                      ; /fe forEach
@@ -1095,7 +1091,6 @@ command_f_:
     jp false1
 
 command_h_:
-    call xjumpTable
     db "b"                      ; /hb hex base
     dw hexBase
     db NUL
@@ -1103,43 +1098,37 @@ command_h_:
 
 ; 6
 command_i_:
-    call xjumpTable
     db "n"                      ; /in input
     dw input
     db NUL
     jp error1
 
 key_:
-    call xjumpTable
     db NUL
     jp key
+
 command_m_:
-    call xjumpTable
     db "p"                      ; /mp map
     dw map
     db NUL
     jp error1
 
 output_:
-    call xjumpTable
     db NUL
     jp output
 ; 4
 command_p_:
-    call xjumpTable
     db NUL
     jp error1
 
 ; 6
 command_q_:
-    call xjumpTable
     db "t"                      ; /qt quit
     dw quit
     db NUL
     jp error1
 
 command_r_:
-    call xjumpTable
     db "c"                      ; /rc tail call optimisation
     dw recur
     db "e"                      ; /re remainder
@@ -1150,7 +1139,6 @@ command_r_:
     jp error1
 
 command_s_:
-    call xjumpTable
     db "b"
     dw stringBegin
     db "e"
@@ -1163,17 +1151,10 @@ command_s_:
     jp error1
 
 true_:
-    call xjumpTable
     db NUL
     jp true1
 
-xor_:
-    call xjumpTable
-    db NUL
-    jp xor
-
 command_v_:
-    call xjumpTable
     db "h"
     dw varHeapPtr
     db "t"
@@ -1186,24 +1167,27 @@ command_v_:
     jp error1
 
 command_w_:
-    call xjumpTable
     db "m"                      ; /wm word mode
     dw wordMode
     db NUL
     jp wordMode                 ; /w word mode
 
-; 3
-command_default_:
-    call xjumpTable
+xor_:
     db NUL
-    jp div
-    
+    jp xor
+
 ; 2
 command_nop_:
+    db NUL
     jp (ix)
  
+; 3
+command_default_:
+    db NUL
+    jp div
 
-; 14
+;********************** PAGE 6 END *********************************************
+
 ; /ab absolute
 ; num -- num
 absolute:
@@ -1219,7 +1203,43 @@ absolute:
     push hl
     jp (ix)
 
-; 8
+; /ad addrOf                    24
+; char -- addr
+addrOf:
+    pop hl                      ; a = char
+    ld a,l
+    cp "z"+1                    ; if a > z then exit
+    jr nc,addrOf2
+    sub "A"                     ; a - 65
+    jr c,addrOf2                ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,addrOf1
+    sub "a"-("Z"+1)
+    cp "Z"-"A"+1
+    jr c,addrOf2                ; if < a then exit
+addrOf1:
+    add a,a                     ; double a
+    ld hl,VARS                  ; hl = VARS + a
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+    push hl
+addrOf2:    
+    jp (ix)
+
+; /as size of an array, num elements, ignores vDataWidth :-/ 
+; array* -- num     
+arraySize:
+    pop hl
+    dec hl                      ; msb size 
+    ld d,(hl)
+    dec hl                      ; lsb size 
+    ld e,(hl)
+    push de
+    jp (ix)
+
 ; 13
 ; /br break from loop             
 ; --
@@ -1240,7 +1260,44 @@ break1:
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
 
-; 11
+; /b
+byteMode:
+    ld hl,1
+byteMode1:
+    ld (vDataWidth),hl
+    jp (ix)
+
+; //
+comment:
+    inc bc                      ; point to next char
+    ld a,(bc)
+    cp " "                      ; terminate on any char less than SP 
+    jr nc,comment
+    dec bc
+    jp (ix) 
+
+constHeapStart:
+    ld de,HEAP
+    jp constant
+
+constTIBStart:
+    ld de,TIB
+    jp constant
+
+decBase:
+    ld hl,10
+decBase1:
+    ld (vNumBase),hl
+    jp (ix)
+
+error1:
+    ld hl,1                     ; error 1: unknown command
+    jp error
+
+hexBase:
+    ld hl,16
+    jp decBase1
+
 ; Z80 port input
 ; port -- value 
 input:
@@ -1253,48 +1310,26 @@ input:
     push hl
     jp (ix)    
 
-; 5
-decBase:
-    ld hl,10
-decBase1:
-    ld (vNumBase),hl
+; /k                              6
+key:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
     jp (ix)
 
-; 3
-error1:
-    ld hl,1                     ; error 1: unknown command
-    jp error
 
-; 3
-hexBase:
-    ld hl,16
-    jp decBase1
+; /o Z80 port output               
+; value port --
+output:
+    pop hl
+    ld e,c                      ; save IP
+    ld c,l
+    pop hl
+    out (c),l
+    ld c,e                      ; restore IP
+    jp (ix)    
 
-; 4
-; /w
-wordMode:
-    ld hl,2
-    jp byteMode1
-
-; 8
-; //
-comment:
-    inc bc                      ; point to next char
-    ld a,(bc)
-    cp " "                      ; terminate on any char less than SP 
-    jr nc,comment
-    dec bc
-    jp (ix) 
-
-; 6
-; /b
-byteMode:
-    ld hl,1
-byteMode1:
-    ld (vDataWidth),hl
-    jp (ix)
-
-; 10
 ; /qt
 ; bool -- 
 quit:
@@ -1306,58 +1341,6 @@ quit:
 quit1:    
     jp blockEnd
 
-; 10
-; /as size of an array, num elements, ignores vDataWidth :-/ 
-; array* -- num     
-arraySize:
-    pop hl
-    dec hl                      ; msb size 
-    ld d,(hl)
-    dec hl                      ; lsb size 
-    ld e,(hl)
-    push de
-    jp (ix)
-
-; 12
-xor:
-    pop de                      ; Bitwise xor the top 2 elements of the stack
-xor1:
-    pop hl
-    ld a,e
-    xor l
-    ld l,a
-    ld a,d
-    xor h
-    ld h,a        
-    push hl        
-    jp (ix)    
-
-; 2
-; key:
-;     jr key
-; /k                              6
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
-
-
-;********************** PAGE 6 END *********************************************
-;********************** PAGE 7 BEGIN *********************************************
-
-; /o Z80 port output               9
-; value port --
-output:
-    pop hl
-    ld e,c                      ; save IP
-    ld c,l
-    pop hl
-    out (c),l
-    ld c,e                      ; restore IP
-    jp (ix)    
-
 recur:
     pop hl
     ld (vRecur),hl
@@ -1368,13 +1351,36 @@ remain:
     push hl
     jp (ix)
 
-constHeapStart:
-    ld de,HEAP
-    jr constant
+stringBegin:
+    ld hl,TRUE                  ; string mode = true
+    ld (vStrMode),hl
+    jr stringEnd1              ; save hl in vBufPtr
 
-constTIBStart:
-    ld de,TIB
-    jr constant
+stringEnd:
+    ld hl,FALSE                 ; string mode = false
+    ld (vStrMode),hl
+    ld hl,(vBufPtr)             ; append NUL to string
+    xor a
+    ld (hl),a
+    inc hl                      ; hl = string_end*
+    ld (vTemp1),bc              ; save IP
+    ld de,BUFFER                ; de = string* 
+    or a                        ; bc = size
+    sbc hl,de
+    ld bc,hl
+    ld hl,(vHeapPtr)            ; hl = hstring*            
+    ex de,hl                    ; hl = string*, de = hstring*, bc = size
+    push de                     ; return hstring*
+    ldir                        ; copy size bytes from string* to hstring*
+    ld (vHeapPtr),de            ; bump heap to hstring* += size
+    ld bc,(vTemp1)              ; restore IP
+stringEnd1:
+    ld hl,BUFFER                ; reset vBufPtr
+    ld (vBufPtr),hl              
+    jp (ix)
+
+stringSize:
+    jp (ix)
 
 varHeapPtr:
     ld de,(vHeapPtr)
@@ -1392,8 +1398,23 @@ constant:
     push de
     jp (ix)
 
+; /w
+wordMode:
+    ld hl,2
+    jp byteMode1
 
-;********************** PAGE 7 END *********************************************
+xor:
+    pop de                      ; Bitwise xor the top 2 elements of the stack
+xor1:
+    pop hl
+    ld a,e
+    xor l
+    ld l,a
+    ld a,d
+    xor h
+    ld h,a        
+    push hl        
+    jp (ix)    
 
 ;*******************************************************************
 ; Monty implementations
@@ -1450,7 +1471,7 @@ db      "\\dt:ic{"                  ; return talkback to receive data
 db        "%L1#!/qt"                ; if not active don't send
 db        "%L0# %i="                ; store current index in A 
 db        "%L0# ++"                 ; inc value of index by step
-db        "/b %s%i# /w %c="         ; read byte at i, store in c as word
+db        "/bm %s%i# /wm %c="       ; read byte at i, store in c as word
 db        "1%t!=/qt"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
 db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
@@ -1545,49 +1566,6 @@ db "'[ '.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"
 db "}"
 db 0
 
-;*******************************************************************
-; unused opcodes (reserved)
-;*******************************************************************
-
-underscore:
-comma:
-    jp (ix)
-
-;*******************************************************************
-; implementations
-;*******************************************************************
-
-stringBegin:
-    ld hl,TRUE                  ; string mode = true
-    ld (vStrMode),hl
-    jr stringEnd1              ; save hl in vBufPtr
-
-stringEnd:
-    ld hl,FALSE                 ; string mode = false
-    ld (vStrMode),hl
-    ld hl,(vBufPtr)             ; append NUL to string
-    xor a
-    ld (hl),a
-    inc hl                      ; hl = string_end*
-    ld (vTemp1),bc              ; save IP
-    ld de,BUFFER                ; de = string* 
-    or a                        ; bc = size
-    sbc hl,de
-    ld bc,hl
-    ld hl,(vHeapPtr)            ; hl = hstring*            
-    ex de,hl                    ; hl = string*, de = hstring*, bc = size
-    push de                     ; return hstring*
-    ldir                        ; copy size bytes from string* to hstring*
-    ld (vHeapPtr),de            ; bump heap to hstring* += size
-    ld bc,(vTemp1)              ; restore IP
-stringEnd1:
-    ld hl,BUFFER                ; reset vBufPtr
-    ld (vBufPtr),hl              
-    jp (ix)
-
-stringSize:
-    jp (ix)
-
 dotNext:
     ld a,(vStrMode)             ; if string mode then exit
     inc a                       
@@ -1612,34 +1590,17 @@ dotNext3:
     ld (vBufPtr),hl
     jp (ix)
 
-; /ad addrOf                    24
-; char -- addr
-addrOf:
-    pop hl                      ; a = char
-    ld a,l
-    cp "z"+1                    ; if a > z then exit
-    jr nc,addrOf2
-    sub "A"                     ; a - 65
-    jr c,addrOf2                ; if < A then exit
-    cp "Z"+1-"A"                ; if > Z then subtract 7
-    jr c,addrOf1
-    sub "a"-("Z"+1)
-    cp "Z"-"A"+1
-    jr c,addrOf2                ; if < a then exit
-addrOf1:
-    add a,a                     ; double a
-    ld hl,VARS                  ; hl = VARS + a
-    add a,l
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
-    push hl
-addrOf2:    
+;*******************************************************************
+; unused opcodes (reserved)
+;*******************************************************************
+
+underscore:
+comma:
     jp (ix)
 
-
-;                               51
+;*******************************************************************
+; opcodes continued
+;*******************************************************************
 rbrack:
 arrayEnd:
     ld d,iyh                    ; de = BP
@@ -2143,6 +2104,36 @@ createFunc5:
 ;     jr printChars1                      ; if not loop
 
 
+; ; followed by a table
+; ; db char
+; ; db lsb(addr)
+; ; the final item must have char == NUL
+; jumpTable:
+;     pop hl
+;     inc bc
+; jumpTable0:
+;     xor a
+;     cp (hl)
+;     jr z,jumpTable2
+;     ld a,(bc)
+;     cp (hl)
+;     jr z,jumpTable1
+;     inc hl
+;     inc hl
+;     jr jumpTable0
+; jumpTable1:
+;     inc hl
+;     ld l,(hl)                   ; must have the same msb as the table
+;     jp (hl)
+; jumpTable2:
+;     dec bc
+;     inc hl
+;     jp (hl)
+
+; followed by a table
+; indexed on the 0-25 lowercase letter
+; db lsb(addr)
+; the final item index 26 matches any other char
 commandTable:
     inc bc
     ld a,(bc)
@@ -2155,7 +2146,7 @@ commandTable1:
     add a,l
     ld l,a
     ld l,(hl)                   ; must have the same msb as the table
-    jp (hl)
+    jp xjumpTableX
 commandTable2:
     ld a,26
     dec bc
@@ -2165,34 +2156,9 @@ commandTable2:
 ; db char
 ; db lsb(addr)
 ; the final item must have char == NUL
-jumpTable:
-    pop hl
-    inc bc
-jumpTable0:
-    xor a
-    cp (hl)
-    jr z,jumpTable2
-    ld a,(bc)
-    cp (hl)
-    jr z,jumpTable1
-    inc hl
-    inc hl
-    jr jumpTable0
-jumpTable1:
-    inc hl
-    ld l,(hl)                   ; must have the same msb as the table
-    jp (hl)
-jumpTable2:
-    dec bc
-    inc hl
-    jp (hl)
-
-; followed by a table
-; db char
-; db lsb(addr)
-; the final item must have char == NUL
 xjumpTable:
     pop hl
+xjumpTableX:
     inc bc
 xjumpTable0:
     xor a

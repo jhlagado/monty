@@ -5,11 +5,19 @@
 /al - array length
 /sl - string length
 /as - might be the array size in bytes?
+
+## done
+
+/sb string mode begin
+/se string mode end
+
+reorg jump table
+
+/db - decimal base
 /bb - for bye bye
 /bm - byte mode
 /wm - word mode
 /hb - hex base
-/db - decimal base
 
 all strings are null terminated
 
