@@ -10,7 +10,7 @@ STACK:
 TIB:        ds TIBSIZE          ; must be one page, lsb of vTIBPtr is length and wraps around
 
 .align $100
-BUF:        ds BUFSIZE          ; must be one page, lsb of vBufPtr is length and wraps around
+BUFFER:     ds BUFSIZE          ; must be one page, lsb of vBufPtr is length and wraps around
 
 .align $100
 VARS:
@@ -36,7 +36,7 @@ sysVars:
 vDataWidth: ds 2                ; 
 vNumBase:   ds 2                ;    
 vTIBPtr:    ds 2                ; 
-vStrPtr     ds 2                ; 
+vBufPtr     ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
 vRecur:     ds 2                ;

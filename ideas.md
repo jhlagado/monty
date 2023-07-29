@@ -1,5 +1,13 @@
 # Ideas
 
+#August
+
+/al - array length
+/sl - string length
+/as - might be the array size in bytes?
+
+#July 
+
 all print statements should have the option to print to the output 
 or to a string. It should probably be limited to a string of 255 chars
 other wise it might go rogue and wipe memory.

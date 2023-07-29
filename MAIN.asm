@@ -154,7 +154,7 @@ isysVars:
     DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     DW 10                       ; vNumBase = 10
     DW TIB                      ; vTIBPtr pointer into TIB
-    DW HEAP                     ; vStrPtr pointer into BUF
+    DW BUFFER                   ; vBufPtr pointer into BUF
     DW next                     ; nNext
     DW HEAP                     ; vHeapPtr \h start of the free mem
     DW 0                        ; vRecur
@@ -749,7 +749,7 @@ num3:
 grave:
 printString:
     inc bc                      ; move to first char
-    ld de,(vStrPtr)             ; de = buffer*
+    ld de,(vBufPtr)             ; de = buffer*
     jr printString1
 printString0:
     ld (de),a                   ; a -> buffer*
@@ -760,7 +760,7 @@ printString1:
     cp "`"                      ; if ` exit loop
     jr nz,printString0
     ; inc bc
-    ld (vStrPtr),de             ; save buffer*' in pointer
+    ld (vBufPtr),de             ; save buffer*' in pointer
     jp dotNext
 
 ; string                        ;38
@@ -790,7 +790,7 @@ string3:
     ld (hl),a                   ; hl = end of string
     inc hl
     ld (vHeapPtr),hl            ; bump heap* to after end of string
-    ld (vStrPtr),hl
+    ld (vBufPtr),hl
     dec hl                      ; hl = end of string without terminator
     pop de                      ; de = start of string
     push de                     ; return start of string    
@@ -855,23 +855,17 @@ arg1a:
 
 ;                               67
 dot:
-    call jumpTable
+    call xjumpTable
     db "a"                      ; .a print array
-    db lsb(dotArray_)
+    dw dotArray
     db "c"                      ; .c print char
-    db lsb(dotChar_)
+    dw dotChar
     db "s"                      ; .s print string
-    db lsb(dotString_)
+    dw dotString_
     db NUL                      ; .  print number
-    jp dotNumber_
-
-.align 2
-dotArray_:
-    jp dotArray
 
 ; /bd buffer decimal
 ; value --                      
-.align 2
 dotNumber_:        
     ld a,(vNumBase)
     cp 16
@@ -880,7 +874,7 @@ dotNumber_:
 ; print decimal                 ; 70
 ; value --                      
 dotDec:        
-    ld de,(vStrPtr)             ; de'= buffer* bc' = IP
+    ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
     pop hl                      ; hl = value
     call dotDec0
@@ -888,7 +882,7 @@ dotDec:
     ld a," "                    ; append space to buffer
     ld (de),a
     inc de                      ; string*++, 
-    ld (vStrPtr),de             ; update buffer* with buffer*'
+    ld (vBufPtr),de             ; update buffer* with buffer*'
     jp dotNext
 
 ; hl = value
@@ -950,7 +944,7 @@ dotDec5:
 ; value --                      
 dotHex:                      
     pop hl                      ; hl = value
-    ld de,(vStrPtr)
+    ld de,(vBufPtr)
     ld a,"$"                    ; # prefix
     ld (de),a
     inc de                      ; string*++, 
@@ -961,7 +955,7 @@ dotHex:
     ld a," "                    ; append space to buffer
     ld (de),a
     inc de                      ; string*++, 
-    ld (vStrPtr),de
+    ld (vBufPtr),de
     jp dotNext
 
 dotHex1:		     
@@ -984,10 +978,9 @@ dotHex2:
 
 ; /bs buffered string             
 ; string* --
-.align 2
 dotString_:
     pop hl                      ; hl = string*
-    ld de,(vStrPtr)             ; de = buffer*
+    ld de,(vBufPtr)             ; de = buffer*
     jr dotString1
 dotString0:
     ld (de),a                   ; a -> buffer*
@@ -997,19 +990,18 @@ dotString1:
     ld a,(hl)                   ; a <- string*
     or a                        ; if NUL exit loop
     jr nz,dotString0
-    ld (vStrPtr),de             ; save buffer*' in pointer
+    ld (vBufPtr),de             ; save buffer*' in pointer
     jp dotNext
 
 ; .c print char             
 ; char -- 
-.align 2
-dotChar_:
+dotChar:
     pop hl                      ; a = char
     ld a,l
-    ld de,(vStrPtr)             ; de = buffer*
+    ld de,(vBufPtr)             ; de = buffer*
     ld (de),a
     inc de
-    ld (vStrPtr),de             ; save buffer*'
+    ld (vBufPtr),de             ; save buffer*'
     jp dotNext
 
 ;********************** PAGE 5 END *********************************************
@@ -1364,9 +1356,15 @@ command_v:
     jp error1_
 
 command_s:
-    call jumpTable
+    call xjumpTable
+    db "b"
+    dw stringBegin
+    db "e"
+    dw stringEnd
     db "i"
-    db lsb(stringIter_)
+    dw stringIter_
+    db "s"
+    dw stringSize
     db NUL
     jp error1_
 
@@ -1605,14 +1603,45 @@ comma:
 ; implementations
 ;*******************************************************************
 
+stringBegin:
+    ld hl,TRUE                  ; string mode = true
+    ld (vStrMode),hl
+    jr stringEnd1              ; save hl in vBufPtr
+
+stringEnd:
+    ld hl,FALSE                 ; string mode = false
+    ld (vStrMode),hl
+    ld hl,(vBufPtr)             ; append NUL to string
+    xor a
+    ld (hl),a
+    inc hl                      ; hl = string_end*
+    ld (vTemp1),bc              ; save IP
+    ld de,BUFFER                ; de = string* 
+    or a                        ; bc = size
+    sbc hl,de
+    ld bc,hl
+    ld hl,(vHeapPtr)            ; hl = hstring*            
+    ex de,hl                    ; hl = string*, de = hstring*, bc = size
+    push de                     ; return hstring*
+    ldir                        ; copy size bytes from string* to hstring*
+    ld (vHeapPtr),de            ; bump heap to hstring* += size
+    ld bc,(vTemp1)              ; restore IP
+stringEnd1:
+    ld hl,BUFFER                ; reset vBufPtr
+    ld (vBufPtr),hl              
+    jp (ix)
+
+stringSize:
+    jp (ix)
+
 dotNext:
     ld a,(vStrMode)             ; if string mode then exit
     inc a                       
     jr nz,dotNext1
     jp (ix)
 dotNext1:
-    ld de,(vHeapPtr)
-    ld hl,(vStrPtr)
+    ld de,BUFFER
+    ld hl,(vBufPtr)
     or a                        ; hl = count, de = vHeapPtr
     sbc hl,de                   
     jp dotNext3
@@ -1625,28 +1654,8 @@ dotNext3:
     ld a,l                      ; count == 0?
     or h
     jr nz,dotNext2              ; if not loop
-    ld hl,(vHeapPtr)            ; reset vStrPtr to vHeapPtr
-    ld (vStrPtr),hl
-    jp (ix)
-
-stringModeEnter:
-    ld hl,TRUE
-    ld (vStrMode),hl
-    ld hl,(vHeapPtr)
-    jr stringModeExit1
-
-stringModeExit:
-    ld hl,FALSE
-    ld (vStrMode),hl
-    ld hl,(vStrPtr)             ; append NUL to string
-    xor a
-    ld (hl),a
-    inc hl                      ; hl = string_end*
-    ld de,(vHeapPtr)            ; de = string*
-    push de                     ; return string*
-    ld (vHeapPtr),hl            ; vHeapPtr = string_end*
-stringModeExit1:
-    ld (vStrPtr),hl             ; vStrPtr = vHeapPtr 
+    ld hl,BUFFER                ; reset vBufPtr to vHeapPtr
+    ld (vBufPtr),hl
     jp (ix)
 
 ; /ad addrOf                    24
@@ -1727,7 +1736,7 @@ arrayEnd3:
     inc de
     push de                     ; return array[0]
     ld (vHeapPtr),hl            ; move heap* to end of array
-    ld (vStrPtr),hl
+    ld (vBufPtr),hl
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
@@ -1955,7 +1964,7 @@ parseArgs4:
 parseArgs5:
     inc hl
     ld (vHeapPtr),hl            ; bump heap* to after end of string
-    ld (vStrPtr),hl
+    ld (vBufPtr),hl
     pop hl                      ; hl = start of arg_list
     ld (hl),d                   ; write number of locals at start - 1                                      
     inc hl                      
@@ -2027,7 +2036,7 @@ parseBlock5:
     push de                     ; return hblock*
     ldir                        ; copy size bytes from block* to hblock*
     ld (vHeapPtr),de            ; heap* += size
-    ld (vStrPtr),de
+    ld (vBufPtr),de
     ld bc,(vTemp1)              ; restore IP
 parseBlock6:
     dec bc                      ; balanced, exit
@@ -2152,20 +2161,20 @@ createFunc5:
     ld (hl),b
     inc hl
     ld (vHeapPtr),hl            ; bump heap ptr
-    ld (vStrPtr),hl
+    ld (vBufPtr),hl
     ld bc,(vTemp1)              ; restore IP
     ld hl,(vTemp3)              ; jump to return address
     jp (hl)
 
 
-; ; prints whatever in in buffer starting from BUF and ending at vStrPtr* 
+; ; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
 ; flushBuffer:
 ;     push af
 ;     push de
 ;     push hl
-;     ld hl,(vStrPtr)
+;     ld hl,(vBufPtr)
 ;     ld de,BUF
-;     ld (vStrPtr),de
+;     ld (vBufPtr),de
 ;     or a
 ;     sbc hl,de
 ;     call printChars2
@@ -2245,20 +2254,19 @@ xjumpTable0:
     jr z,xjumpTable1
     inc hl
     inc hl
+    inc hl
     jr xjumpTable0
 xjumpTable1:
     inc hl
-    ld a,(hl)                   
-    add a,a
-    ld l,a
-    ld a,0
-    adc a,h
+    ld e,(hl)                   
+    inc hl
+    ld d,(hl)
+    ex de,hl
     jp (hl)
 xjumpTable2:
     dec bc
     inc hl
     jp (hl)
-
 
 prtstr0:
     call putchar

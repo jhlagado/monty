@@ -1327,13 +1327,13 @@
 0500                             ;********************** PAGE 5X BEGIN *********************************************
 0500                             ;                               67
 0500                DOT:         
-0500   CD 10 0E               CALL   jumpTable   
+0500   CD 24 0E               CALL   xjumpTable   
 0503   61                     DB   "a"   ; .a print array
-0504   0E                     DB   lsb(dotArray_)   
+0504   87                     DB   lsb(dotArray_/2)   
 0505   63                     DB   "c"   ; .c print char
-0506   C2                     DB   lsb(dotChar_)   
+0506   E1                     DB   lsb(dotChar_/2)   
 0507   73                     DB   "s"   ; .s print string
-0508   AC                     DB   lsb(dotString_)   
+0508   D6                     DB   lsb(dotString_/2)   
 0509   00                     DB   NUL   ; .  print number
 050A   C3 12 05               JP   dotNumber_   
 050D                          ALIGN   2   
@@ -3849,7 +3849,6 @@ COMMANDTABLE2:      0E0B DEFINED AT LINE 2201 IN MAIN.asm
                     > USED AT LINE 2192 IN MAIN.asm
                     > USED AT LINE 2194 IN MAIN.asm
 JUMPTABLE:          0E10 DEFINED AT LINE 2210 IN MAIN.asm
-                    > USED AT LINE 858 IN MAIN.asm
                     > USED AT LINE 1058 IN MAIN.asm
                     > USED AT LINE 1071 IN MAIN.asm
                     > USED AT LINE 1081 IN MAIN.asm
@@ -3867,6 +3866,7 @@ JUMPTABLE1:         0E1E DEFINED AT LINE 2223 IN MAIN.asm
 JUMPTABLE2:         0E21 DEFINED AT LINE 2227 IN MAIN.asm
                     > USED AT LINE 2216 IN MAIN.asm
 XJUMPTABLE:         0E24 DEFINED AT LINE 2236 IN MAIN.asm
+                    > USED AT LINE 858 IN MAIN.asm
 XJUMPTABLE0:        0E26 DEFINED AT LINE 2239 IN MAIN.asm
                     > USED AT LINE 2248 IN MAIN.asm
 XJUMPTABLE1:        0E32 DEFINED AT LINE 2249 IN MAIN.asm
