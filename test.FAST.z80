@@ -34,10 +34,12 @@ testsStart:
     ; test "$1000 0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", $1000
     ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
-    ; test "[1 2 3].a", 0
+    test "[1 2 3].a", 0
+    ; test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
+    ; ; test "`hello:` 65.c 1. 2. 3.", FALSE
 
-    test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
-    ; test "`hello:` 65.c 1. 2. 3.", FALSE
+    ; test "/h/b$1234.",0
+    ; test "/b257.",0
     call printStr
     .cstr "Done!"
     HALT

@@ -1,12 +1,19 @@
 # Ideas
 
-#August
+# August
 
 /al - array length
 /sl - string length
 /as - might be the array size in bytes?
+/bb - for bye bye
+/bm - byte mode
+/wm - word mode
+/hb - hex base
+/db - decimal base
 
-#July 
+all strings are null terminated
+
+# July 
 
 all print statements should have the option to print to the output 
 or to a string. It should probably be limited to a string of 255 chars

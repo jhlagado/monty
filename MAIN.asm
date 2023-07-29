@@ -769,8 +769,6 @@ quote:
 dquote:
 string:     
     ld hl,(vHeapPtr)            ; hl = heap*
-    inc hl                      ; skip length field to start
-    inc hl
     push hl                     ; save start of string 
     ld a,(bc)
     ld e,a                      ; e = matching terminator
@@ -790,17 +788,6 @@ string3:
     ld (hl),a                   ; hl = end of string
     inc hl
     ld (vHeapPtr),hl            ; bump heap* to after end of string
-    ld (vBufPtr),hl
-    dec hl                      ; hl = end of string without terminator
-    pop de                      ; de = start of string
-    push de                     ; return start of string    
-    or a                        ; hl = length bytes, de = start of string
-    sbc hl,de
-    ex de,hl
-    dec hl                      ; write length bytes to length field at start - 2                                      
-    ld (hl),d
-    dec hl
-    ld (hl),e
     jp (ix)  
 
 ; %a .. %z                      43
@@ -877,6 +864,11 @@ dotDec:
     ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
     pop hl                      ; hl = value
+    ld a,(vDataWidth)
+    dec a
+    jr nz,dotDecX
+    ld h,0
+dotDecX:    
     call dotDec0
     exx                         ; de = buffer*' bc = IP
     ld a," "                    ; append space to buffer
@@ -948,8 +940,12 @@ dotHex:
     ld a,"$"                    ; # prefix
     ld (de),a
     inc de                      ; string*++, 
+    ld a,(vDataWidth)
+    dec a
+    jr z,dotHex0
     ld a,h
     call dotHex1
+dotHex0:
     ld a,l
     call dotHex1
     ld a," "                    ; append space to buffer
@@ -1020,11 +1016,11 @@ command:
     db lsb(command_a_)
     db lsb(command_b_)
     db lsb(command_nop_)
-    db lsb(decimal_)
+    db lsb(command_d_)
     db lsb(command_nop_)
     db lsb(command_f_)
     db lsb(command_nop_)
-    db lsb(hexadecimal_)
+    db lsb(command_h_)
     db lsb(command_i_)
     db lsb(command_nop_)
     db lsb(key_)
@@ -1039,61 +1035,178 @@ command:
     db lsb(true_)
     db lsb(command_nop_)
     db lsb(command_v_)
-    db lsb(words_)
+    db lsb(command_w_)
     db lsb(xor_)
     db lsb(command_nop_)
     db lsb(command_nop_)
-    db lsb(div_)
+    db lsb(command_default_)
 
 ; 12
 command_a_:
-    call jumpTable
+    call xjumpTable
     db "b"                      ; /ab absolute
-    db lsb(absolute_)
+    dw absolute
     db "d"                      ; /ad address of
-    db lsb(addrOf_)
+    dw addrOf
     db "i"                      ; /ad address of
-    db lsb(arrayIter_)
+    dw arrayIter
     db "s"                      ; /as array size
-    db lsb(arraySize_)
+    dw arraySize
     db NUL
-    jp error1_
+    jp error1
 
 command_b_:
-    call jumpTable
-    db "r"                      ; /br break
-    db lsb(break_)
-    db "y"                      ; /by cold boot
-    db lsb(coldStart_)
+    call xjumpTable
+    db "b"                      ; /bb bye bye cold boot
+    dw coldStart
+    db "m"                      ; /bm byte mode
+    dw byteMode
+    db "r"                      ; /br break from loop
+    dw break
     db NUL
-    jp bytes_                   ; /b bytes
+    jp byteMode                 ; /b byte mode
+
+command_d_:
+    call xjumpTable
+    db "b"                      ; /db decimal base
+    dw decBase
+    db NUL
+    jp decBase                  ; /d decimal
+
+command_f_:
+    call xjumpTable
+    db "d"                      ; /fd fold
+    dw fold
+    db "e"                      ; /fe forEach
+    dw forEach
+    db "s"                      ; /fs funcSrc
+    dw funcSrc
+    db "t"                      ; /ft filter
+    dw filter
+    db "1"                      
+    dw f1
+    db "2"                      
+    dw f2
+    db "3"                      
+    dw f3
+    db "4"                      
+    dw f4
+    db NUL
+    jp false1
+
+command_h_:
+    call xjumpTable
+    db "b"                      ; /hb hex base
+    dw hexBase
+    db NUL
+    jp hexBase                  ; /h hex base
 
 ; 6
 command_i_:
-    call jumpTable
+    call xjumpTable
     db "n"                      ; /in input
-    db lsb(input_)
+    dw input
     db NUL
-    jp error1_
+    jp error1
 
+key_:
+    call xjumpTable
+    db NUL
+    jp key
+command_m_:
+    call xjumpTable
+    db "p"                      ; /mp map
+    dw map
+    db NUL
+    jp error1
+
+output_:
+    call xjumpTable
+    db NUL
+    jp output
 ; 4
 command_p_:
-    call jumpTable
+    call xjumpTable
     db NUL
-    jp error1_
+    jp error1
 
 ; 6
 command_q_:
-    call jumpTable
+    call xjumpTable
     db "t"                      ; /qt quit
-    db lsb(quit_)
+    dw quit
     db NUL
-    jp error1_
+    jp error1
+
+command_r_:
+    call xjumpTable
+    db "c"                      ; /rc tail call optimisation
+    dw recur
+    db "e"                      ; /re remainder
+    dw remain
+    db "g"                      ; /rg range src
+    dw rangeSrc
+    db NUL
+    jp error1
+
+command_s_:
+    call xjumpTable
+    db "b"
+    dw stringBegin
+    db "e"
+    dw stringEnd
+    db "i"
+    dw stringIter
+    db "s"
+    dw stringSize
+    db NUL
+    jp error1
+
+true_:
+    call xjumpTable
+    db NUL
+    jp true1
+
+xor_:
+    call xjumpTable
+    db NUL
+    jp xor
+
+command_v_:
+    call xjumpTable
+    db "h"
+    dw varHeapPtr
+    db "t"
+    dw varTIBPtr
+    db "H"
+    dw constHeapStart
+    db "T"
+    dw constTIBStart
+    db NUL
+    jp error1
+
+command_w_:
+    call xjumpTable
+    db "m"                      ; /wm word mode
+    dw wordMode
+    db NUL
+    jp wordMode                 ; /w word mode
+
+; 3
+command_default_:
+    call xjumpTable
+    db NUL
+    jp div
+    
+; 2
+command_nop_:
+    jp (ix)
+ 
 
 ; 14
 ; /ab absolute
 ; num -- num
-absolute_:
+absolute:
     pop hl
     bit 7,h
     ret z
@@ -1110,7 +1223,6 @@ absolute_:
 ; 13
 ; /br break from loop             
 ; --
-break_:
 break:
     pop hl                      ; hl = condition, break if false
     ld a,l
@@ -1131,7 +1243,7 @@ break1:
 ; 11
 ; Z80 port input
 ; port -- value 
-input_:
+input:
     pop hl
     ld e,c                      ; save IP
     ld c,l
@@ -1141,74 +1253,28 @@ input_:
     push hl
     jp (ix)    
 
-; 2
-command_m_:
-    jp command_m
-
-; 2
-command_r_:
-    jp command_r
-
-; 2
-command_s_:
-    jp command_s
-
-; 2
-command_v_:
-    jp command_v
-
-; 2
-command_nop_:
-    jp (ix)
-    
 ; 5
-decimal_:
+decBase:
     ld hl,10
-decimal1:
+decBase1:
     ld (vNumBase),hl
     jp (ix)
 
 ; 3
-div_:
-    db NUL
-    jp div
-
-; 3
-error1_:
+error1:
     ld hl,1                     ; error 1: unknown command
     jp error
 
 ; 3
-hexadecimal_:
+hexBase:
     ld hl,16
-    jp decimal1
-
-; 2
-true_:    
-    jp true1
-
-; 2
-words_:
-    jp words
-
-; ; 2
-addrOf_:
-    jp addrOf
-
-; 2
-arrayIter_:
-    jp arrayIter
-
-; 3
-; /by
-coldStart_:
-    jp coldStart
+    jp decBase1
 
 ; 4
 ; /w
-words:
+wordMode:
     ld hl,2
-    jp bytes1
+    jp byteMode1
 
 ; 8
 ; //
@@ -1222,16 +1288,16 @@ comment:
 
 ; 6
 ; /b
-bytes_:
+byteMode:
     ld hl,1
-bytes1:
+byteMode1:
     ld (vDataWidth),hl
     jp (ix)
 
 ; 10
 ; /qt
 ; bool -- 
-quit_:
+quit:
     pop hl                      ; hl = condition, exit if true
     ld a,l
     or h
@@ -1243,7 +1309,7 @@ quit1:
 ; 10
 ; /as size of an array, num elements, ignores vDataWidth :-/ 
 ; array* -- num     
-arraySize_:
+arraySize:
     pop hl
     dec hl                      ; msb size 
     ld d,(hl)
@@ -1253,7 +1319,7 @@ arraySize_:
     jp (ix)
 
 ; 12
-xor_:
+xor:
     pop de                      ; Bitwise xor the top 2 elements of the stack
 xor1:
     pop hl
@@ -1267,10 +1333,9 @@ xor1:
     jp (ix)    
 
 ; 2
-; key_:
+; key:
 ;     jr key
 ; /k                              6
-key_:
 key:
     call getchar
     ld h,0
@@ -1279,17 +1344,7 @@ key:
     jp (ix)
 
 
-; 2
-output_:
-    jr output
-    
-; 2
-command_f_:
-    jr command_f
-
 ;********************** PAGE 6 END *********************************************
-
-; .align $100
 ;********************** PAGE 7 BEGIN *********************************************
 
 ; /o Z80 port output               9
@@ -1303,131 +1358,30 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
-command_f:
-    call jumpTable
-    db "d"                      ; /fd fold
-    db lsb(fold_)
-    db "e"                      ; /fe forEach
-    db lsb(forEach_)
-    db "s"                      ; /fs funcSrc
-    db lsb(funcSrc_)
-    db "t"                      ; /ft filter
-    db lsb(filter_)
-    db "1"                      
-    db lsb(f1_)
-    db "2"                      
-    db lsb(f2_)
-    db "3"                      
-    db lsb(f3_)
-    db "4"                      
-    db lsb(f4_)
-    db NUL
-    jp false_
-
-command_m:
-    call jumpTable
-    db "p"                      ; /mp map
-    db lsb(map_)
-    db NUL
-    jp error1_
-
-command_r:
-    call jumpTable
-    db "c"                      ; /rc tail call optimisation
-    db lsb(recur_)
-    db "e"                      ; /re remainder
-    db lsb(remain_)
-    db "g"                      ; /rg range src
-    db lsb(rangeSrc_)
-    db NUL
-    jp error1_
-
-command_v:
-    call jumpTable
-    db "h"
-    db lsb(varHeapPtr_)
-    db "t"
-    db lsb(varTIBPtr_)
-    db "H"
-    db lsb(constHeapStart_)
-    db "T"
-    db lsb(constTIBStart_)
-    db NUL
-    jp error1_
-
-command_s:
-    call xjumpTable
-    db "b"
-    dw stringBegin
-    db "e"
-    dw stringEnd
-    db "i"
-    dw stringIter_
-    db "s"
-    dw stringSize
-    db NUL
-    jp error1_
-
-forEach_:
-    jp forEach
-
-filter_:
-    jp filter
-
-fold_:
-    jp fold
-
-funcSrc_:
-    jp funcSrc
-
-f1_:
-    jp f1
-
-f2_:
-    jp f2
-
-f3_:
-    jp f3
-
-f4_:
-    jp f4
-
-false_:
-    jp false1
-
-map_:
-    jp map
-
-recur_:
+recur:
     pop hl
     ld (vRecur),hl
     jp (ix)
 
-remain_:
+remain:
     ld hl,(vRemain)
     push hl
     jp (ix)
 
-stringIter_:
-    jp stringIter
-
-rangeSrc_:
-    jp rangeSrc
-
-constHeapStart_:
+constHeapStart:
     ld de,HEAP
     jr constant
 
-constTIBStart_:
+constTIBStart:
     ld de,TIB
     jr constant
 
-varHeapPtr_:
+varHeapPtr:
     ld de,(vHeapPtr)
     ld hl,vHeapPtr
     jr variable
 
-varTIBPtr_:
+varTIBPtr:
     ld de,(vTIBPtr)
     ld hl,vTIBPtr
     jr variable
@@ -1736,7 +1690,6 @@ arrayEnd3:
     inc de
     push de                     ; return array[0]
     ld (vHeapPtr),hl            ; move heap* to end of array
-    ld (vBufPtr),hl
     ld bc,(vTemp1)              ; restore IP
     jp (ix)
 
@@ -1964,7 +1917,6 @@ parseArgs4:
 parseArgs5:
     inc hl
     ld (vHeapPtr),hl            ; bump heap* to after end of string
-    ld (vBufPtr),hl
     pop hl                      ; hl = start of arg_list
     ld (hl),d                   ; write number of locals at start - 1                                      
     inc hl                      
@@ -2036,7 +1988,6 @@ parseBlock5:
     push de                     ; return hblock*
     ldir                        ; copy size bytes from block* to hblock*
     ld (vHeapPtr),de            ; heap* += size
-    ld (vBufPtr),de
     ld bc,(vTemp1)              ; restore IP
 parseBlock6:
     dec bc                      ; balanced, exit
@@ -2161,11 +2112,9 @@ createFunc5:
     ld (hl),b
     inc hl
     ld (vHeapPtr),hl            ; bump heap ptr
-    ld (vBufPtr),hl
     ld bc,(vTemp1)              ; restore IP
     ld hl,(vTemp3)              ; jump to return address
     jp (hl)
-
 
 ; ; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
 ; flushBuffer:
