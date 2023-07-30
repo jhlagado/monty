@@ -672,41 +672,6 @@ lambda2:
     push hl
     jp (ix)
 
-;                               32
-div:
-    pop de
-    pop hl
-    push bc                     ; preserve the IP    
-    ld bc,hl                
-    call divide
-    ex de,hl
-    ld (vRemain),de
-    pop bc
-    jp add3
-
-; division subroutine.
-; bc: divisor, de: dividend, hl: remainder
-
-divide:        
-    ld hl,0    	                ; zero the remainder
-    ld a,16    	                ; loop counter
-divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
-    sla c
-    rl b
-    adc hl,hl
-    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
-    jr c,divide2
-    inc c
-    jr divide3
-divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
-    add hl,de
-divide3:
-    dec a
-    jr nz,divide1
-    ld de,bc                    ; result from bc to de
-    ret
-
-
 ; 0..9 number                   37
 num:
 	ld hl,$0000				    ; Clear hl to accept the number
@@ -747,19 +712,18 @@ num3:
     jp (ix)                     ; and process the next character
 
 grave:
-printString:
+printLiteral:
     inc bc                      ; move to first char
     ld de,(vBufPtr)             ; de = buffer*
-    jr printString1
-printString0:
+    jr printLiteral1
+printLiteral0:
     ld (de),a                   ; a -> buffer*
     inc de                      ; string*++, 
     inc bc
-printString1:
+printLiteral1:
     ld a,(bc)                   ; a <- string*
     cp "`"                      ; if ` exit loop
-    jr nz,printString0
-    ; inc bc
+    jr nz,printLiteral0
     ld (vBufPtr),de             ; save buffer*' in pointer
     jp dotNext
 
@@ -842,22 +806,53 @@ arg1a:
 
 ;                               67
 dot:
-    call xjumpTable
+print:
+    call jumpTable
     db "a"                      ; .a print array
-    dw dotArray
+    dw printArray
     db "c"                      ; .c print char
-    dw dotChar
+    dw printChar
     db "s"                      ; .s print string
-    dw dotString_
-    db NUL                      ; .  print number
+    dw printString
+    db NUL                      ; .  print number, fall through
+    dw printNumber
 
-; /bd buffer decimal
+; .c print char             
+; char -- 
+printChar:
+    pop hl                      ; a = char
+    ld a,l
+    ld de,(vBufPtr)             ; de = buffer*
+    ld (de),a
+    inc de
+    ld (vBufPtr),de             ; save buffer*'
+    jp dotNext
+
+; .s print string             
+; string* --
+printString:
+    pop hl                      ; hl = string*
+    ld de,(vBufPtr)             ; de = buffer*
+    jr dotString1
+dotString0:
+    ld (de),a                   ; a -> buffer*
+    inc de                      ; string*++, 
+    inc hl
+dotString1:
+    ld a,(hl)                   ; a <- string*
+    or a                        ; if NUL exit loop
+    jr nz,dotString0
+    ld (vBufPtr),de             ; save buffer*' in pointer
+    jp dotNext
+
+; . print decimal
 ; value --                      
-dotNumber_:        
+printNumber:        
     ld a,(vNumBase)
     cp 16
     jp z,dotHex              ; else falls through
     jp dotDec
+
 ; print decimal                 ; 70
 ; value --                      
 dotDec:        
@@ -972,34 +967,6 @@ dotHex2:
     inc de                      ; string*++, 
 	ret
 
-; /bs buffered string             
-; string* --
-dotString_:
-    pop hl                      ; hl = string*
-    ld de,(vBufPtr)             ; de = buffer*
-    jr dotString1
-dotString0:
-    ld (de),a                   ; a -> buffer*
-    inc de                      ; string*++, 
-    inc hl
-dotString1:
-    ld a,(hl)                   ; a <- string*
-    or a                        ; if NUL exit loop
-    jr nz,dotString0
-    ld (vBufPtr),de             ; save buffer*' in pointer
-    jp dotNext
-
-; .c print char             
-; char -- 
-dotChar:
-    pop hl                      ; a = char
-    ld a,l
-    ld de,(vBufPtr)             ; de = buffer*
-    ld (de),a
-    inc de
-    ld (vBufPtr),de             ; save buffer*'
-    jp dotNext
-
 ;********************** PAGE 5 END *********************************************
 
 .align $100
@@ -1049,10 +1016,12 @@ command_a_:
     dw addrOf
     db "i"                      ; /ad address of
     dw arrayIter
+    db "l"                      ; /al array length
+    dw arrayLength
     db "s"                      ; /as array size
     dw arraySize
     db NUL
-    jp error1
+    dw error1
 
 command_b_:
     db "b"                      ; /bb bye bye cold boot
@@ -1062,13 +1031,13 @@ command_b_:
     db "r"                      ; /br break from loop
     dw break
     db NUL
-    jp byteMode                 ; /b byte mode
+    dw error1
 
 command_d_:
     db "b"                      ; /db decimal base
     dw decBase
     db NUL
-    jp decBase                  ; /d decimal
+    dw decBase                  ; /d decimal
 
 command_f_:
     db "d"                      ; /fd fold
@@ -1088,45 +1057,45 @@ command_f_:
     db "4"                      
     dw f4
     db NUL
-    jp false1
+    dw false1
 
 command_h_:
     db "b"                      ; /hb hex base
     dw hexBase
     db NUL
-    jp hexBase                  ; /h hex base
+    dw error1                   
 
 ; 6
 command_i_:
     db "n"                      ; /in input
     dw input
     db NUL
-    jp error1
+    dw error1
 
 key_:
     db NUL
-    jp key
+    dw key
 
 command_m_:
     db "p"                      ; /mp map
     dw map
     db NUL
-    jp error1
+    dw error1
 
 output_:
     db NUL
-    jp output
+    dw output
 ; 4
 command_p_:
     db NUL
-    jp error1
+    dw error1
 
 ; 6
 command_q_:
     db "t"                      ; /qt quit
     dw quit
     db NUL
-    jp error1
+    dw error1
 
 command_r_:
     db "c"                      ; /rc tail call optimisation
@@ -1136,7 +1105,7 @@ command_r_:
     db "g"                      ; /rg range src
     dw rangeSrc
     db NUL
-    jp error1
+    dw error1
 
 command_s_:
     db "b"
@@ -1145,14 +1114,16 @@ command_s_:
     dw stringEnd
     db "i"
     dw stringIter
+    db "l"
+    dw stringLength
     db "s"
     dw stringSize
     db NUL
-    jp error1
+    dw error1
 
 true_:
     db NUL
-    jp true1
+    dw true1
 
 command_v_:
     db "h"
@@ -1164,27 +1135,27 @@ command_v_:
     db "T"
     dw constTIBStart
     db NUL
-    jp error1
+    dw error1
 
 command_w_:
     db "m"                      ; /wm word mode
     dw wordMode
     db NUL
-    jp wordMode                 ; /w word mode
+    dw error1
 
 xor_:
     db NUL
-    jp xor
+    dw xor
 
 ; 2
 command_nop_:
     db NUL
-    jp (ix)
+    dw nop_
  
 ; 3
 command_default_:
     db NUL
-    jp div
+    dw div
 
 ;********************** PAGE 6 END *********************************************
 
@@ -1229,16 +1200,30 @@ addrOf1:
 addrOf2:    
     jp (ix)
 
-; /as size of an array, num elements, ignores vDataWidth :-/ 
+; /al length of an array, num elements
 ; array* -- num     
-arraySize:
+arrayLength:
     pop hl
     dec hl                      ; msb size 
     ld d,(hl)
     dec hl                      ; lsb size 
     ld e,(hl)
-    push de
+    ex de,hl
+arrayLength1:
+    push hl
     jp (ix)
+
+; /as size in bytes of an array, based on current data width
+; array* -- num     
+arraySize:
+    PERFORM arrayLength
+    pop hl
+    ld a,(vDataWidth)
+    dec a
+    jr z,arrayLength1
+    srl h
+    rr l
+    jr arrayLength1
 
 ; 13
 ; /br break from loop             
@@ -1379,8 +1364,25 @@ stringEnd1:
     ld (vBufPtr),hl              
     jp (ix)
 
-stringSize:
+stringLength:
+    pop de
+    ld hl,0
+    jr stringLength2
+stringLength1:
+    inc hl
+stringLength2:
+    ld a,(de)
+    or a
+    jr nz,stringLength1
+stringLength3:
+    push hl
     jp (ix)
+
+stringSize:
+    PERFORM stringLength
+    pop hl
+    inc hl
+    jp stringLength3
 
 varHeapPtr:
     ld de,(vHeapPtr)
@@ -1398,7 +1400,7 @@ constant:
     push de
     jp (ix)
 
-; /w
+; /wm
 wordMode:
     ld hl,2
     jp byteMode1
@@ -1444,7 +1446,7 @@ db 0
 ; array* -- src
 FUNC arrayIter, 1, "aL"                             
 db "{"
-db    "[0 /t %a/as] %L="            ; init mutable L [index active size]                           
+db    "[0 /t %a/al] %L="            ; init mutable L [index active size]                           
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:i{"                   ; return talkback to receive data
@@ -1560,9 +1562,9 @@ db     "}"
 db "}" 
 db 0
 
-FUNC dotArray, 2, "abc"
+FUNC printArray, 2, "abc"
 db "{"
-db "'[ '.s %a/as%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"
+db "'[ '.s %a/al%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"
 db "}"
 db 0
 
@@ -1832,11 +1834,40 @@ goFunc8:
     add hl,sp
     jr goBlock2
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;*******************************************************************
-; general routines
-;*******************************************************************
+;                               32
+div:
+    pop de
+    pop hl
+    push bc                     ; preserve the IP    
+    ld bc,hl                
+    call divide
+    ex de,hl
+    ld (vRemain),de
+    pop bc
+    jp add3
+
+; division subroutine.
+; bc: divisor, de: dividend, hl: remainder
+
+divide:        
+    ld hl,0    	                ; zero the remainder
+    ld a,16    	                ; loop counter
+divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
+    sla c
+    rl b
+    adc hl,hl
+    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
+    jr c,divide2
+    inc c
+    jr divide3
+divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
+    add hl,de
+divide3:
+    dec a
+    jr nz,divide1
+    ld de,bc                    ; result from bc to de
+    ret
 
 ; arg_list - parses arg_list e.g. ab:c
 ; -- arg_list* 
@@ -2077,58 +2108,9 @@ createFunc5:
     ld hl,(vTemp3)              ; jump to return address
     jp (hl)
 
-; ; prints whatever in in buffer starting from BUF and ending at vBufPtr* 
-; flushBuffer:
-;     push af
-;     push de
-;     push hl
-;     ld hl,(vBufPtr)
-;     ld de,BUF
-;     ld (vBufPtr),de
-;     or a
-;     sbc hl,de
-;     call printChars2
-;     pop hl
-;     pop de
-;     pop af
-;     ret
-; printChars1:
-;     ld a,(de)                           ; print char at char*
-;     call putchar
-;     inc de                              ; char*++
-;     dec hl                              ; count--
-; printChars2:
-;     ld a,l                              ; count == 0?
-;     or h
-;     ret z
-;     jr printChars1                      ; if not loop
-
-
-; ; followed by a table
-; ; db char
-; ; db lsb(addr)
-; ; the final item must have char == NUL
-; jumpTable:
-;     pop hl
-;     inc bc
-; jumpTable0:
-;     xor a
-;     cp (hl)
-;     jr z,jumpTable2
-;     ld a,(bc)
-;     cp (hl)
-;     jr z,jumpTable1
-;     inc hl
-;     inc hl
-;     jr jumpTable0
-; jumpTable1:
-;     inc hl
-;     ld l,(hl)                   ; must have the same msb as the table
-;     jp (hl)
-; jumpTable2:
-;     dec bc
-;     inc hl
-;     jp (hl)
+;*******************************************************************
+; general routines
+;*******************************************************************
 
 ; followed by a table
 ; indexed on the 0-25 lowercase letter
@@ -2146,7 +2128,7 @@ commandTable1:
     add a,l
     ld l,a
     ld l,(hl)                   ; must have the same msb as the table
-    jp xjumpTableX
+    jp jumpTable1
 commandTable2:
     ld a,26
     dec bc
@@ -2154,33 +2136,32 @@ commandTable2:
     
 ; followed by a table
 ; db char
-; db lsb(addr)
+; dw addr
 ; the final item must have char == NUL
-xjumpTable:
+jumpTable:
     pop hl
-xjumpTableX:
+jumpTable1:
     inc bc
-xjumpTable0:
+jumpTable2:
     xor a
     cp (hl)
-    jr z,xjumpTable2
+    jr nz,jumpTable3
+    dec bc
+    jr jumpTable4
+jumpTable3:
     ld a,(bc)
     cp (hl)
-    jr z,xjumpTable1
+    jr z,jumpTable4
     inc hl
     inc hl
     inc hl
-    jr xjumpTable0
-xjumpTable1:
+    jr jumpTable2
+jumpTable4:
     inc hl
     ld e,(hl)                   
     inc hl
     ld d,(hl)
     ex de,hl
-    jp (hl)
-xjumpTable2:
-    dec bc
-    inc hl
     jp (hl)
 
 prtstr0:
@@ -2453,7 +2434,7 @@ run:
 error:
     push hl
     call run
-    db "`Error `.s .",0
+    db "`Error ` .",0
     jp interpret
 
 
@@ -2470,7 +2451,7 @@ backSpace_:
 ; edit 
 edit_:                        
     call run
-    db "`var?`.s /k/ad .h",0
+    db "`var?` /k/ad .h",0
     jp interpret
 
 reEdit_:
