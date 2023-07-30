@@ -1,6 +1,70 @@
-# Monty
+# Monty Language
 
 _I'd like to have an argument, please._
+
+## Lambdas in Monty
+
+In Monty, lambdas are anonymous functions that can be assigned to variables and 
+used as first-class citizens. A lambda in Monty is denoted by the `\` symbol 
+followed by one or more arguments (single lowercase letters) and a `{` symbol 
+to indicate the beginning of the lambda expression. The body of the lambda 
+is written using Reverse Polish Notation (RPN), where `%` is used to reference 
+the arguments.
+
+### Basic Lambda Examples:
+
+Lambda with Single Argument:
+
+```
+\a{ %a . }
+```
+
+This lambda takes a single argument a and prints its value.
+
+Lambda with Multiple Arguments:
+```
+\ab{ %a %b + . }
+```
+This lambda takes two arguments a and b, adds them together, and prints the result.
+
+### Assigning Lambdas to Variables:
+
+In Monty, you can assign lambdas to variables, and they can be referenced and 
+used like any other variable. Variables in Monty are limited to a single uppercase 
+or lowercase letter.
+
+```
+A := \a{ %a . } ;
+B := \ab{ %a %b + . } ;
+
+### Using Lambdas:
+
+Once you have assigned lambdas to variables, you can use them in your code. 
+You can pass arguments to the lambdas, and the result will be printed.
+
+```
+10 A^       (prints 10)
+3 7 B^      (prints 10, the sum of 3 and 7)
+```
+### Higher-order Functions:
+
+Monty allows you to create higher-order functions that take other functions (lambdas) 
+as arguments or return them as results.
+
+\ab{ %a %b^ }
+The above lambda fn takes two arguments - a function `a` and an argument `b`. 
+It then applies the function `a` to the argument `b`.
+
+### Lexical Scoping:
+
+In Monty, variables have lexical scoping, meaning they are only accessible within 
+the scope they are defined in. If a variable is defined inside a lambda, it is 
+accessible only within that lambda's body.
+
+\x{ \y{ %x %y + . } . }
+In this example, the inner lambda has access to the argument x of the outer lambda, 
+but it cannot access any variables outside its scope.
+
 
 ## What is Monty?
 
@@ -21,21 +85,22 @@ still a stack, just one stack, but the user doesn't normally care about it.
 Example, a function to square a value a
 
 ```
-:a { %a %a * } ;
+\a{ %a %a * } ;
 ```
 
 The function is a value like any other and you can store it in a variable and call
 it with ^. Here I'm storing it in a variable F
 
 ```
-:a { %a %a * } ; F=
+\a{ %a %a * } ; F=
 ```
 
 And calling it
 
 ```
 10 F^ .
->100
+
+-> 100
 ```
 
 There are 52 variables A..Z, a..z and they are simpler to use. Upper and lower case
@@ -46,14 +111,15 @@ To put something in a variable, use = to assign.
 Store 10 in x
 
 ```
-10 x=
+x := 10 ;
 ```
 
 To access a value in a variable, just use the name.
 
 ```
 3 x + .
->13
+
+-> 13
 ```
 
 You can put any code inside { } block which means "execute this later". You execute
@@ -61,7 +127,8 @@ it with ^. Here's an immediately executed block of code.
 
 ```
 { 1 2 + . }^
->3
+
+->3
 ```
 
 Here's an "if" condition
