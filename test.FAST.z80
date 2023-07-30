@@ -25,21 +25,20 @@ db 0
 testsStart:
 
     ; test "0 10 1 /rg \\a{%a.} /fe", 0
-    ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", $1000
-    ; test "$1000 0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", $1000
-    ; test "$1000 [10 20 30] /ai \\a{%a.} /fe", $1000
+    ; test "0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", 0
+    ; test "0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", 0
+    ; test "0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", 0
+    ; test "[10 20 30] /ai \\a{%a.} /fe", 0
     ; test "[1 2 3].a", 0
     ; test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
     ; test "`hello:` 65.c 1. 2. 3.", FALSE
-
-    ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
     ; test "/hb/bm$1234.",0
     ; test "/bm257.",0
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    
+    ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/f", false
     test "/t", true
@@ -152,6 +151,7 @@ testsStart:
     test "1 \\b:c{\\a{%a%b-%c= %c--%c}}^F= 3F^",1
     test "1 \\b:c{\\a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
     test "F := \\a{%a 1+} ; 1F^", 2
+    test "'hello'/sl",5
     ; ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -24,7 +24,7 @@
     push hl
     push hl
     call run
-    .cstr ". /h./d"
+    .cstr ". /hb./db"
 
     call printStr
     .cstr "\r\n\r\nActual: "
@@ -32,7 +32,7 @@
     push hl
     push hl
     call run
-    .cstr ". /h./d `\r\n`.s"
+    .cstr ". /hb./db `\r\n`.s"
     halt
 expect%%M:
     pop HL

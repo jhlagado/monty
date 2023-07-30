@@ -2,12 +2,15 @@
 
 # August
 
-/al - array length
-/sl - string length
-/as - might be the array size in bytes?
+free up ( ) ?
+might be used in /sb /se
+need to rework looping
 
 ## done
 
+/al - array length
+/sl - string length
+/as - might be the array size in bytes?
 /sb string mode begin
 /se string mode end
 
