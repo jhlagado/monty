@@ -36,9 +36,9 @@ testsStart:
     ; test "/bm257.",0
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/f", false
     test "/t", true

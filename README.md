@@ -119,6 +119,143 @@ A 1# .
 >20
 ```
 
+### commands
+
+#### Conditional code
+
+```
+?       if..then
+??      if..then..else
+```
+
+#### Input & Output
+
+```
+/k      key
+/in     input
+/o      output
+.       print number
+.c      print character
+.s      print string
+.a      print array
+``      print literal string
+```
+
+#### Loops
+
+```
+/br     break
+()      loop
+```
+
+#### Logical
+
+```
+/t      true
+/f      false
+==      equal
+>       greater than
+>=      greater than or equal
+<       less than
+<=      less than or equal
+&       bitwise and
+|       bitwise or
+/x      bitwise exclusive or
+!       not
+!=      not equal
+```
+
+#### Arithmetic
+
+```
+/       division
+/ab     absolute
+/re     remainder
+*       multiplication
++       addition
+-       subtraction
+```
+
+#### Arrays
+
+```
+[]      array delaration
+/ai     array iterator
+/al     array length
+/as     array size
+#       array index
+```
+
+#### Functions
+
+```
+/fs     function source
+/rc     recur
+/qt     quit
+{}      code block
+%a..%z  argument reference
+\       function begin
+```
+
+#### Numbers
+
+```
+/wm     word mode
+/bm     byte mode
+/db     decimal base
+/hb     hexadecimal base
+$       hex number prefix
+```
+
+#### Strings
+
+```
+/si     string iterator
+/sl     string length
+/sb     string begin
+/se     string end
+/ss     string size
+'       string
+~       literal character
+```
+
+#### Streams
+
+```
+/rg     range source
+/ft     filter
+/fe     for each
+/fd     fold
+/mp     map
+```
+
+#### Variables
+
+```
+=       assign
++=      increment by
+++      increment
+--      decrement
+/vb     text output buffer variable
+/vh     heap pointer variable
+/vt     text input buffer variable
+/vB     text output buffer start
+/vH     heap start
+/vT     text input buffer start
+/ad     addr of
+A..Z    global variable reference
+a..z    global variable reference
+:=      declaration begin
+;       declaration end
+```
+
+#### Misc
+
+```
+^       execute
+/bb     cold start
+```
+
 ### Licence & credits
 
 ```

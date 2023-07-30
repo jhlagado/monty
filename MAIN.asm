@@ -918,10 +918,14 @@ true_:
     dw true1
 
 command_v_:
+    db "b"
+    dw varBufPtr
     db "h"
     dw varHeapPtr
     db "t"
     dw varTIBPtr
+    db "B"
+    dw constBufStart
     db "H"
     dw constHeapStart
     db "T"
@@ -1076,6 +1080,10 @@ constTIBStart:
     ld de,TIB
     jp constant
 
+constBufStart:
+    ld de,BUFFER
+    jp constant
+
 decBase:
     ld hl,10
 decBase1:
@@ -1191,6 +1199,11 @@ stringSize:
     pop hl
     inc hl
     jp stringLength3
+
+varBufPtr:
+    ld de,(vBufPtr)
+    ld hl,vBufPtr
+    jr variable
 
 varHeapPtr:
     ld de,(vHeapPtr)
@@ -1745,7 +1758,6 @@ shiftRight2:
 ; string                        ;38
 ; -- ptr                        ; points to start of string chars,                                 ; length is stored at start - 2 bytes 
 quote:
-dquote:
 string:     
     ld hl,(vHeapPtr)            ; hl = heap*
     push hl                     ; save start of string 
@@ -1838,6 +1850,9 @@ dotNext3:
     ld (vBufPtr),hl
     jp (ix)
 
+; unused
+
+dquote:
 underscore:
 comma:
     jp (ix)
