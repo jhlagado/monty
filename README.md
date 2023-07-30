@@ -119,7 +119,7 @@ A 1# .
 >20
 ```
 
-### commands
+### Commands
 
 #### Conditional code
 
@@ -131,28 +131,28 @@ A 1# .
 #### Input & Output
 
 ```
-/k      key
-/in     input
-/o      output
 .       print number
 .c      print character
 .s      print string
 .a      print array
 ``      print literal string
+/k      key
+/in     input
+/o      output
 ```
 
 #### Loops
 
 ```
-/br     break
 ()      loop
+/br     break
 ```
 
 #### Logical
 
 ```
-/t      true
-/f      false
+!       not
+!=      not equal
 ==      equal
 >       greater than
 >=      greater than or equal
@@ -161,62 +161,62 @@ A 1# .
 &       bitwise and
 |       bitwise or
 /x      bitwise exclusive or
-!       not
-!=      not equal
+/t      true
+/f      false
 ```
 
 #### Arithmetic
 
 ```
 /       division
-/ab     absolute
-/re     remainder
 *       multiplication
 +       addition
 -       subtraction
+/ab     absolute
+/re     remainder
 ```
 
 #### Arrays
 
 ```
 []      array delaration
+#       array index
 /ai     array iterator
 /al     array length
 /as     array size
-#       array index
 ```
 
 #### Functions
 
 ```
+\       function begin
+{}      code block
+%a..%z  argument reference
 /fs     function source
 /rc     recur
 /qt     quit
-{}      code block
-%a..%z  argument reference
-\       function begin
 ```
 
 #### Numbers
 
 ```
+$       hex number prefix
 /wm     word mode
 /bm     byte mode
 /db     decimal base
 /hb     hexadecimal base
-$       hex number prefix
 ```
 
 #### Strings
 
 ```
+'       string
+~       literal character
 /si     string iterator
 /sl     string length
 /sb     string begin
 /se     string end
 /ss     string size
-'       string
-~       literal character
 ```
 
 #### Streams
@@ -236,17 +236,17 @@ $       hex number prefix
 +=      increment by
 ++      increment
 --      decrement
+A..Z    global variable reference
+a..z    global variable reference
+:=      declaration begin
+;       declaration end
+/ad     addr of
 /vb     text output buffer variable
 /vh     heap pointer variable
 /vt     text input buffer variable
 /vB     text output buffer start
 /vH     heap start
 /vT     text input buffer start
-/ad     addr of
-A..Z    global variable reference
-a..z    global variable reference
-:=      declaration begin
-;       declaration end
 ```
 
 #### Misc
