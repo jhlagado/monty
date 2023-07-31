@@ -9,7 +9,7 @@
 
 .include "MAIN.asm"
 
-FUNC f1, 2, ""
+FUNC f1, 0, ""                               
 db 0
 
 FUNC f2, 0, ""                               
@@ -36,9 +36,13 @@ testsStart:
     ; test "/bm257.",0
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+
+    test "10 0 -1 /rg \\a{%a.} /fe", 0
+    ; test "0 10 1 /f1 \\a{%a.} /fe", 0
+    ; test "[1 2 3 /ab].a",0
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/f", false
     test "/t", true
@@ -152,6 +156,8 @@ testsStart:
     test "1 \\b:c{\\a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
     test "F := \\a{%a 1+} ; 1F^", 2
     test "'hello'/sl",5
+    test "-1/ab", 1
+
     ; ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -163,7 +169,7 @@ testsStart:
 .include "test.fast.util.asm"
 .include "ram.asm"
 
-; FUNC rangeSrc, 1, "besL"            ; range source (begin end step)                 
+; FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
 ; db "{"
 ; db    "[%b /t] %L="                 ; init mutable L [index active]                           
 ; db    "\\kt{"                            
@@ -174,8 +180,8 @@ testsStart:
 ; db        "%s %L0# +="              ; inc value of index by step
 ; db        "1%t!=/qt"                ; break if type != 0
 ; db        "%a %e <"                 ; ifte: in range?
-; db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: 1: send index, 2: active = false, send quit
-; db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+; db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
+; db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
 ; db      "} 0 %k^"                   ; init sink
 ; db    "}" 
 ; db "}" 

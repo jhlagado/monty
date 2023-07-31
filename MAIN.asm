@@ -604,6 +604,8 @@ print:
     dw printArray
     db "c"                      ; .c print char
     dw printChar
+    db "h"                      ; .h print hex without $ prefix
+    dw printHex0
     db "s"                      ; .s print string
     dw printString
     db NUL                      ; .  print number, fall through
@@ -625,15 +627,15 @@ printChar:
 printString:
     pop hl                      ; hl = string*
     ld de,(vBufPtr)             ; de = buffer*
-    jr dotString1
-dotString0:
+    jr printString1
+printString0:
     ld (de),a                   ; a -> buffer*
     inc de                      ; string*++, 
     inc hl
-dotString1:
+printString1:
     ld a,(hl)                   ; a <- string*
     or a                        ; if NUL exit loop
-    jr nz,dotString0
+    jr nz,printString0
     ld (vBufPtr),de             ; save buffer*' in pointer
     jp dotNext
 
@@ -642,21 +644,21 @@ dotString1:
 printNumber:        
     ld a,(vNumBase)
     cp 16
-    jp z,dotHex              ; else falls through
-    jp dotDec
+    jp z,printHex              ; else falls through
+    jp printDec
 
 ; print decimal                 ; 70
 ; value --                      
-dotDec:        
+printDec:        
     ld de,(vBufPtr)             ; de'= buffer* bc' = IP
     exx                          
     pop hl                      ; hl = value
     ld a,(vDataWidth)
     dec a
-    jr nz,dotDecX
+    jr nz,printDec1
     ld h,0
-dotDecX:    
-    call dotDec0
+printDec1:    
+    call printDec2
     exx                         ; de = buffer*' bc = IP
     ld a," "                    ; append space to buffer
     ld (de),a
@@ -667,9 +669,9 @@ dotDecX:
 ; hl = value
 ; de' = buffer*
 ; a, bc, de, hl destroyed
-dotDec0:    
+printDec2:    
     bit 7,h
-    jr z,dotDec1
+    jr z,printDec3
     exx
     ld a,'-'
     ld (de),a
@@ -681,37 +683,37 @@ dotDec0:
     sbc a,a  
     sub h  
     ld h,a
-dotDec1:        
+printDec3:        
     ld c,0                      ; leading zeros flag = false
     ld de,-10000
-    call dotDec2
+    call printDec4
     ld de,-1000
-    call dotDec2
+    call printDec4
     ld de,-100
-    call dotDec2
+    call printDec4
     ld e,-10
-    call dotDec2
+    call printDec4
     inc c                       ; flag = true for at least digit
     ld e,-1
-    call dotDec2
+    call printDec4
     ret
-dotDec2:	     
+printDec4:	     
     ld b,'0'-1
-dotDec3:	    
+printDec5:	    
     inc b
     add hl,de
-    jr c,dotDec3
+    jr c,printDec5
     sbc hl,de
     ld a,'0'
     cp b
-    jr nz,dotDec4
+    jr nz,printDec6
     xor a
     or c
     ret z
-    jr dotDec5
-dotDec4:	    
+    jr printDec7
+printDec6:	    
     inc c
-dotDec5:	    
+printDec7:	    
     ld a,b
     exx
     ld (de),a
@@ -721,35 +723,40 @@ dotDec5:
 
 ; buffer hex                    37
 ; value --                      
-dotHex:                      
-    pop hl                      ; hl = value
+
+printHex0:                      
+    ld de,(vBufPtr)
+    jr printHex1
+printHex:                      
     ld de,(vBufPtr)
     ld a,"$"                    ; # prefix
     ld (de),a
     inc de                      ; string*++, 
+printHex1:
+    pop hl                      ; hl = value
     ld a,(vDataWidth)
     dec a
-    jr z,dotHex0
+    jr z,printHex2
     ld a,h
-    call dotHex1
-dotHex0:
+    call printHex3
+printHex2:
     ld a,l
-    call dotHex1
+    call printHex3
     ld a," "                    ; append space to buffer
     ld (de),a
     inc de                      ; string*++, 
     ld (vBufPtr),de
     jp dotNext
 
-dotHex1:		     
+printHex3:		     
     push af
 	rra 
 	rra 
 	rra 
 	rra 
-    call dotHex2
+    call printHex4
     pop af
-dotHex2:		
+printHex4:		
     and	0x0F
 	add	a,0x90
 	daa
@@ -975,13 +982,14 @@ div:
 absolute:
     pop hl
     bit 7,h
-    ret z
+    jr z,absolute1
     xor a  
     sub l  
     ld l,a
     sbc a,a  
     sub h  
     ld h,a
+absolute1:
     push hl
     jp (ix)
 
@@ -1246,8 +1254,8 @@ xor1:
 ; /rg rangeSrc
 ; begin end step -- src
 FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
-db "{"
-db    "[%b /t] %L="                 ; init mutable L [index active]                           
+db "{"                              ; init mutable L [index active inrange_test]                           
+db    "[%b /t %s0>{{%a%e<}}{{%a%e>}}??] %L= " 
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:a{"                   ; return talkback to receive data
@@ -1255,7 +1263,7 @@ db        "%L1#!/qt"                ; if not active don't send
 db        "%L0# %a="                ; store current index in A 
 db        "%s %L0# +="              ; inc value of index by step
 db        "1%t!=/qt"                ; break if type != 0
-db        "%a %e <"                 ; ifte: in range?
+db        "%L2#^"                   ; ifte: inrange_test?
 db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
 db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink

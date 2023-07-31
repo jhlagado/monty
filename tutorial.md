@@ -53,6 +53,21 @@ Conclusion
 * Final thoughts and next steps in mastering Monty
 * Additional resources for further learning
 
+## What is Monty?
+
+Monty is a minimalist RPN based language "concatenative" interpreter but one
+which aims at readability and use of use. It is written for the Z80 miroprocessor
+and takes about 4K.
+
+Unlike other interpreters, Monty does not use obscure symbols. Instead it uses
+well-known symbols and conventions to do expected things. Sometimes an operations
+is made of two symbols like <= which means "less than or equal to". Where possible
+Monty follows the conventions laid out in the C programming language so the meanings
+of Monty operations should be recognisable to programmers of other languages.
+
+Monty has functions and you pass values to them by name just like in the C language.
+Unlike Forth, There are no built in stack manipulation words in Monty. There is
+still a stack, just one stack, but the user doesn't normally care about it.
 
 ## Lambdas in Monty
 

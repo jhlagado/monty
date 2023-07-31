@@ -140,7 +140,6 @@ db    "}; 0 %s^"
 db "}" 
 db 0
 
-;  Inspiration from Charles H. Moore, Peter Jakacki and André Staltz
 
 ; _ func
 ; -- func*
@@ -162,4 +161,36 @@ lambda3:
     pop ix
     push hl
     jp (ix)
+
+; breakout the machine code from inside lambda
+; accesses first arg
+
+f1:
+    call go
+    dw NUL                      
+    dw f1x                      
+    dw $+2
+    db 0                
+    .pstr "a"
+f1x:
+    db "{`h`"
+    db 0
+    
+    ld e,(iy+2)                 ; de = first_arg*   
+    ld d,(iy+3)
+    ex de,hl
+    dec hl
+    ld d,(hl)
+    dec hl
+    ld e,(hl)
+    ld a,e
+    call putchar
+
+    ld bc,f1y-1
+    jp (ix)
+f1y:
+    db "`y`}"
+    db 0
+
+
 
