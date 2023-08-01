@@ -170,6 +170,36 @@ titleStr:
 
 ;********************** PAGE 2 BEGIN ***********************************
 
+dquote_:
+comma_:
+    jp (ix)
+
+dollar_:
+    jp dollar
+
+percent_:        
+    jp percent 
+
+quote_:
+    jp quote
+
+lparen_:
+    jp lbrace
+
+dot_:  
+    jp dot
+
+slash_:
+    jp slash
+
+num_:    
+    jp  num
+
+semicolon_:
+    jp semicolon
+  
+question_:
+    jp question
 
 bang_:				             
 bang:				            ; logical invert, any non zero value 
@@ -221,9 +251,6 @@ lt1:
     dec bc
     jp lessthan
 
-dquote_:
-    jp dquote
-
 ; index of an array, based on vDataWidth 22
 ; array* num -- value    ; also sets vPointer to address 
 hash_:    
@@ -249,11 +276,12 @@ arrayIndex2:
     push de
     jp (ix)
 
-dollar_:
-    jp dollar
-
-percent_:        
-    jp percent 
+;                               4
+rparen_:
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
 
 ; & and                          14
 ; a b -- c
@@ -267,25 +295,34 @@ and:
     ld l,a        
     ld a,d        
     and h           
-and1:
     ld h,a        
-    push hl        
-    jp (ix)    
+    jr add3        
 
-quote_:
-    jp quote
-
-; { block start                 ; 4
-; -- block*
-lparen_:
-    jp lbrace
-
-;                               4
-rparen_:
-rparen:
-    ld c,(iy+8)                 ; IP = block* just under stack frame
-    ld b,(iy+9)
-    jp (ix)
+; - sub                          23
+; a b -- c
+minus_:
+minus:
+    inc bc                      ; check if sign of a number
+    ld a,(bc)
+    dec bc
+    cp "0"
+    jr c,sub
+    cp "9"+1
+    jp c,num    
+sub:                            ; Subtract the value 2nd on stack from top of stack 
+    inc bc
+    cp "-"
+    jr nz,sub1
+    pop hl
+    dec hl
+    jp assign0
+sub1:
+    dec bc
+    pop de
+    pop hl
+    or a
+    sbc hl,de    
+    jr add3
 
 star_:                          ; 21    
 star:
@@ -338,46 +375,7 @@ add3:
 add4:
     jp assign0
 
-comma_: 		 
-    jp comma
-
-; - sub                          23
-; a b -- c
-minus_:
-minus:
-    inc bc                      ; check if sign of a number
-    ld a,(bc)
-    dec bc
-    cp "0"
-    jr c,sub
-    cp "9"+1
-    jp c,num    
-sub:                            ; Subtract the value 2nd on stack from top of stack 
-    inc bc
-    cp "-"
-    jr nz,sub1
-    pop hl
-    dec hl
-    jp assign0
-sub1:
-    dec bc
-    pop de
-    pop hl
-    or a
-    sbc hl,de    
-    jr add3
-
-dot_:  
-    jp dot
-
-slash_:
-    jp slash
-
-num_:    
-    jp  num
-
 colon_:
-    jp colon
 colon:
     inc bc                      ; arg_list must ve immediately followed by {
     ld a,(bc)
@@ -392,12 +390,6 @@ defineStart:
     ld (vDefine),hl
     jp (ix)
 
-semicolon_:
-    jp semicolon
-  
-question_:
-    jp question
-
 ;                               18
 upcase_:
 upcase:
@@ -405,8 +397,27 @@ upcase:
     sub 'A'                     ; 'A' = 0
     jr ident1
 
+; ;
+semicolon:
+defineEnd:    
+    ld hl,(vDefine)             ; hl = define*    
+    ld a,l
+    or h
+    jr z,defineEnd1
+    ld de,NUL                   ; set vDefine=NUL
+    ld (vDefine),de
+    pop de                      ; de = value
+    jp assign1
+defineEnd1:
+    jp (ix)
+
+
 ;********************** PAGE 2 END *********************************************
+; .align $100
 ;********************** PAGE 3 BEGIN *********************************************
+
+underscore_:
+    jp (ix)
 
 lowcase_:
 lowcase:
@@ -539,9 +550,6 @@ go2:
     push de                     ; push de just before stack frame
     jp z,goBlock
 
-underscore_:
-    jp underscore
-
 grave_:
 grave:
 printLiteral:
@@ -576,7 +584,8 @@ or:
     ld l,a
     ld a,d
     or h
-    jp and1
+    ld h,a        
+    jp add3        
 
 rbrace_:
     jp rbrace
@@ -591,6 +600,14 @@ char:
     ld h,0
     push hl
     jp (ix)  
+
+at_:
+at:
+addr:
+    ld de,(vPointer)
+    ld hl,vPointer
+    jp variable
+
 
 ;********************** PAGE 3 END *********************************************
 .align $100
@@ -765,6 +782,13 @@ printHex4:
 	ld (de),a
     inc de                      ; string*++, 
 	ret
+
+; unused
+
+dquote:
+underscore:
+comma:
+    jp (ix)
 
 ;********************** PAGE 4 END *********************************************
 
@@ -1164,6 +1188,12 @@ stringBegin:
     ld (vStrMode),hl
     jr stringEnd1              ; save hl in vBufPtr
 
+
+
+
+
+
+
 stringEnd:
     ld hl,FALSE                 ; string mode = false
     ld (vStrMode),hl
@@ -1234,6 +1264,7 @@ wordMode:
     ld hl,2
     jp byteMode1
 
+; /x
 xor:
     pop de                      ; Bitwise xor the top 2 elements of the stack
 xor1:
@@ -1244,8 +1275,7 @@ xor1:
     ld a,d
     xor h
     ld h,a        
-    push hl        
-    jp (ix)    
+    jp add3    
 
 ;*******************************************************************
 ; Monty implementations
@@ -1401,13 +1431,6 @@ db 0
 ; implementations continued
 ;*******************************************************************
 
-at_:
-at:
-addr:
-    ld de,(vPointer)
-    ld hl,vPointer
-    jp variable
-
 ; $ hex                         ; 22
 dollar:
 hexnum:        
@@ -1431,8 +1454,7 @@ hexnum2:
     ld  l,a        
     jr  hexnum1
 
-
-; if                            23
+; ? if                            23
 ; condition then -- value
 question:
 if:
@@ -1443,7 +1465,8 @@ if:
     dec bc
     ld de,NUL                   ; NUL pointer for else
     jr ifte1
-; ifte
+
+; ?? ifte
 ; condition then else -- value
 ifte: 
     pop de                      ; de = else
@@ -1456,6 +1479,77 @@ ifte1:
     jp z,go1                    ; if z de = else                   
     ex de,hl                    ; condition = false, de = then  
     jp go1
+
+; string                        ;38
+; -- ptr                        ; points to start of string chars,                                 ; length is stored at start - 2 bytes 
+quote:
+string:     
+    ld hl,(vHeapPtr)            ; hl = heap*
+    push hl                     ; save start of string 
+    ld a,(bc)
+    ld e,a                      ; e = matching terminator
+    inc bc                      ; point to next char
+    jr string2
+string1:
+    ld (hl),a
+    inc hl                      ; increase count
+    inc bc                      ; point to next char
+string2:
+    ld a,(bc)
+    cp e                        ; is it the string terminator
+    jr z,string3
+    jr string1
+string3:
+    xor a                       ; write NUL to terminate string
+    ld (hl),a                   ; hl = end of string
+    inc hl
+    ld (vHeapPtr),hl            ; bump heap* to after end of string
+    jp (ix)  
+
+; %a .. %z                      43
+; -- value
+; returns value of arg
+percent:
+arg:
+    ld e,(iy+4)                 ; hl = arg_list* 
+    ld d,(iy+5)
+    ex de,hl                    
+    ld a,l                      ; arg_list* == null, skip
+    or h
+    jr z,arg0a
+    inc hl                      ; a = num_args, hl = arg_list*
+    ld a,(hl)                    
+    inc hl
+    or a
+    jr z,arg0a                  ; num_args == 0, skip 
+    ld e,a                      ; e = a = num_args
+    inc bc                      ; a = next char = dollar_name
+    ld a,(bc)
+    push bc                     ; save IP                         
+    ld b,e                      ; b = e = num_args
+    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
+    ld d,(iy+3)
+arg0:
+    dec de                      ; a = dollar_name, de = next arg*
+    dec de
+    cp (hl)
+    jr z,arg1
+    inc hl                      ; hl = next arg_list*            
+    djnz arg0
+    pop bc                      ; no match, restore IP
+arg0a:
+    ld de,0                     ; return 0
+    jr arg1a
+arg1:
+    pop bc                      ; restore IP
+    ex de,hl                    ; hl = arg*
+    ld (vPointer),hl            ; store arg* in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)                   ; de = arg
+arg1a:
+    push de                     ; push arg
+    jp (ix)
 
 ; 0..9 number                   37
 num:
@@ -1496,7 +1590,7 @@ num3:
     push hl                     ; Put the number on the stack
     jp (ix)                     ; and process the next character
 
-;                               58
+; }                               58
 rbrace:
 blockEnd:
     ld e,(iy+0)                 ; vTemp1 = oldBP               
@@ -1656,7 +1750,7 @@ goFunc8:
     add hl,sp
     jr goBlock2
 
-;                               21
+; =                              21
 ; value _oldValue --            ; uses address in vPointer 15
 assign:
     pop hl                      ; discard last accessed value
@@ -1673,19 +1767,6 @@ assign1:                        ; entry point from defineEnd
     ld (hl),d
 assign2:	  
     jp (ix)  
-
-semicolon:
-defineEnd:    
-    ld hl,(vDefine)             ; hl = define*    
-    ld a,l
-    or h
-    jr z,defineEnd1
-    ld de,NUL                   ; set vDefine=NUL
-    ld (vDefine),de
-    pop de                      ; de = value
-    jp assign1
-defineEnd1:
-    jp (ix)
 
 ; hl = value1, de = value2
 ; hl = result
@@ -1763,76 +1844,27 @@ shiftRight2:
     ld bc,de                    ; restore IP
     jp (ix)
 
-; string                        ;38
-; -- ptr                        ; points to start of string chars,                                 ; length is stored at start - 2 bytes 
-quote:
-string:     
-    ld hl,(vHeapPtr)            ; hl = heap*
-    push hl                     ; save start of string 
-    ld a,(bc)
-    ld e,a                      ; e = matching terminator
-    inc bc                      ; point to next char
-    jr string2
-string1:
-    ld (hl),a
-    inc hl                      ; increase count
-    inc bc                      ; point to next char
-string2:
-    ld a,(bc)
-    cp e                        ; is it the string terminator
-    jr z,string3
-    jr string1
-string3:
-    xor a                       ; write NUL to terminate string
-    ld (hl),a                   ; hl = end of string
-    inc hl
-    ld (vHeapPtr),hl            ; bump heap* to after end of string
-    jp (ix)  
+; division subroutine.
+; bc: divisor, de: dividend, hl: remainder
 
-; %a .. %z                      43
-; -- value
-; returns value of arg
-percent:
-arg:
-    ld e,(iy+4)                 ; hl = arg_list* 
-    ld d,(iy+5)
-    ex de,hl                    
-    ld a,l                      ; arg_list* == null, skip
-    or h
-    jr z,arg0a
-    inc hl                      ; a = num_args, hl = arg_list*
-    ld a,(hl)                    
-    inc hl
-    or a
-    jr z,arg0a                  ; num_args == 0, skip 
-    ld e,a                      ; e = a = num_args
-    inc bc                      ; a = next char = dollar_name
-    ld a,(bc)
-    push bc                     ; save IP                         
-    ld b,e                      ; b = e = num_args
-    ld e,(iy+2)                 ; de = first_arg*, hl = argslist*   
-    ld d,(iy+3)
-arg0:
-    dec de                      ; a = dollar_name, de = next arg*
-    dec de
-    cp (hl)
-    jr z,arg1
-    inc hl                      ; hl = next arg_list*            
-    djnz arg0
-    pop bc                      ; no match, restore IP
-arg0a:
-    ld de,0                     ; return 0
-    jr arg1a
-arg1:
-    pop bc                      ; restore IP
-    ex de,hl                    ; hl = arg*
-    ld (vPointer),hl            ; store arg* in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)                   ; de = arg
-arg1a:
-    push de                     ; push arg
-    jp (ix)
+divide:        
+    ld hl,0    	                ; zero the remainder
+    ld a,16    	                ; loop counter
+divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
+    sla c
+    rl b
+    adc hl,hl
+    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
+    jr c,divide2
+    inc c
+    jr divide3
+divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
+    add hl,de
+divide3:
+    dec a
+    jr nz,divide1
+    ld de,bc                    ; result from bc to de
+    ret
 
 dotNext:
     ld a,(vStrMode)             ; if string mode then exit
@@ -1857,35 +1889,6 @@ dotNext3:
     ld hl,BUFFER                ; reset vBufPtr to vHeapPtr
     ld (vBufPtr),hl
     jp (ix)
-
-; unused
-
-dquote:
-underscore:
-comma:
-    jp (ix)
-
-; division subroutine.
-; bc: divisor, de: dividend, hl: remainder
-
-divide:        
-    ld hl,0    	                ; zero the remainder
-    ld a,16    	                ; loop counter
-divide1:		                ; shift the bits from bc (numerator) into hl (accumulator)
-    sla c
-    rl b
-    adc hl,hl
-    sbc hl,de		            ; check if remainder >= denominator (hl>=de)
-    jr c,divide2
-    inc c
-    jr divide3
-divide2:		                ; remainder is not >= denominator, so we have to add de back to hl
-    add hl,de
-divide3:
-    dec a
-    jr nz,divide1
-    ld de,bc                    ; result from bc to de
-    ret
 
 ; arg_list - parses arg_list e.g. ab:c
 ; -- arg_list* 
@@ -2448,6 +2451,7 @@ exit:
     inc bc
     ld hl,bc
     jp (hl)
+
 run:
     pop bc
     dec bc
@@ -2458,8 +2462,6 @@ error:
     call run
     db "`Error ` .",0
     jp interpret
-
-
 
 backSpace_:
     ld a,c
@@ -2472,16 +2474,9 @@ backSpace_:
 
 ; edit 
 edit_:                        
-    call run
-    db "`var?` /k/ad .h",0
     jp interpret
 
 reEdit_:
-    jp interpret
-
-printStack_:
-    call run
-    .cstr "/pk"
     jp interpret
 
 ; editDef:

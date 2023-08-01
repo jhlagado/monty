@@ -37,12 +37,13 @@ testsStart:
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
 
-    test "10 0 -1 /rg \\a{%a.} /fe", 0
+    ; test "10 0 -1 /rg \\a{%a.} /fe", 0
     ; test "0 10 1 /f1 \\a{%a.} /fe", 0
     ; test "[1 2 3 /ab].a",0
-    call printStr
-    .cstr "Done!"
-    HALT
+
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/f", false
     test "/t", true
@@ -76,6 +77,13 @@ testsStart:
     test "2 3 *", 6
     test "1 2 3 + *", 5
     test "7 3 /", 2
+    test "3a= 2a+= a",5
+    test "3a= a2-= a",1
+    test "3a= a2*= a",6
+    test "4a= a2/= a",2
+    test "$55a= $AAa&= a",0
+    test "$55a= $AAa|= a",$FF
+    test "$A5a= $AAa /x= a",$0F
     test "100a= 1a+= a", 101
     test "100a= a1-= a", 99
     test "100a= a2*= a", 200
