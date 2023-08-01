@@ -23,7 +23,7 @@ Control Flow in Monty
 Data Structures
 
 * Arrays ([] and #)
-* Strings (', ~, /si, /sl, /sb, /se, /ss)
+* Strings (', _, /si, /sl, /sb, /se, /ss)
 * Basic operations on arrays and strings
 
 Monty's Built-in Commands

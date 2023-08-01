@@ -214,7 +214,7 @@ $       hex number prefix
 
 ```
 '       string
-~       literal character
+_       literal character
 /si     string iterator
 /sl     string length
 /sb     string begin
