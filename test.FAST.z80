@@ -54,8 +54,8 @@ testsStart:
     test "10", 10
     test "123", 123
     test "-1",-1
-    test "~a", $61
-    test "~~", $7e
+    test "_a", $61
+    test "__", $5F
     test "$10", $10
     test "$FF", $FF
     test "-1 2 +",1
@@ -77,17 +77,15 @@ testsStart:
     test "2 3 *", 6
     test "1 2 3 + *", 5
     test "7 3 /", 2
-    test "3a= 2a+= a",5
-    test "3a= a2-= a",1
-    test "3a= a2*= a",6
-    test "4a= a2/= a",2
-    test "$55a= $AAa&= a",0
-    test "$55a= $AAa|= a",$FF
-    test "$A5a= $AAa /x= a",$0F
     test "100a= 1a+= a", 101
     test "100a= a1-= a", 99
     test "100a= a2*= a", 200
     test "100a= a2/= a", 50
+    test "$55a= $AAa&= a",0
+    test "$55a= $AAa|= a",$FF
+    test "$A5a= $AAa /x= a",$0F
+    test "$00AA~",$FF55
+    test "$AAAAa= a~= a",$5555
     test "7 3 / /re", 1
     test "7 3 /", 2
     test "2 3 ==", FALSE
@@ -137,7 +135,7 @@ testsStart:
     test "[10 20 30] 1#", 20
     test "[10 20 30 40] /al", 4
     test "/bm [1 2 3] 1#", 2
-    test "/bm [~A ~B ~C] 1#", 66
+    test "/bm [_A _B _C] 1#", 66
     test "[{10}{20}{30}] 0#^ ", 10
     test "10 20 \\ab{[{%a}{%b}] 0#^}^", 10
     test "0 10 20 \\iab{[{%a}{%b}] %i#^}^", 10
@@ -148,14 +146,14 @@ testsStart:
     test "3 \\a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
     test "/t \\f{1 %f/br 2 +}^",3
     test "/f \\f{1 %f/br 2 +}^",1
-    test "~A 1 - /ad", NUL
-    test "~Z 1 + /ad", NUL
-    test "~a 1 - /ad", NUL
-    test "~z 1 + /ad", NUL
-    test "~z /ad", VARS + (("z"-"a")+("Z"-"A")+1)*2
-    test "~a /ad", VARS + ("Z"-"A"+1)*2
-    test "~Z /ad", VARS + ("Z"-"A")*2
-    test "~A /ad", VARS
+    test "_A 1 - /ad", NUL
+    test "_Z 1 + /ad", NUL
+    test "_a 1 - /ad", NUL
+    test "_z 1 + /ad", NUL
+    test "_z /ad", VARS + (("z"-"a")+("Z"-"A")+1)*2
+    test "_a /ad", VARS + ("Z"-"A"+1)*2
+    test "_Z /ad", VARS + ("Z"-"A")*2
+    test "_A /ad", VARS
     test "\\a{%a} F=1F^", 1
     test "1 \\b{\\a{%a}}^F= 3F^",3
     test "1 \\b{\\a{%a%b-}}^F= 3F^",2

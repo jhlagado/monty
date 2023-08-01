@@ -236,9 +236,17 @@ $       hex number prefix
 
 ```
 =       assign
-+=      increment by
-++      increment
---      decrement
++=      increment var by
+++      increment var by 1
+-=      decrement var by
+--      decrement var by 1
++=      multiply var by
+/=      divide var by
+&=      multiply var by
+|=      multiply var by
+/x=      multiply var by
+
+
 A..Z    global variable reference
 a..z    global variable reference
 :=      declaration begin

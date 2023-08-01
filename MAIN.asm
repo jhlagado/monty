@@ -416,9 +416,6 @@ defineEnd1:
 ; .align $100
 ;********************** PAGE 3 BEGIN *********************************************
 
-underscore_:
-    jp (ix)
-
 lowcase_:
 lowcase:
     ld a,(bc)
@@ -592,7 +589,9 @@ rbrace_:
 
 ; ~ char                        8
 tilde_:
-tilde:
+    jp tilde
+
+underscore_:
 char:
     inc bc                      ; point to next char
     ld a,(bc)
@@ -1430,6 +1429,18 @@ db 0
 ;*******************************************************************
 ; implementations continued
 ;*******************************************************************
+
+; ~ bitwise invert
+tilde:
+invert:
+    pop hl                      ; Bitwise xor the top 2 elements of the stack
+    ld a,l
+    cpl
+    ld l,a
+    ld a,h
+    cpl
+    ld h,a        
+    jp add3    
 
 ; $ hex                         ; 22
 dollar:
