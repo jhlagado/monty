@@ -615,7 +615,7 @@ addr:
 ;                               67
 dot:
 print:
-    call jumpTable
+    call commandTable
     db "a"                      ; .a print array
     dw printArray
     db "c"                      ; .c print char
@@ -801,7 +801,7 @@ command:
     cp "/"                      ; // comment
     jp z,comment
     dec bc
-    call commandTable
+    call lowerCaseTable
     db lsb(command_a_)
     db lsb(command_b_)
     db lsb(command_nop_)
@@ -932,6 +932,8 @@ command_r_:
 command_s_:
     db "b"
     dw stringBegin
+    db "c"
+    dw stringCompare
     db "e"
     dw stringEnd
     db "i"
@@ -1187,12 +1189,6 @@ stringBegin:
     ld (vStrMode),hl
     jr stringEnd1              ; save hl in vBufPtr
 
-
-
-
-
-
-
 stringEnd:
     ld hl,FALSE                 ; string mode = false
     ld (vStrMode),hl
@@ -1236,6 +1232,30 @@ stringSize:
     pop hl
     inc hl
     jp stringLength3
+
+; /sc string compare
+; string1* string2* -- bool
+; Compares two null terminated strings.
+stringCompare:
+    pop de
+    pop hl
+stringCompare1:
+    ld a,(de)
+    cp (hl)
+    jr nz,stringCompare2
+    or a
+    jr z,stringCompare3
+    inc de
+    inc hl
+    jr stringCompare1
+stringCompare2:
+    ld hl,FALSE
+    jr stringCompare4
+stringCompare3:
+    ld hl,TRUE
+stringCompare4:
+    push hl
+    jp (ix)
 
 varBufPtr:
     ld de,(vBufPtr)
@@ -1885,20 +1905,10 @@ dotNext:
 dotNext1:
     ld de,BUFFER
     ld hl,(vBufPtr)
-    or a                        ; hl = count, de = vHeapPtr
-    sbc hl,de                   
-    jp dotNext3
-dotNext2:
-    ld a,(de)                   ; print char at char*
-    call putchar
-    inc de                      ; char*++
-    dec hl                      ; count--
-dotNext3:    
-    ld a,l                      ; count == 0?
-    or h
-    jr nz,dotNext2              ; if not loop
-    ld hl,BUFFER                ; reset vBufPtr to vHeapPtr
-    ld (vBufPtr),hl
+    ld (hl),0                   ; store NUL at end of string
+    ld (vBufPtr),de             ; reset vBufPtr to vHeapPtr
+    ex de,hl                    ; hl = BUFFER
+    call putstr
     jp (ix)
 
 ; arg_list - parses arg_list e.g. ab:c
@@ -2148,47 +2158,47 @@ createFunc5:
 ; indexed on the 0-25 lowercase letter
 ; db lsb(addr)
 ; the final item index 26 matches any other char
-commandTable:
+lowerCaseTable:
     inc bc
     ld a,(bc)
     cp "z"+1
-    jr nc,commandTable2
+    jr nc,lowerCaseTable2
     sub "a" 
-    jr c,commandTable2
-commandTable1:
+    jr c,lowerCaseTable2
+lowerCaseTable1:
     pop hl
     add a,l
     ld l,a
     ld l,(hl)                   ; must have the same msb as the table
-    jp jumpTable1
-commandTable2:
+    jp commandTable1
+lowerCaseTable2:
     ld a,26
     dec bc
-    jr commandTable1
+    jr lowerCaseTable1
     
 ; followed by a table
 ; db char
 ; dw addr
 ; the final item must have char == NUL
-jumpTable:
+commandTable:
     pop hl
-jumpTable1:
+commandTable1:
     inc bc
-jumpTable2:
+commandTable2:
     xor a
     cp (hl)
-    jr nz,jumpTable3
+    jr nz,commandTable3
     dec bc
-    jr jumpTable4
-jumpTable3:
+    jr commandTable4
+commandTable3:
     ld a,(bc)
     cp (hl)
-    jr z,jumpTable4
+    jr z,commandTable4
     inc hl
     inc hl
     inc hl
-    jr jumpTable2
-jumpTable4:
+    jr commandTable2
+commandTable4:
     inc hl
     ld e,(hl)                   
     inc hl
@@ -2196,13 +2206,13 @@ jumpTable4:
     ex de,hl
     jp (hl)
 
-prtstr0:
+putstr0:
     call putchar
     inc hl
-prtstr:
+putstr:
     ld a,(hl)
     or a
-    jr nz,prtstr0
+    jr nz,putstr0
     ret
 
 ; **************************************************************************    
@@ -2266,7 +2276,7 @@ crlf:
 ; the string should be immediately following the call
 printStr:        
     ex (sp),hl		            ; swap			
-    call prtstr		
+    call putstr		
     inc hl			            ; inc past NUL
     ex (sp),hl		            ; put it back	
     ret
@@ -2323,7 +2333,7 @@ start:
     call init		            ; setups
 start1:
     ld hl,titleBuf
-    call prtstr 		        ; prog count to stack, put code line 235 on stack then call print
+    call putstr 		        ; prog count to stack, put code line 235 on stack then call print
 
 interpret:
 

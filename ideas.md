@@ -2,8 +2,7 @@
 
 # August
 
-free up ( ) ?
-might be used in /sb /se
+string comparison
 need to rework looping
 
 ## done

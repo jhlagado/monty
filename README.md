@@ -127,67 +127,67 @@ A 1# .
 #### Conditional code
 
 ```
-?       if..then
-??      if..then..else
+?       if..then                        bool block1* ? -- 
+??      if..then..else                  bool block1* block2* ?? -- 
 ```
 
 #### Input & Output
 
 ```
-.       print number
-.c      print character
-.s      print string
-.a      print array
-``      print literal string
-/k      key
-/in     input
-/o      output
+.       print number                    num --
+.c      print character                 char --
+.s      print string                    str* --
+.a      print array                     arr* --
+``      print literal string            --
+/k      key                             -- char
+/in     input                           -- num
+/o      output                          num port --
 ```
 
 #### Loops
 
 ```
-()      loop
-/br     break
+()      loop                            --
+/br     break                           bool --
 ```
 
 #### Logical
 
 ```
-!       not
-!=      not equal
-==      equal
->       greater than
->=      greater than or equal
-<       less than
-<=      less than or equal
-&       bitwise and
-|       bitwise or
-~       bitwise invert
-/x      bitwise exclusive or
-/t      true
-/f      false
+!       not                             num -- num
+!=      not equal                       num num -- bool
+==      equal                           num num -- bool
+>       greater than                    num num -- bool
+>=      greater than or equal           num num -- bool
+<       less than                       num num -- bool
+<=      less than or equal              num num -- bool
+&       bitwise and                     num num -- num
+|       bitwise or                      num num -- num
+~       bitwise invert                  num -- num
+/x      bitwise exclusive or            num num -- num
+/t      true                            -- bool
+/f      false                           -- bool
 ```
 
 #### Arithmetic
 
 ```
-/       division
-*       multiplication
-+       addition
--       subtraction
-/ab     absolute
-/re     remainder
+/       division                        num num -- num
+*       multiplication                  num num -- num
++       addition                        num num -- num
+-       subtraction                     num num -- num
+/ab     absolute                        num -- num
+/re     remainder                       -- num
 ```
 
 #### Arrays
 
 ```
-[]      array delaration
-#       array index
-/ai     array iterator
-/al     array length
-/as     array size
+[]      array delaration                -- arr*
+#       array index                     arr* num -- num 
+/ai     array iterator                  arr* -- src*
+/al     array length                    arr* -- num
+/as     array size                      arr* -- num
 ```
 
 #### Functions
@@ -196,75 +196,76 @@ A 1# .
 \       function begin
 {}      code block
 %a..%z  argument reference
-/fs     function source
-/rc     recur
-/qt     quit
+/fs     function source                 func* -- src*        
+/rc     recur                           --
+/qt     quit                            bool --
 ```
 
 #### Numbers
 
 ```
-$       hex number prefix
-/wm     word mode
-/bm     byte mode
-/db     decimal base
-/hb     hexadecimal base
+$       hex number prefix           
+/wm     word mode                       --
+/bm     byte mode                       --
+/db     decimal base                    --
+/hb     hexadecimal base                --
 ```
 
 #### Strings
 
 ```
-'       string
-_       literal character
-/si     string iterator
-/sl     string length
-/sb     string begin
-/se     string end
-/ss     string size
+''      string                          -- str*
+_       literal character               -- char
+/si     string iterator                 str* -- src*
+/sl     string length                   str* -- num
+/ss     string size                     str* -- num
+/sb     string begin            
+/se     string end                      -- str*
+/sc     string compare                  str* str* -- bool
 ```
 
 #### Streams
 
 ```
-/rg     range source
-/ft     filter
-/fe     for each
-/fd     fold
-/mp     map
+/rg     range source                    num num num -- src*
+/ft     filter                          func* -- src*
+/fe     for each                        func* -- src*
+/fd     fold                            val func* -- src*
+/mp     map                             func* -- src*
 ```
 
 #### Variables
 
 ```
-=       assign
-+=      increment var by
-++      increment var by 1
--=      decrement var by
---      decrement var by 1
-+=      multiply var by
-/=      divide var by
-&=      bitwise and var by
-|=      bitwise or var by
-/x=     bitwise xor var by
-~=      bitwise invert var
+=       assign                          val --
++=      increment var by                num var --
+++      increment var by 1              var --
+-=      decrement var by                num var --
+--      decrement var by 1              var --    
++=      multiply var by                 num var --
+/=      divide var by                   num var --
+&=      bitwise and var by              num var --
+|=      bitwise or var by               num var --
+/x=     bitwise xor var by              num var --
+~=      bitwise invert var              var --
 
-A..Z    global variable reference
-a..z    global variable reference
+A..Z    global variable reference       -- val
+a..z    global variable reference       -- val
 :=      declaration begin
 ;       declaration end
-/ad     addr of
-/vb     text output buffer variable
-/vh     heap pointer variable
-/vt     text input buffer variable
-/vB     text output buffer start
-/vH     heap start
-/vT     text input buffer start
+/ad     addr of                         char -- *
+/vb     text output buffer variable     -- *
+/vh     heap pointer variable           -- *
+/vt     text input buffer variable      -- *
+/vB     text output buffer start        -- *
+/vH     heap start                      -- *
+/vT     text input buffer start         -- *
 ```
 
 #### Misc
 
 ```
-^       execute
+^       execute                         
 /bb     cold start
 ```
 
