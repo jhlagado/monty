@@ -163,6 +163,7 @@ A 1# .
 <=      less than or equal
 &       bitwise and
 |       bitwise or
+~       bitwise invert
 /x      bitwise exclusive or
 /t      true
 /f      false
@@ -242,10 +243,10 @@ _       literal character
 --      decrement var by 1
 +=      multiply var by
 /=      divide var by
-&=      multiply var by
-|=      multiply var by
-/x=      multiply var by
-
+&=      bitwise and var by
+|=      bitwise or var by
+/x=     bitwise xor var by
+~=      bitwise invert var
 
 A..Z    global variable reference
 a..z    global variable reference
