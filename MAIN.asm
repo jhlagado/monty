@@ -195,9 +195,6 @@ slash_:
 num_:    
     jp  num
 
-semicolon_:
-    jp semicolon
-  
 question_:
     jp question
 
@@ -278,10 +275,7 @@ arrayIndex2:
 
 ;                               4
 rparen_:
-rparen:
-    ld c,(iy+8)                 ; IP = block* just under stack frame
-    ld b,(iy+9)
-    jp (ix)
+    jp rparen
 
 ; & and                          14
 ; a b -- c
@@ -403,6 +397,8 @@ upcase:
     jr ident1
 
 ; ;
+semicolon_:
+    ; jp semicolon
 semicolon:
 defineEnd:    
     ld hl,(vDefine)             ; hl = define*    
@@ -1454,6 +1450,11 @@ db 0
 ;*******************************************************************
 ; implementations continued
 ;*******************************************************************
+
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
 
 ; ~ bitwise invert
 tilde:
