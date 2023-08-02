@@ -2,6 +2,23 @@
 
 # August
 
+/ac array copy
+/as array spread **** conflict maybe
+use ... to me an spread array onto stack
+
+[ 1 2 [ 3 4 5 ] ... 6 7 ]
+
+[ 1 2 3 4 5 6 7 ]
+
+/as /ak array sink
+
+[ 1 2 3 ] /as \i{%i 3 <} /ak
+
+$ to denote source?
+what about sink? or terminal?
+
+
+
 string comparison
 need to rework looping
 
