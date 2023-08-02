@@ -32,7 +32,7 @@ testsStart:
     ; test "[1 2 3].a", 0
     ; test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
     ; test "`hello:` 65.c 1. 2. 3.", FALSE
-    ; test "/hb/bm$1234.",0
+    ; test "/hx/bm$1234.",0
     ; test "/bm257.",0
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
@@ -40,9 +40,9 @@ testsStart:
     ; test "10 0 -1 /rg \\a{%a.} /fe", 0
     ; test "0 10 1 /f1 \\a{%a.} /fe", 0
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/f", false
     test "/t", true
@@ -164,6 +164,8 @@ testsStart:
     test "'hello'/sl",5
     test "'hello' 'hell' /sc", false
     test "'hello' 'hello' /sc", true
+    test "[1 2 3]** + +", 6
+    test "/bm[_a [_b _c]** _d]2#", $63
 
     ; ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 

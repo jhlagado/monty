@@ -326,6 +326,11 @@ sub1:
 
 star_:                          ; 21    
 star:
+    inc bc                      ; check for ** spread
+    ld a,(bc)
+    cp "*"
+    jp z,spread
+    dec bc
 mul:        
     pop  de                     ; get first value
     pop  hl
@@ -856,7 +861,7 @@ command_b_:
     dw error1
 
 command_d_:
-    db "b"                      ; /db decimal base
+    db "c"                      ; /dc decimal
     dw decBase
     db NUL
     dw decBase                  ; /d decimal
@@ -882,7 +887,7 @@ command_f_:
     dw false1
 
 command_h_:
-    db "b"                      ; /hb hex base
+    db "b"                      ; /hx hex
     dw hexBase
     db NUL
     dw error1                   
@@ -1839,6 +1844,35 @@ false1:
     ld hl, FALSE
     push hl
     jp (ix) 
+
+spread:
+    pop hl                      ; hl = array*
+    ld (vTemp1),bc              ; save bc
+    dec hl                      ; bc = length
+    ld b,(hl)
+    dec hl
+    ld c,(hl)
+    inc hl                      ; move back to array 0
+    inc hl
+    jr spread3
+spread1:    
+    ld e,(hl)                   ; e = lsb data at hl
+    inc hl
+    ld a,(vDataWidth)           ; data width = 1, d = 0, skip     
+    ld d,a
+    dec d                       
+    jr z,spread2
+    ld d,(hl)                   ; d = msb data at hl
+    inc hl
+spread2:
+    push de                     ; return de
+    dec bc                      ; count--
+spread3:
+    ld a,c                      ; exit loop if bc == 0
+    or b
+    jr nz,spread1
+    ld bc,(vTemp1)              ; restore bc
+    jp (ix)
 
 ; shiftLeft                     15
 ; value count -- value2          shift left count places

@@ -101,10 +101,10 @@ $55 $FF /x .
 > 255
 ```
 
-To show as hex use /h and /d for decimal
+To show as hex use /hx and /dx for decimal
 
 ```
-255 /h .
+255 /hx .
 > $FF
 ```
 
@@ -207,8 +207,8 @@ A 1# .
 $       hex number prefix           
 /wm     word mode                       --
 /bm     byte mode                       --
-/db     decimal base                    --
-/hb     hexadecimal base                --
+/dc     decimal base                    --
+/hx     hexadecimal base                --
 ```
 
 #### Strings

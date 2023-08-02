@@ -2,35 +2,41 @@
 
 # August
 
-/ac array copy
-/as array spread **** conflict maybe
-use ... to me an spread array onto stack
+does ? ?? trigger on false or true? 
 
-[ 1 2 [ 3 4 5 ] ... 6 7 ]
+/ct count
+/ta to array
+/lt latest
+/sq square root
+
+/as array spread **** conflict maybe
+
+use ** to spread an array onto stack?
+
+[ 1 2 [ 3 4 5 ] ** 6 7 ]
 
 [ 1 2 3 4 5 6 7 ]
 
-/as /ak array sink
+/as /ak /ta array sink
 
-[ 1 2 3 ] /as \i{%i 3 <} /ak
+[ 1 2 3 ] /as \i{%i 3 <} /ta
 
-$ to denote source?
-what about sink? or terminal?
-
-
-
-string comparison
-need to rework looping
 
 ## done
 
+/hb should be /hx
+/db should be /dc
+
+string comparison
 /al - array length
 /sl - string length
 /as - might be the array size in bytes?
 /sb string mode begin
 /se string mode end
 
-reorg jump table
+## on hold
+
+need to rework looping
 
 /db - decimal base
 /bb - for bye bye
