@@ -42,12 +42,12 @@ And calling it
 There are 52 variables A..Z, a..z and they are simpler to use. Upper and lower case
 variable names can be used to store anything, functions, numbers, arrays etc.
 
-To put something in a variable, use = to assign.
+To put a value into a variable, use = to assign.
 
 Store 10 in x
 
 ```
-x := 10 ;
+10 x =
 ```
 
 To access a value in a variable, just use the name.
@@ -70,17 +70,17 @@ it with ^. Here's an immediately executed block of code.
 Here's an "if" condition
 
 ```
-3 2 > { "hello" .s } ?
+3 2 > { `hello` } ?
 ```
 
 If 3 is greater than 2 then print hello
 
-- .s means print string
-- ? Means if the condition is true then execute the block.
-- if..else is done with ??
+- putting text between \` and \` means print this text
+- `?` means: if the condition is true then execute the block.
+- if..else is done using the `??` operator
 
 ```
-3 2 > { "greater" .s } { "less than" .s } ??
+3 2 > { `greater` } { `less than` } ??
 ```
 
 Loops are infinite and are represented with ( )
@@ -89,7 +89,7 @@ You can terminate them with /br which will break the loop if a condition is fals
 Counting to 10
 
 ```
-1 i= ( i . i 10 <= /br )^
+1 i = ( i . i 10 <= /br )^
 > 1 2 3 4 5 6 7 8 9 10
 ```
 

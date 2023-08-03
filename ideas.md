@@ -2,7 +2,9 @@
 
 # August
 
-does ? ?? trigger on false or true? 
+!! booleanize?
+
+does ? ?? trigger on false or true? on false, i.e on zero 
 
 /ct count
 /ta to array

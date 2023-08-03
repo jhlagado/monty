@@ -178,6 +178,43 @@ In this longer example, the number `10` is stored in `a` and the number `20` is
 stored in `b`. The values in these two variables are then added and the answer 
 `30` is stored in `Z`. Finally `Z` is printed. 
 
+## Arithmetic assignment Operators
+
+Monty has a set of arithmetic assignment operators that can be used to combine an 
+assignment with an arithmetic operation. These operators are:
+
+* `+=` adds the left operand to the right operand and assigns the result to the right operand.
+* `-=` subtracts the left operand from the right operand and assigns the result to the right operand.
+* `*=` multiplies the left operand by the right operand and assigns the result to the right operand.
+* `/=` divides the left operand into the right operand and assigns the result to the right operand.
+
+For example, the following code:
+
+```
+10 x =
+5 x +=
+```
+
+is equivalent to the following code:
+
+```
+10 x =
+5 x + x =
+```
+
+Here are some more examples of Monty's assignment operators:
+
+```
+10 x =
+5 x -=          // x is now 5
+
+10 y =
+2 y *=          // y is now 20
+
+10 z =
+2 z /=          // z is now 5
+```
+
 ## Functions in Monty
 
 Functions are anonymous functions that can be assigned to variables and used as 

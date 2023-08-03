@@ -275,7 +275,12 @@ arrayIndex2:
 
 ;                               4
 rparen_:
-    jp rparen
+    ; jp rparen
+rparen:
+    ld c,(iy+8)                 ; IP = block* just under stack frame
+    ld b,(iy+9)
+    jp (ix)
+
 
 ; & and                          14
 ; a b -- c
@@ -292,8 +297,13 @@ and:
     ld h,a        
     jr add3        
 
-; - sub                          23
+; - sub                          
 ; a b -- c
+; -- sub                          
+; b1 -- b2
+; -= sub                          
+; a b1 -- b2
+
 minus_:
 minus:
     inc bc                      ; check if sign of a number
@@ -304,19 +314,26 @@ minus:
     cp "9"+1
     jp c,num    
 sub:                            ; Subtract the value 2nd on stack from top of stack 
+    pop hl                      ; hl = arg_b
     inc bc
     cp "-"
     jr nz,sub1
-    pop hl
-    dec hl
+    dec hl                      ; --
     jp assign0
 sub1:
-    dec bc
-    pop de
-    pop hl
-    or a
+    pop de                      ; de = arg_a
+    cp "="
+    jr z,sub2
+    dec bc                      ; -                    
+    ex de,hl                     
+sub2:
+    or a                        ; -=
     sbc hl,de    
-    jr add3
+sub3:
+    cp "="
+    jp z,assign0
+    push hl        
+    jp (ix)    
 
 star_:                          ; 21    
 star:
@@ -375,19 +392,7 @@ add4:
     jp assign0
 
 colon_:
-colon:
-    inc bc                      ; arg_list must ve immediately followed by {
-    ld a,(bc)
-    cp "="                      ; := definition
-    jr z,defineStart
-    dec bc
-    ld hl,1
-    jp error
-defineStart:
-    pop hl                      ; discard variable value
-    ld hl,(vPointer)            ; vDefine = vPointer
-    ld (vDefine),hl
-    jp (ix)
+    jp colon
 
 ;                               18
 upcase_:
@@ -398,23 +403,11 @@ upcase:
 
 ; ;
 semicolon_:
-    ; jp semicolon
-semicolon:
-defineEnd:    
-    ld hl,(vDefine)             ; hl = define*    
-    ld a,l
-    or h
-    jr z,defineEnd1
-    ld de,NUL                   ; set vDefine=NUL
-    ld (vDefine),de
-    pop de                      ; de = value
-    jp assign1
-defineEnd1:
-    jp (ix)
+    jp semicolon
 
 
 ;********************** PAGE 2 END *********************************************
-; .align $100
+.align $100
 ;********************** PAGE 3 BEGIN *********************************************
 
 lowcase_:
@@ -993,15 +986,24 @@ nop:
 
 ;                               32
 div:
-    pop de
-    pop hl
-    push bc                     ; preserve the IP    
+    pop hl                      ; hl = arg_b
+    pop de                      ; de = arg_a
+    inc bc
+    ld a,(bc)
+    cp "="
+    jr z,div2
+    dec bc                      ; /                    
+    ex de,hl                     
+div2:
+    push af                     ; preserve af, bc
+    push bc                         
     ld bc,hl                
     call divide
     ex de,hl
     ld (vRemain),de
-    pop bc
-    jp add3
+    pop bc                      ; restore
+    pop af
+    jp sub3
 
 ; /ab absolute
 ; num -- num
@@ -1451,9 +1453,31 @@ db 0
 ; implementations continued
 ;*******************************************************************
 
-rparen:
-    ld c,(iy+8)                 ; IP = block* just under stack frame
-    ld b,(iy+9)
+colon:
+    inc bc                      ; arg_list must ve immediately followed by {
+    ld a,(bc)
+    cp "="                      ; := definition
+    jr z,defineStart
+    dec bc
+    ld hl,1
+    jp error
+defineStart:
+    pop hl                      ; discard variable value
+    ld hl,(vPointer)            ; vDefine = vPointer
+    ld (vDefine),hl
+    jp (ix)
+
+semicolon:
+defineEnd:    
+    ld hl,(vDefine)             ; hl = define*    
+    ld a,l
+    or h
+    jr z,defineEnd1
+    ld de,NUL                   ; set vDefine=NUL
+    ld (vDefine),de
+    pop de                      ; de = value
+    jp assign1
+defineEnd1:
     jp (ix)
 
 ; ~ bitwise invert

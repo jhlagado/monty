@@ -40,9 +40,9 @@ testsStart:
     ; test "10 0 -1 /rg \\a{%a.} /fe", 0
     ; test "0 10 1 /f1 \\a{%a.} /fe", 0
 
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/f", false
     test "/t", true
@@ -74,13 +74,21 @@ testsStart:
     test "3 5 |", 7
     test "3 5 /x", 6
     test "3a= 5 a/x a= a",6
+    test "0 !", true
+    test "2 !", false
+    test "0 !!", false
+    test "2 !!", true
     test "2 3 *", 6
     test "1 2 3 + *", 5
     test "7 3 /", 2
     test "100a= 1a+= a", 101
-    test "100a= a1-= a", 99
-    test "100a= a2*= a", 200
-    test "100a= a2/= a", 50
+    test "100a= 1a-= a", 99
+    test "100a= 2a*= a", 200
+    test "100a= 2 a/= a", 50
+    test "2a= 3b= a b+= b", 5
+    test "2a= 3b= a b-= b", 1
+    test "2a= 3b= a b*= b", 6
+    test "2a= 6b= a b/= b", 3
     test "$55a= $AAa&= a",0
     test "$55a= $AAa|= a",$FF
     test "$A5a= $AAa /x= a",$0F
@@ -143,6 +151,8 @@ testsStart:
     test "3i= ( i i-- i/br )^ + +", 6
     test "3i= [ ( i i-- i/br )^ ] 1#", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
+    test "0j= 0i= ( i j+= i++ i 5< /br )^ j ", 10
+    test "0t= 3i= (4j= (t++ j-- j/br)^ i-- i/br)^ t", 12
     test "3 \\a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
     test "/t \\f{1 %f/br 2 +}^",3
     test "/f \\f{1 %f/br 2 +}^",1
