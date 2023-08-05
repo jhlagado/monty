@@ -1,4 +1,4 @@
-.engine mycomputer
+; .engine mycomputer
 
 .include "constants.asm"
 .include "test.fast.mac.asm"
@@ -40,9 +40,10 @@ testsStart:
     ; test "10 0 -1 /rg \\a{%a.} /fe", 0
     ; test "0 10 1 /f1 \\a{%a.} /fe", 0
 
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    test "0 x = 2 x + = x .", false
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/f", false
     test "/t", true
