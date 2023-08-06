@@ -5,7 +5,7 @@ _I'd like to have an argument, please._
 ## What is Monty?
 
 Monty is a minimalist RPN based language "concatenative" interpreter but one
-which aims at readability and use of use. It is written for the Z80 miroprocessor
+which aims at readability and use of use. It is written for the Z80 microprocessor
 and takes about 4K.
 
 Unlike other interpreters, Monty does not use obscure symbols. Instead it uses
@@ -14,113 +14,7 @@ is made of two symbols like <= which means "less than or equal to". Where possib
 Monty follows the conventions laid out in the C programming language so the meanings
 of Monty operations should be recognisable to programmers of other languages.
 
-Monty has functions and you pass values to them by name just like in the C language.
-Unlike Forth, There are no built in stack manipulation words in Monty. There is
-still a stack, just one stack, but the user doesn't normally care about it.
-
-Example, a function to square a value a
-
-```
-\a{ %a %a * } ;
-```
-
-The function is a value like any other and you can store it in a variable and call
-it with ^. Here I'm storing it in a variable F
-
-```
-\a{ %a %a * } ; F=
-```
-
-And calling it
-
-```
-10 F^ .
-
--> 100
-```
-
-There are 52 variables A..Z, a..z and they are simpler to use. Upper and lower case
-variable names can be used to store anything, functions, numbers, arrays etc.
-
-To put a value into a variable, use = to assign.
-
-Store 10 in x
-
-```
-10 x =
-```
-
-To access a value in a variable, just use the name.
-
-```
-3 x + .
-
--> 13
-```
-
-You can put any code inside { } block which means "execute this later". You execute
-it with ^. Here's an immediately executed block of code.
-
-```
-{ 1 2 + . }^
-
-->3
-```
-
-Here's an "if" condition
-
-```
-3 2 > { `hello` } ?
-```
-
-If 3 is greater than 2 then print hello
-
-- putting text between \` and \` means print this text
-- `?` means: if the condition is true then execute the block.
-- if..else is done using the `??` operator
-
-```
-3 2 > { `greater` } { `less than` } ??
-```
-
-Loops are infinite and are represented with ( )
-You run them with ^
-You can terminate them with /br which will break the loop if a condition is false.
-Counting to 10
-
-```
-1 i = ( i . i 10 <= /br )^
-> 1 2 3 4 5 6 7 8 9 10
-```
-
-There are other commands in Monty which do not use symbols. These use a / followed
-by one or two letters. Example, to `xor` two values:
-
-```
-$55 $FF /x .
-> 255
-```
-
-To show as hex use /hx and /dx for decimal
-
-```
-255 /hx .
-> $FF
-```
-
-Arrays are simple and can be byte or word sized.
-Create an array and store in A
-
-```
-[ 10 20 30 ] A=
-```
-
-To access the second element (index 1) of this array
-
-```
-A 1# .
->20
-```
+[Monty tutorial](tutorial.md)
 
 ### Commands
 
