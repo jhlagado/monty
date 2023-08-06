@@ -81,65 +81,6 @@ This program pushes the numbers `10` and `20` are operands which are followed by
 operator `+` which adds the two operands together. The result becomes operand for
 the `.` operator which prints the sum.
 
-================
-
-Here's an "if" condition
-
-```
-3 2 > { `hello` } ?
-```
-
-If 3 is greater than 2 then print hello
-
-- putting text between \` and \` means print this text
-- `?` means: if the condition is true then execute the block.
-- if..else is done using the `??` operator
-
-```
-3 2 > { `greater` } { `less than` } ??
-```
-
-Loops are infinite and are represented with ( )
-You run them with ^
-You can terminate them with /br which will break the loop if a condition is false.
-Counting to 10
-
-```
-1 i = ( i . i 10 <= /br )^
-> 1 2 3 4 5 6 7 8 9 10
-```
-
-There are other commands in Monty which do not use symbols. These use a / followed
-by one or two letters. Example, to `xor` two values:
-
-```
-$55 $FF /x .
-> 255
-```
-
-To show as hex use /hx and /dx for decimal
-
-```
-255 /hx .
-> $FF
-```
-
-Arrays are simple and can be byte or word sized.
-Create an array and store in A
-
-```
-[ 10 20 30 ] A=
-```
-
-To access the second element (index 1) of this array
-
-```
-A 1# .
->20
-```
-
-================
-
 ## Numbers in Monty
 
 Monty on the Z80 uses 16-bit integers to represent numbers. A valid (but not very
@@ -275,27 +216,6 @@ Here are some more examples of Monty's assignment operators:
 2 z /=          // z is now 5
 ```
 
-## Data width
-
-Monty can work in two modes: _byte mode_ and _word mode_. In byte mode, all values are assumed to be 8 bits, while in
-word mode, all values are assumed to be 16 bits. The user can change the mode to byte mode by using the command /bm.
-The user can change to word mode with the command /wm.
-
-The default mode for Monty is word mode. This means that if the user does not specify a mode, all values will be assumed to be
-16 bits.
-
-When Monty is in byte mode, the following rules apply:
-
-All values are stored as 8-bit integers.
-All operations are performed on 8-bit integers.
-
-When Monty is in word mode, the following rules apply:
-
-All values are stored as 16-bit integers.
-All operations are performed on 16-bit integers.
-
-The mode of Monty can be changed at any time by using the /bm or /wm commands.
-
 ## Arrays
 
 Monty arrays are a type of data structure that can be used to store a collection of elements. Arrays are indexed, which means that each element in the array has a unique number associated with it. This number is called the index of the element.
@@ -333,6 +253,130 @@ in the array array:
 ```
 A /al .
 ```
+
+Just as individual values can be printed with the `.` operator, arrays can be printed using the `.a` operator.
+
+```
+A .a
+```
+
+prints `[ 1 2 3 ]` to the output
+
+## Data width
+
+Monty can work in two modes: _byte mode_ and _word mode_. In byte mode, all values are assumed to be 8 bits, while in
+word mode, all values are assumed to be 16 bits. The user can change the mode to byte mode by using the command /bm.
+The user can change to word mode with the command /wm.
+
+The default mode for Monty is word mode. This means that if the user does not specify a mode, all values will be assumed to be
+16 bits.
+
+When Monty is in word mode, the following rules apply:
+
+- All values are stored as 16-bit integers.
+- All operations are performed on 16-bit integers.
+
+When Monty is in byte mode, the following rules apply:
+
+- All values are stored as 8-bit integers.
+- All operations are performed on 8-bit integers.
+
+This difference most relevant during memory access and working with arrays.
+
+For example when an array is defined while in byte mode then all elements are assumed to be 8 bit and that indexes refer to
+consecutive bytes.
+
+```
+/bm [1 2 3] A=
+```
+
+Also array length is measured in bytes.
+
+```
+A /al .
+```
+
+This would print `3` bytes
+
+If an array is defined while in word mode then all the elements are assumed to be 16 bits and that indexes refer to
+consecutive 16 bit words.
+
+```
+/wm [1 2 3] A=
+```
+
+Also array length is measured in bytes.
+
+```
+A /al .
+```
+
+This would print `3` words (6 bytes)
+
+## Characters
+
+Printable ASCII characters can be defined literally in Monty by using the `_` prefix
+
+For example to define a byte mode array of characters, you could do this
+
+```
+/bm [ _h _e _l _l _o ] A=
+```
+
+Characters are simply numbers but they can be printed as ASCII values using the `.c` operator
+
+```
+A 0 # .c
+```
+
+prints `h`
+
+## Strings
+
+Monty allows null-terminated strings to be defined by surrounding the string with `'` characters.
+
+```
+'hello there!' S =
+```
+
+Strings can be prints with the `.s` operator
+
+```
+S .s
+```
+
+prints out `hello there!`
+
+Strings can also be compared for equality with the `/sc` operator
+
+```
+'hello' 'Hello' /sc .
+```
+
+prints `0` (for false)
+
+## String builder
+
+## Logical operators
+
+Monty uses numbers to define boolean values.
+
+- false is represent by the number `0`
+- true is any non-zero value, however the most useful representation is `-1` ($FFFF)
+
+Any non-false value can be inverted to `0` (false) using the `!` operator, a false value is inverted to `-1` (true)
+
+```
+3 ! .
+```
+
+prints `0`
+
+```
+0 ! .
+```
+
+prints `-1`
 
 ## Code blocks
 
@@ -555,3 +599,62 @@ Here are some additional things to keep in mind about local variables in functio
 - Local variables must be declared before they are used.
 - Local variables are only accessible within the scope of the function.
 - Local variables can be overwritten within the scope of the function.
+
+================
+
+Here's an "if" condition
+
+```
+3 2 > { `hello` } ?
+```
+
+If 3 is greater than 2 then print hello
+
+- putting text between \` and \` means print this text
+- `?` means: if the condition is true then execute the block.
+- if..else is done using the `??` operator
+
+```
+3 2 > { `greater` } { `less than` } ??
+```
+
+Loops are infinite and are represented with ( )
+You run them with ^
+You can terminate them with /br which will break the loop if a condition is false.
+Counting to 10
+
+```
+1 i = ( i . i 10 <= /br )^
+> 1 2 3 4 5 6 7 8 9 10
+```
+
+There are other commands in Monty which do not use symbols. These use a / followed
+by one or two letters. Example, to `xor` two values:
+
+```
+$55 $FF /x .
+> 255
+```
+
+To show as hex use /hx and /dx for decimal
+
+```
+255 /hx .
+> $FF
+```
+
+Arrays are simple and can be byte or word sized.
+Create an array and store in A
+
+```
+[ 10 20 30 ] A=
+```
+
+To access the second element (index 1) of this array
+
+```
+A 1# .
+>20
+```
+
+================
