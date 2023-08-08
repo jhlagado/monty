@@ -876,7 +876,7 @@ command_f_:
     dw false1
 
 command_h_:
-    db "b"                      ; /hx hex
+    db "x"                      ; /hx hex
     dw hexBase
     db NUL
     dw error1                   

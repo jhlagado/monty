@@ -1340,7 +1340,7 @@
 0562   00                     DB   NUL   
 0563   C8 0C                  DW   false1   
 0565                COMMAND_H_:      
-0565   62                     DB   "b"   ; /hx hex
+0565   78                     DB   "x"   ; /hx hex
 0566   82 06                  DW   hexBase   
 0568   00                     DB   NUL   
 0569   7C 06                  DW   error1   

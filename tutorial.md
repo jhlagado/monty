@@ -12,7 +12,6 @@ Monty syntax and conventions
 - Basic arithmetic operations
 - Variables and variable assignment
 - Input and output functions
-- Understanding Monty's stack
 
 Control Flow in Monty
 
@@ -347,6 +346,14 @@ S .s
 
 prints out `hello there!`
 
+the length of a string can be got with the /sl operator
+
+```
+A /sl .
+```
+
+This prints the length of `12`
+
 Strings can also be compared for equality with the `/sc` operator
 
 ```
@@ -354,6 +361,8 @@ Strings can also be compared for equality with the `/sc` operator
 ```
 
 prints `0` (for false)
+
+### Text printing
 
 ## String builder
 
@@ -377,6 +386,46 @@ prints `0`
 ```
 
 prints `-1`
+
+Monty has a set of bitwise logical operators that can be used to manipulate bits. These operators are:
+
+`&` performs a bitwise AND operation on the two operands.
+`|` performs a bitwise OR operation on the two operands.
+`\x` performs a bitwise XOR operation on the two operands.
+`~` performs a bitwise NOT operation on the operand.
+`<<` shifts the bits of the operand to the left by the specified number of positions.
+`>>` shifts the bits of the operand to the right by the specified number of positions.
+
+The bitwise logical operators can be used to perform a variety of operations on bits, such as:
+
+- Checking if a bit is set or unset.
+- Setting or clearing a bit.
+- Flipping a bit.
+- Counting the number of set bits in a number.
+
+Here is an example of how to use the bitwise logical operators in Monty:
+
+Check if the first bit of the number 10 is set
+
+```
+10 & 1 .
+```
+
+this will print `1`
+
+Set the fourth bit of the number 10
+
+```
+1 3 << 1 | /hx .
+```
+
+prints $0009
+
+Flip the third bit of the number 10
+```
+1 2 << $0F /x /hx .
+```
+prints $000B
 
 ## Code blocks
 
