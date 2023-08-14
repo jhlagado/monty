@@ -18,7 +18,7 @@ ld hl,testGetCharImpl                       ; change getchar implmentation to us
 LD (GETCVEC),hl
 
 in:
-testInput {DQUOTE,"A",DQUOTE}
+testInput {"123",8,8}
 JP interpret
 
 testGetCharImpl:
@@ -31,4 +31,8 @@ testGetCharImpl:
     RET                 
 
 .include "MAIN.asm"
+f1:
+f2:
+f3:
+f4:
 .include "ram.asm"
