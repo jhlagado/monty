@@ -33,12 +33,12 @@ sysVars:
 
 ; initialised sys variables (preserved)
 
-vDataWidth: ds 2                ; 
-vNumBase:   ds 2                ;    
 vTIBPtr:    ds 2                ; 
 vBufPtr     ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
+vDataWidth: ds 2                ; 
+vNumBase:   ds 2                ;    
 vRecur:     ds 2                ;
 vDefine     ds 2                ;
 vStrMode    ds 2                ;

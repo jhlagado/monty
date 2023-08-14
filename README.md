@@ -21,7 +21,7 @@ of Monty operations should be recognisable to programmers of other languages.
 #### Conditional code
 
 ```
-?       if..then..else                  bool block1* block2* ? -- 
+?       if..then..else                  bool block1* block2* ? --
 ```
 
 #### Input & Output
@@ -77,7 +77,7 @@ of Monty operations should be recognisable to programmers of other languages.
 
 ```
 []      array delaration                -- arr*
-#       array index                     arr* num -- num 
+#       array index                     arr* num -- num
 /ai     array iterator                  arr* -- src*
 /al     array length                    arr* -- num
 /as     array size                      arr* -- num
@@ -89,7 +89,7 @@ of Monty operations should be recognisable to programmers of other languages.
 \       function begin
 {}      code block
 %a..%z  argument reference
-/fs     function source                 func* -- src*        
+/fs     function source                 func* -- src*
 /rc     recur                           --
 /qt     quit                            bool --
 ```
@@ -97,7 +97,7 @@ of Monty operations should be recognisable to programmers of other languages.
 #### Numbers
 
 ```
-$       hex number prefix           
+$       hex number prefix
 /wm     word mode                       --
 /bm     byte mode                       --
 /dc     decimal base                    --
@@ -112,7 +112,7 @@ _       literal character               -- char
 /si     string iterator                 str* -- src*
 /sl     string length                   str* -- num
 /ss     string size                     str* -- num
-/sb     string begin            
+/sb     string begin
 /se     string end                      -- str*
 /sc     string compare                  str* str* -- bool
 ```
@@ -134,7 +134,7 @@ _       literal character               -- char
 +=      increment var by                num var --
 ++      increment var by 1              var --
 -=      decrement var by                num var --
---      decrement var by 1              var --    
+--      decrement var by 1              var --
 +=      multiply var by                 num var --
 /=      divide var by                   num var --
 &=      bitwise and var by              num var --
@@ -144,8 +144,6 @@ _       literal character               -- char
 
 A..Z    global variable reference       -- val
 a..z    global variable reference       -- val
-:=      declaration begin
-;       declaration end
 /ad     addr of                         char -- *
 /vb     text output buffer variable     -- *
 /vh     heap pointer variable           -- *
@@ -158,7 +156,7 @@ a..z    global variable reference       -- val
 #### Misc
 
 ```
-^       execute                         
+^       execute
 /bb     cold start
 ```
 

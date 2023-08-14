@@ -29,7 +29,7 @@ Monty's Built-in Commands
 
 - Logical operations (!, !=, ==, >, >=, <, <=, &, |, /x, /t, /f)
 - Arithmetic operations (/, \*, +, -, /ab, /re)
-- Variables and variable operations (=, +=, ++, --, /ad, /vb, /vh, /vt, /vB, /vH, /vT, A..Z, a..z, :=, ;)
+- Variables and variable operations (=, +=, ++, --, /ad, /vb, /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
 - Functions and function expressions (, {}, %, ^, /fs, /rc, /qt)
 
 Advanced Monty Programming
@@ -531,7 +531,6 @@ code conditionally prints text straight to the console.
 
 In this example, the variable a is assigned the value 18. The ifte operator then checks to see if age is greater than or equal to the voting age of 18. If it is, then the text "can" is printed to the console. Otherwise, the string "cannot" is printed to the console.
 
-
 ## Functions in Monty
 
 In Monty functions are anonymous and can be called directly or assigned to variables.
@@ -572,15 +571,18 @@ and then prints the result using `.`.
 
 ### Calling functions
 
+Functions are called with the ^ operator
 ```
-
+30 20 \ab{ %a %b * } ^ .
 ```
+This code passes the numbers `30` and `20` to a function which multiplies them and returns 
+the result which is then printed.
 
 ### Assigning Functions to Variables
 
 In Monty, you can assign functions to variables just like any other value.
 Variables in Monty are limited to a single uppercase or lowercase letter. To
-assign a function to a variable, use the `:=` operator.
+assign a function to a variable, use the `=` operator.
 
 Let's see some examples:
 
@@ -678,7 +680,7 @@ The syntax for declaring a local variable in a function is as follows:
 For example, the following function contains a local variable c:
 
 ```
-\ab:c{%c := %a %b ; %c . }
+\ab:c{ %a %c = %b ; %c . }
 ```
 
 This function takes two arguments, `a` and `b`, and a local variable, `c`.
@@ -693,7 +695,7 @@ Here are some more examples of local variables in functions:
 A function with a single local variable
 
 ```
-\a:c{ %c := 10 ; %c . }
+\a:c{ 10 %c = ; %c . }
 ```
 
 The function takes a single argument, `a`, and a local variable, `c`. The body of
@@ -702,7 +704,7 @@ the function first assigns the value of `10` to `c`. Then, it prints the value o
 A function with two local variables
 
 ```
-\ab:c{ %c := %a %b + ; %c . }
+\ab:c{ %a %c = %b + ; %c . }
 ```
 
 The function takes two arguments, `a` and `b`, and a local variable, `c`. The body

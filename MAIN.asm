@@ -151,12 +151,12 @@ opcodes:
 ; Initial values for system vars		
 ; ***********************************************************************		
 isysVars:			            
-    DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
-    DW 10                       ; vNumBase = 10
     DW TIB                      ; vTIBPtr pointer into TIB
     DW BUFFER                   ; vBufPtr pointer into BUF
     DW next                     ; nNext
     DW HEAP                     ; vHeapPtr \h start of the free mem
+    DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
+    DW 10                       ; vNumBase = 10
     DW 0                        ; vRecur
     DW 0                        ; vDefine
     DW 0                        ; vStrMode
@@ -1094,9 +1094,9 @@ break1:
 
 ; /b
 byteMode:
-    ld hl,1
+    ld a,1
 byteMode1:
-    ld (vDataWidth),hl
+    ld (vDataWidth),a
     jp (ix)
 
 ; //
@@ -1121,18 +1121,18 @@ constBufStart:
     jp constant
 
 decBase:
-    ld hl,10
+    ld a,10
 decBase1:
-    ld (vNumBase),hl
+    ld (vNumBase),a
     jp (ix)
+
+hexBase:
+    ld a,16
+    jp decBase1
 
 error1:
     ld hl,1                     ; error 1: unknown command
     jp error
-
-hexBase:
-    ld hl,16
-    jp decBase1
 
 ; Z80 port input
 ; port -- value 
@@ -1283,7 +1283,7 @@ constant:
 
 ; /wm
 wordMode:
-    ld hl,2
+    ld a,2
     jp byteMode1
 
 ; /x
