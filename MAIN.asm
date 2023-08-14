@@ -2436,8 +2436,6 @@ interpret5:
     cp '\r'                     ; carriage return? ascii 13
     jr z,interpret7		        ; if anything else its macro/control 
 
-    cp CTRL_E
-    jp z,edit_
     cp CTRL_H
     jp z,backSpace_
     cp CTRL_J
@@ -2530,9 +2528,20 @@ backSpace_:
     .cstr "\b \b"
     jp interpret2
 
-; edit 
-edit_:                        
-    jp interpret
-
 reEdit_:
-    jp interpret
+    call printStr
+    .cstr "\r> "
+    ld hl,TIB
+    jr reEdit1
+reEdit0:
+    call putchar
+    inc hl
+reEdit1:
+    ld a,(hl)
+    cp "\r"
+    jr nz,reEdit0
+    ld de,TIB
+    or a
+    sbc hl,de
+    ld bc,hl
+    jp interpret2
