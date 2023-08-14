@@ -15,7 +15,7 @@ Monty syntax and conventions
 
 Control Flow in Monty
 
-- Conditionals (? and ??)
+- Conditional code (?)
 - Loops (() and /br)
 - Higher-order functions and functions (, {}, %, ^)
 
@@ -362,9 +362,39 @@ Strings can also be compared for equality with the `/sc` operator
 
 prints `0` (for false)
 
-### Text printing
+### Printing values
+
+Monty has a number of ways of printing to the output.
+
+`<value> .` prints a value as a number. This command is affected by /hx /dc /bm /wm  
+`<value> .c` prints a value as an ASCII character
+`<value> .s` prints a value as a pointer to a null terminated string
+`<value> .a` prints a value as a pointer to an array. This command is affected by /hx /dc /bm /wm
+
+Additionally Monty allows the user to easily print literal text by using \` quotes.
+
+For example
+
+```
+100 x =
+`The value of x is ` x .
+```
+
+prints `The value of x is 100`
 
 ## String builder
+
+Anything that can be written to the screen can be captured and turned into a string by using Monty's string builder.
+
+```
+234 r =
+123 g =
+89  b =
+/sb `red: ` r . `green: ` g . `blue: ` b . /se T =
+T .s
+```
+
+Stores `red: 234 green: 123 blue: 89` as a string in variable T. It then prints the string in T
 
 ## Logical operators
 
@@ -422,9 +452,11 @@ Set the fourth bit of the number 10
 prints $0009
 
 Flip the third bit of the number 10
+
 ```
 1 2 << $0F /x /hx .
 ```
+
 prints $000B
 
 ## Code blocks
@@ -433,13 +465,13 @@ You can put any code inside { } block which tells Monty to "execute this later".
 
 Code blocks can be stored for later or immediately executed.
 
-Storing a code block in a variable.
+Storing a code block in the variable `Z`.
 
 ```
 {`hello` 1. 2. 3.} Z =
 ```
 
-running the code
+Running the code block stored in `Z` by using the `^` (execute) operator
 
 ```
 Z^
@@ -451,7 +483,7 @@ will print out.
 hello 1 2 3
 ```
 
-Code blocks can also be immediate executed
+Immediately executing a code block
 
 ```
 {`hello` 4. 5. 6.}^
@@ -463,10 +495,47 @@ This will print out.
 hello 4 5 6
 ```
 
+## Conditional code
+
+Code blocks are useful when it comes to condtional code in Monty.
+
+The syntax for a Monty IF-THEN-ELSE or "ifte" operator in Monty is:
+
+```
+condition code-block-then code-block-else ?
+```
+
+If the condition is true, then code-block-then is evaluated and its value is returned. Otherwise, code-block-else is evaluated and its value is returned.
+
+Here is an example of a ifte operator in Monty:
+
+```
+10 x =
+20 y =
+
+x y > { 'x is greater than y' } { 'y is greater than x' } ? z =
+
+z .s
+```
+
+In this example, the variable x is assigned the value 10 and the variable y is assigned the value 20. The ifte operator then checks to see if x is greater than y. If it is, then the string "x is greater than y" is returned. Otherwise, the string "y is greater than x" is returned. The value of the ifte operator is then assigned to the variable z. Finally, the value of z is printed to the console.
+
+Here is another example of the ifte operator in Monty. This time, instead of creating a string just to print it, the following
+code conditionally prints text straight to the console.
+
+```
+18 a =
+
+`This person` a 18 >= {`can`} {`cannot`} ? `vote`
+```
+
+In this example, the variable a is assigned the value 18. The ifte operator then checks to see if age is greater than or equal to the voting age of 18. If it is, then the text "can" is printed to the console. Otherwise, the string "cannot" is printed to the console.
+
+
 ## Functions in Monty
 
-Functions are anonymous functions that can be assigned to variables and used as
-first-class citizens. They are a powerful feature of Monty that can be used to
+In Monty functions are anonymous and can be called directly or assigned to variables.
+Functions are first-class citizens. They are a powerful feature of Monty that can be used to
 simplify code and make it more concise.
 
 ### Basic Function Syntax
@@ -649,6 +718,8 @@ Here are some additional things to keep in mind about local variables in functio
 - Local variables are only accessible within the scope of the function.
 - Local variables can be overwritten within the scope of the function.
 
+## Loops
+
 ================
 
 Here's an "if" condition
@@ -661,10 +732,10 @@ If 3 is greater than 2 then print hello
 
 - putting text between \` and \` means print this text
 - `?` means: if the condition is true then execute the block.
-- if..else is done using the `??` operator
+- if..else is done using the `?` operator
 
 ```
-3 2 > { `greater` } { `less than` } ??
+3 2 > { `greater` } { `less than` } ?
 ```
 
 Loops are infinite and are represented with ( )

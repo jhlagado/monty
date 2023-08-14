@@ -1307,7 +1307,7 @@ xor1:
 ; begin end step -- src
 FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
 db "{"                              ; init mutable L [index active inrange_test]                           
-db    "[%b /t %s0>{{%a%e<}}{{%a%e>}}??] %L= " 
+db    "[%b /t %s0>{{%a%e<}}{{%a%e>}}?] %L= " 
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:a{"                   ; return talkback to receive data
@@ -1317,7 +1317,7 @@ db        "%s %L0# +="              ; inc value of index by step
 db        "1%t!=/qt"                ; break if type != 0
 db        "%L2#^"                   ; ifte: inrange_test?
 db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
-db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
+db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -1337,7 +1337,7 @@ db        "%L0# ++"                 ; inc value of index
 db        "1%t!=/qt"                ; break if type != 0
 db        "%i %L2# <"               ; ifte: index < size
 db          "{%a%i# 1}{/f %L1#= 0 2}"  ; ifte: /t value, /f active = false, quit
-db          "?? %k/rc"              ; ifte: send to sink note: /rc recur      
+db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -1358,7 +1358,7 @@ db        "/bm %s%i# /wm %c="       ; read byte at i, store in c as word
 db        "1%t!=/qt"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
 db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
-db          "?? %k/rc"              ; ifte: call sink note: /rc recur      
+db          "? %k/rc"              ; ifte: call sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -1374,7 +1374,7 @@ db      "0%t!=/qt"                  ; break if type != 0
 db      "\\dt{"                     ; call source with tb
 db        "1%t=="                   ; ifte: type == 1 ?
 db        "{%d %f^}{%d}"            ; ifte: func(data) or data
-db        "?? %t %k^"               ; ifte: send to sink
+db        "? %t %k^"               ; ifte: send to sink
 db      "} 0 %s^" 
 db    "}" 
 db "}" 
@@ -1393,7 +1393,7 @@ db          "{%d %p^}"              ; case 1: return boolean based on predicate
 db          "{/t}"                  ; case 2: return true
 db        "]%t#^"                   ; select on %t
 db        "{%d %t %k^}{0 1 %T0#^}"  ; ifte: true send d to sink, false send 1 to talkback
-db        "??"
+db        "?"
 db      "} 0 %s^"                    
 db    "}" 
 db "}" 
@@ -1409,7 +1409,7 @@ db    "\\kt{"                           ; return talkback to receive data
 db      "\\dt{"                         ; call source with tb
 db        "1%t=="                       ; ifte: type == 1 ?
 db        "{%d %A0# %r^%A0#= %A0#}{%d}" ; ifte: reduce -> acc, acc or data 
-db        "?? %t %k^"                   ; ifte: send to sink
+db        "? %t %k^"                   ; ifte: send to sink
 db      "} 0 %s^"                    
 db    "}" 
 db "}" 
@@ -1424,7 +1424,7 @@ db    "\\dt{"                       ; return talkback to receive data ; $56AA
 db      "2%t==/qt"                    ; if type == 2 skip
 db      "0%t=="                   ; ifte: type = 0 ?
 db      "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
-db      "??"                      ; ifte:
+db      "?"                      ; ifte:
 db      "0 1 %T0#^"               ; 0 or 1: get next src data item
 db    "} 0 %s^" 
 db "}" 
@@ -1516,22 +1516,10 @@ hexnum2:
     jr  hexnum1
 
 ; ? if                            23
-; condition then -- value
+; condition then else -- value
 question:
 if:
-    inc bc
-    ld a,(bc)
-    cp "?"
-    jr z,ifte
-    dec bc
-    ld de,NUL                   ; NUL pointer for else
-    jr ifte1
-
-; ?? ifte
-; condition then else -- value
-ifte: 
     pop de                      ; de = else
-ifte1:
     pop hl                      ; hl = then
     ex (sp),hl                  ; hl = condition, (sp) = then
     ld a,h
@@ -1899,40 +1887,55 @@ spread3:
     ld bc,(vTemp1)              ; restore bc
     jp (ix)
 
-; shiftLeft                     15
-; value count -- value2          shift left count places
+; shiftLeft                     
+; value count <<           
+; count variable <<=           
 shiftLeft:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
+    pop hl                      ; de = arg_a, hl = arg_b
+    pop de                      
+    inc bc
+    ld a,(bc)
+    cp "="
+    jr z,shiftLeft2
+    dec bc                                          
+    ex de,hl                    ; de = arg_b, hl = arg_a 
+shiftLeft2:
+    ld (vTemp1),bc              ; save IP
+    ld b,e                      ; b = loop counter
     inc b                       ; test for counter=0 case
-    jr shiftLeft2
-shiftLeft1:   
+    jr shiftLeft4
+shiftLeft3:   
     add hl,hl                   ; left shift hl
-shiftLeft2:   
-    djnz shiftLeft1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
+shiftLeft4:   
+    djnz shiftLeft3
+    ld bc,(vTemp1)              ; restore IP
+    jp sub3
 
-; shiftRight                    16
-; value count -- value2          shift left count places
+; shiftRight                     
+; value count >>           
+; count variable >>=           
 shiftRight:
-    ld de,bc                    ; save IP    
-    pop bc                      ; bc = count
-    ld b,c                      ; b = loop counter
-    pop hl                      
+    pop hl                      ; de = arg_a, hl = arg_b
+    pop de                      
+    inc bc
+    ld a,(bc)
+    cp "="
+    jr z,shiftRight2
+    dec bc                                          
+    ex de,hl                    ; de = arg_a, hl = arg_b 
+shiftRight2:
+    ld (vTemp1),bc              ; save IP
+    ld b,e                      ; b = loop counter
     inc b                       ; test for counter=0 case
-    jr shiftRight2
-shiftRight1:   
+    jr shiftRight4
+shiftRight3:   
     srl h                       ; right shift hl
     rr l
-shiftRight2:   
-    djnz shiftRight1
-    push hl
-    ld bc,de                    ; restore IP
-    jp (ix)
+shiftRight4:   
+    djnz shiftRight3
+    ld bc,(vTemp1)              ; restore IP
+    jp sub3
+
 
 ; division subroutine.
 ; bc: divisor, de: dividend, hl: remainder
@@ -2432,7 +2435,6 @@ interpret5:
     cp $20			            ; compare to space
     jr nc,interpret6		        ; if >= space, if below 20 set cary flag
     cp NUL                      ; is it end of string? NUL end of string
-                                ; ???? NEEDED?
     jr z,interpret8
     cp '\r'                     ; carriage return? ascii 13
     jr z,interpret7		        ; if anything else its macro/control 

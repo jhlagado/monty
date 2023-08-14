@@ -2,9 +2,10 @@
 
 # August
 
-!! booleanize?
-
-does ? ?? trigger on false or true? on false, i.e on zero 
+DO we really need ?? as opposed to just ?, use 0 for null 
+/mx maximum
+/mn minimum
+/tk take
 
 /ct count
 /ta to array

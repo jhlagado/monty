@@ -21,8 +21,7 @@ of Monty operations should be recognisable to programmers of other languages.
 #### Conditional code
 
 ```
-?       if..then                        bool block1* ? -- 
-??      if..then..else                  bool block1* block2* ?? -- 
+?       if..then..else                  bool block1* block2* ? -- 
 ```
 
 #### Input & Output
