@@ -37,11 +37,14 @@ vTIBPtr:    ds 2                ;
 vBufPtr     ds 2                ; 
 vNext       ds 2                ; 
 vHeapPtr:   ds 2                ; 
-vDataWidth: ds 2                ; 
-vNumBase:   ds 2                ;    
+vDefine     ds 1                ;
 vRecur:     ds 2                ;
-vDefine     ds 2                ;
-vStrMode    ds 2                ;
+vDataWidth: ds 1                ; 
+vNumBase:   ds 1                ;    
+vStrMode    ds 1                ;
+vHexPrefix: ds 1 
+            ds 1 
+            ds 1 
 
 ; uninitialised sys variables (preserved)
 

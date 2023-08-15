@@ -2,23 +2,29 @@
 
 # August
 
-DO we really need ?? as opposed to just ?, use 0 for null 
+/fs should be just /sc for source
+it takes a code block and return it return
+can connect to {,c}
+could connect to {/in}
+
+input
+
+,   input number
+,c  input char
+,s  input string
+
+====
+
 /mx maximum
 /mn minimum
+/bn between         value start end(exclusive) -- bool
+
 /tk take
 
 /ct count
 /ta to array
 /lt latest
 /sq square root
-
-/as array spread **** conflict maybe
-
-use ** to spread an array onto stack?
-
-[ 1 2 [ 3 4 5 ] ** 6 7 ]
-
-[ 1 2 3 4 5 6 7 ]
 
 /as /ak /ta array sink
 
@@ -27,6 +33,13 @@ use ** to spread an array onto stack?
 
 ## done
 
+use ** to spread an array onto stack?
+
+[ 1 2 [ 3 4 5 ] ** 6 7 ]
+
+[ 1 2 3 4 5 6 7 ]
+
+DO we really need ?? as opposed to just ?, use 0 for null 
 /hb should be /hx
 /db should be /dc
 

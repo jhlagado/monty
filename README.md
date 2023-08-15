@@ -32,7 +32,10 @@ of Monty operations should be recognisable to programmers of other languages.
 .s      print string                    str* --
 .a      print array                     arr* --
 ``      print literal string            --
-/k      key                             -- char
+,       input number                    -- num
+,c      input char                      -- char
+,s      input string                    -- str*
+
 /in     input                           -- num
 /o      output                          num port --
 ```
@@ -78,6 +81,7 @@ of Monty operations should be recognisable to programmers of other languages.
 ```
 []      array delaration                -- arr*
 #       array index                     arr* num -- num
+**      array spread                    arr* -- item1 item2 ... itemN
 /ai     array iterator                  arr* -- src*
 /al     array length                    arr* -- num
 /as     array size                      arr* -- num

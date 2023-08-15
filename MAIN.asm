@@ -151,15 +151,18 @@ opcodes:
 ; Initial values for system vars		
 ; ***********************************************************************		
 isysVars:			            
-    DW TIB                      ; vTIBPtr pointer into TIB
-    DW BUFFER                   ; vBufPtr pointer into BUF
-    DW next                     ; nNext
-    DW HEAP                     ; vHeapPtr \h start of the free mem
-    DW 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
-    DW 10                       ; vNumBase = 10
-    DW 0                        ; vRecur
-    DW 0                        ; vDefine
-    DW 0                        ; vStrMode
+    dw TIB                      ; vTIBPtr pointer into TIB
+    dw BUFFER                   ; vBufPtr pointer into BUF
+    dw next                     ; nNext
+    dw HEAP                     ; vHeapPtr \h start of the free mem
+    dw 0                        ; vDefine
+    dw 0                        ; vRecur
+    db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
+    db 10                       ; vNumBase = 10
+    db 0                        ; vStrMode
+    db "$"                      ; vHexPrefix
+    db 0
+    db 0
 
 ; **********************************************************************			 
 ; title string (also used by warm boot) 
@@ -170,24 +173,30 @@ titleStr:
 
 ;********************** PAGE 2 BEGIN ***********************************
 
-dquote_:
-comma_:
-    jp (ix)
+colon_:
+    jp colon
 
+comma_:
+    jp comma
+    
 dollar_:
     jp dollar
+
+dquote_:
+quote_:
+    jp quote
+
+dot_:  
+    jp dot
 
 percent_:        
     jp percent 
 
-quote_:
-    jp quote
+question_:
+    jp question
 
 lparen_:
     jp lbrace
-
-dot_:  
-    jp dot
 
 slash_:
     jp slash
@@ -195,8 +204,8 @@ slash_:
 num_:    
     jp  num
 
-question_:
-    jp question
+semicolon_:
+    jp semicolon
 
 bang_:				             
 bang:				            ; logical invert, any non zero value 
@@ -391,20 +400,12 @@ add3:
 add4:
     jp assign0
 
-colon_:
-    jp colon
-
 ;                               18
 upcase_:
 upcase:
     ld a,(bc)                   ; a = identifier char
     sub 'A'                     ; 'A' = 0
     jr ident1
-
-; ;
-semicolon_:
-    jp semicolon
-
 
 ;********************** PAGE 2 END *********************************************
 .align $100
@@ -614,8 +615,6 @@ print:
     dw printArray
     db "c"                      ; .c print char
     dw printChar
-    db "h"                      ; .h print hex without $ prefix
-    dw printHex0
     db "s"                      ; .s print string
     dw printString
     db NUL                      ; .  print number, fall through
@@ -734,12 +733,11 @@ printDec7:
 ; buffer hex                    37
 ; value --                      
 
-printHex0:                      
-    ld de,(vBufPtr)
-    jr printHex1
 printHex:                      
     ld de,(vBufPtr)
-    ld a,"$"                    ; # prefix
+    ld a,(vHexPrefix)           ; "$"
+    or a                        ; skip if null
+    jr z,printHex1
     ld (de),a
     inc de                      ; string*++, 
 printHex1:
@@ -776,13 +774,6 @@ printHex4:
     inc de                      ; string*++, 
 	ret
 
-; unused
-
-dquote:
-underscore:
-comma:
-    jp (ix)
-
 ;********************** PAGE 4 END *********************************************
 
 .align $100
@@ -806,7 +797,7 @@ command:
     db lsb(command_h_)
     db lsb(command_i_)
     db lsb(command_nop_)
-    db lsb(key_)
+    db lsb(command_nop_)
     db lsb(command_nop_)
     db lsb(command_m_)
     db lsb(command_nop_)
@@ -876,6 +867,8 @@ command_f_:
     dw false1
 
 command_h_:
+    db "p"                      ; /hp hex prefix
+    dw hexPrefix
     db "x"                      ; /hx hex
     dw hexBase
     db NUL
@@ -887,10 +880,6 @@ command_i_:
     dw input
     db NUL
     dw error1
-
-key_:
-    db NUL
-    dw key
 
 command_m_:
     db "p"                      ; /mp map
@@ -1130,6 +1119,12 @@ hexBase:
     ld a,16
     jp decBase1
 
+hexPrefix:
+    pop hl
+    ld a,l
+    ld (vHexPrefix),a
+    jp decBase1
+
 error1:
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1145,15 +1140,6 @@ input:
     ld c,e                      ; restore IP
     push hl
     jp (ix)    
-
-; /k                              6
-key:
-    call getchar
-    ld h,0
-    ld l,a
-    push hl
-    jp (ix)
-
 
 ; /o Z80 port output               
 ; value port --
@@ -1452,6 +1438,70 @@ db 0
 ;*******************************************************************
 ; implementations continued
 ;*******************************************************************
+
+comma:
+    call commandTable
+    db "c"                      ; .c print char
+    dw readChar
+    db "s"                      ; .s print string
+    dw readString
+    db NUL                      ; .  print number, fall through
+    dw readNumber
+
+readChar:
+    call getchar
+    ld h,0
+    ld l,a
+    push hl
+    call putchar
+    jp (ix)
+
+readString:
+    ld de,(vHeapPtr)
+    push de                     ; return start of string
+readString1:
+    call getchar
+    cp "\r"
+    jr z,readString2
+    ld (de),a
+    inc de
+    call putchar
+    jr readString1
+readString2:
+    xor a
+    ld (de),a
+    inc de
+    ld (vHeapPtr),de
+    jp (ix)
+
+readNumber:
+    PERFORM readString
+    ld hl,bc                    ; save bc, hl = string*
+    ex (sp),hl
+    ld (vHeapPtr),hl            ; restore heap* to before string
+    ld bc,hl
+    ld a,(bc)
+    cp "-"
+    jr z,readNumber1
+    cp "$"
+    jr z,readNumber2
+    cp "0"
+    jr c,readNumber1
+    cp "9"+1
+    jr nc,readNumber1
+    ld hl,0
+    jr readNumber3
+readNumber1:
+    PERFORM num
+    pop hl
+    jr readNumber3
+readNumber2:
+    PERFORM hexNum
+    pop hl
+readNumber3:
+    pop bc
+    push hl
+    jp (ix)
 
 colon:
     inc bc                      ; arg_list must ve immediately followed by {
@@ -2371,7 +2421,7 @@ coldBoot0:
 coldInit:    
     ld hl,isysVars
     ld de,sysVars
-    ld bc,9 * 2
+    ld bc,6 * 2 + 6
     ldir
 
     ld hl,vars                  ; 52 vars LO HI 

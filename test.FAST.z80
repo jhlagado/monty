@@ -46,9 +46,9 @@ testsStart:
     ; test "10 1 >>", 5
     ; test "3x= 1 x <<= x", 6
     ; test "10x= 1 x >>= x", 5
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/f", false
     test "/t", true
