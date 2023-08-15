@@ -193,4 +193,62 @@ f1y:
     db 0
 
 
+================
+
+Here's an "if" condition
+
+```
+3 2 > { `hello` } ?
+```
+
+If 3 is greater than 2 then print hello
+
+- putting text between \` and \` means print this text
+- `?` means: if the condition is true then execute the block.
+- if..else is done using the `?` operator
+
+```
+3 2 > { `greater` } { `less than` } ?
+```
+
+Loops are infinite and are represented with ( )
+You run them with ^
+You can terminate them with /br which will break the loop if a condition is false.
+Counting to 10
+
+```
+1 i = ( i . i 10 <= /br )^
+> 1 2 3 4 5 6 7 8 9 10
+```
+
+There are other commands in Monty which do not use symbols. These use a / followed
+by one or two letters. Example, to `xor` two values:
+
+```
+$55 $FF /x .
+> 255
+```
+
+To show as hex use /hx and /dx for decimal
+
+```
+255 /hx .
+> $FF
+```
+
+Arrays are simple and can be byte or word sized.
+Create an array and store in A
+
+```
+[ 10 20 30 ] A=
+```
+
+To access the second element (index 1) of this array
+
+```
+A 1# .
+>20
+```
+
+================
 
