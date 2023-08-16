@@ -18,7 +18,7 @@ ld hl,testGetCharImpl                       ; change getchar implmentation to us
 LD (GETCVEC),hl
 
 in:
-testInput {",s123\r"}
+testInput {",\r345\r"}
 JP interpret
 
 testGetCharImpl:

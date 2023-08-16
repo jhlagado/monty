@@ -1475,6 +1475,7 @@ readString2:
     jp (ix)
 
 readNumber:
+    push ix
     PERFORM readString
     ld hl,bc                    ; save bc, hl = string*
     ex (sp),hl
@@ -1486,9 +1487,9 @@ readNumber:
     cp "$"
     jr z,readNumber2
     cp "0"
-    jr c,readNumber1
-    cp "9"+1
     jr nc,readNumber1
+    cp "9"+1
+    jr c,readNumber1
     ld hl,0
     jr readNumber3
 readNumber1:
@@ -1500,6 +1501,7 @@ readNumber2:
     pop hl
 readNumber3:
     pop bc
+    pop ix
     push hl
     jp (ix)
 
