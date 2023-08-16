@@ -821,7 +821,7 @@ command_a_:
     dw absolute
     db "d"                      ; /ad address of
     dw addrOf
-    db "i"                      ; /ad address of
+    db "i"                      ; /ai array iterator
     dw arrayIter
     db "l"                      ; /al array length
     dw arrayLength
@@ -844,7 +844,7 @@ command_d_:
     db "c"                      ; /dc decimal
     dw decBase
     db NUL
-    dw decBase                  ; /d decimal
+    dw error1
 
 command_f_:
     db "d"                      ; /fd fold
@@ -1440,12 +1440,12 @@ db 0
 ;*******************************************************************
 
 comma:
-    call commandTable
-    db "c"                      ; .c print char
+    call cmdTable
+    db "c",NUL                   ; .c print char
     dw readChar
-    db "s"                      ; .s print string
+    db "s",NUL                   ; .s print string
     dw readString
-    db NUL                      ; .  print number, fall through
+    dw NUL                       ; .  print number, fall through
     dw readNumber
 
 readChar:
@@ -1453,7 +1453,6 @@ readChar:
     ld h,0
     ld l,a
     push hl
-    call putchar
     jp (ix)
 
 readString:
@@ -2319,6 +2318,47 @@ commandTable4:
     ld d,(hl)
     ex de,hl
     jp (hl)
+
+; followed by a table
+; db char
+; db char - if null only match on first char
+; dw addr
+; the final item must have char == NUL
+cmdTable:
+    pop hl
+cmdTable1:
+cmdTable2:
+    ld d,(hl)
+    inc hl
+    ld e,(hl)                   
+    inc hl
+    xor a                       ; if d == 0, matched
+    cp d
+    jr z,cmdTable5
+    inc bc                      ; match? 
+    ld a,(bc)
+    cp d
+    jr nz,cmdTable4
+cmdTable3:
+    xor a                       ; if e == 0, matched 
+    cp e
+    jr z,cmdTable5
+    inc bc
+    ld a,(bc)                   ; match? 
+    cp e
+    jr z,cmdTable5
+cmdTable4:                      ; no match, restore bc, go to next table entry
+    dec bc
+    inc hl
+    inc hl
+    jr cmdTable2
+cmdTable5:                      ; matched, jump to addr
+    ld e,(hl)                   
+    inc hl
+    ld d,(hl)
+    ex de,hl
+    jp (hl)
+
 
 putstr0:
     call putchar

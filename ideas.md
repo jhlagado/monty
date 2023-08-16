@@ -2,16 +2,57 @@
 
 # August
 
+echo on/off ?
+
 /fs should be just /sc for source
-it takes a code block and return it return
 can connect to {,c}
 could connect to {/in}
 
-input
+drop / from commands, assume lower case letters are commands
+uppercase are global variables?
+or a prefix like :
 
-,   input number
-,c  input char
-,s  input string
+:a :X
+
+etc similar to locals
+
+$a
+
+or #a #X and use : for arrays
+
+[1 2 3] 1:
+
+or even ;
+
+[1 2 3] 1;
+
+1. convertb to 3 letter command
+2. prefix globals vars
+3. drop the leading / from commands
+
+variables can always be increased in number by using arrays
+
+[0 0 0] :A =
+
+:A
+:A3#
+
+:A
+20 :A3;=
+
+#A
+20 #A 3; =
+
+what about , ?
+
+#A
+20 #A 3, =
+
+: or ; could be used for input
+
+:c :s :
+
+
 
 ====
 
@@ -32,6 +73,11 @@ input
 
 
 ## done
+
+input
+,   input number
+,c  input char
+,s  input string
 
 use ** to spread an array onto stack?
 
