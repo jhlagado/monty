@@ -176,7 +176,6 @@ testsStart:
     test "1 \\b{\\a:c{%a%b-%c= %c--%c}}^F= 3F^",1
     test "1 \\b:c{\\a{%a%b-%c= %c--%c}}^F= 3F^",1
     test "1 \\b:c{\\a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
-    test "F := \\a{%a 1+} ; 1F^", 2
     test "'hello'/sl",5
     test "'hello' 'hell' /sc", false
     test "'hello' 'hello' /sc", true

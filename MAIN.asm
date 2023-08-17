@@ -155,7 +155,7 @@ isysVars:
     dw BUFFER                   ; vBufPtr pointer into BUF
     dw next                     ; nNext
     dw HEAP                     ; vHeapPtr \h start of the free mem
-    dw 0                        ; vDefine
+    dw 0                        ; 
     dw 0                        ; vRecur
     db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     db 10                       ; vNumBase = 10
@@ -419,7 +419,7 @@ lowcase:
 ident1:
     add a,a                     ; l = a * 2                             
     ld l,a
-    ld h,msb(vars)     
+    ld h,msb(VARS)     
     ld (vPointer),hl            ; store address in setter    
     ld e,(hl)
     inc hl
@@ -1015,23 +1015,7 @@ absolute1:
 addrOf:
     pop hl                      ; a = char
     ld a,l
-    cp "z"+1                    ; if a > z then exit
-    jr nc,addrOf2
-    sub "A"                     ; a - 65
-    jr c,addrOf2                ; if < A then exit
-    cp "Z"+1-"A"                ; if > Z then subtract 7
-    jr c,addrOf1
-    sub "a"-("Z"+1)
-    cp "Z"-"A"+1
-    jr c,addrOf2                ; if < a then exit
-addrOf1:
-    add a,a                     ; double a
-    ld hl,VARS                  ; hl = VARS + a
-    add a,l
-    ld l,a
-    ld a,0
-    adc a,h
-    ld h,a
+    call getVarAddr
     push hl
 addrOf2:    
     jp (ix)
@@ -1505,30 +1489,18 @@ readNumber3:
     jp (ix)
 
 colon:
-    inc bc                      ; arg_list must ve immediately followed by {
+varRef:
+    inc bc
     ld a,(bc)
-    cp "="                      ; := definition
-    jr z,defineStart
-    dec bc
-    ld hl,1
-    jp error
-defineStart:
-    pop hl                      ; discard variable value
-    ld hl,(vPointer)            ; vDefine = vPointer
-    ld (vDefine),hl
+    call getVarAddr
+    ld (vPointer),hl            ; store address in setter    
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    push de
     jp (ix)
 
 semicolon:
-defineEnd:    
-    ld hl,(vDefine)             ; hl = define*    
-    ld a,l
-    or h
-    jr z,defineEnd1
-    ld de,NUL                   ; set vDefine=NUL
-    ld (vDefine),de
-    pop de                      ; de = value
-    jp assign1
-defineEnd1:
     jp (ix)
 
 ; ~ bitwise invert
@@ -2359,6 +2331,22 @@ cmdTable5:                      ; matched, jump to addr
     ex de,hl
     jp (hl)
 
+getVarAddr:
+    ld hl,0
+    cp "z"+1                    ; if a > z then exit
+    ret nc
+    sub "A"                     ; a - 65
+    ret c                       ; if < A then exit
+    cp "Z"+1-"A"                ; if > Z then subtract 7
+    jr c,getVarAddr1
+    sub "a"-("Z"+1)
+    cp "Z"-"A"+1
+    ret c                       ; if < a then exit
+getVarAddr1:
+    add a,a                     ; double a
+    ld l,a
+    ld h,msb(VARS)     
+    ret
 
 putstr0:
     call putchar
