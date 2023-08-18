@@ -153,15 +153,16 @@ opcodes:
 isysVars:			            
     dw TIB                      ; vTIBPtr pointer into TIB
     dw BUFFER                   ; vBufPtr pointer into BUF
-    dw next                     ; nNext
     dw HEAP                     ; vHeapPtr \h start of the free mem
     dw NUL                      ; vRecurPtr
     db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     db 10                       ; vNumBase = 10
-    db FALSE                    ; vStrMode
     db "$"                      ; vHexPrefix
-    db FALSE                    ; vEcho
+    db TRUE                     ; vEcho
+    db FALSE                    ; vStrMode
     db 0
+    db 0                         
+    db 0                         
     db 0                         
     db 0                         
 
@@ -859,8 +860,6 @@ command_f_:
     dw false1
 
 command_h_:
-    db "p"                      ; /hp hex prefix
-    dw hexPrefix
     db "x"                      ; /hx hex
     dw hexBase
     db NUL
@@ -933,6 +932,8 @@ command_v_:
     dw varHeapPtr
     db "t"
     dw varTIBPtr
+    db "x"
+    dw varHexPrefix
     db "B"
     dw constBufStart
     db "H"
@@ -1097,12 +1098,6 @@ hexBase:
     ld a,16
     jp decBase1
 
-hexPrefix:
-    pop hl
-    ld a,l
-    ld (vHexPrefix),a
-    jp decBase1
-
 error1:
     ld hl,1                     ; error 1: unknown command
     jp error
@@ -1238,6 +1233,10 @@ varHeapPtr:
 
 varTIBPtr:
     ld hl,vTIBPtr
+    jp variable
+
+varHexPrefix:
+    ld hl,vHexPrefix
     jp variable
 
 ; /wm
@@ -1437,6 +1436,9 @@ readString1:
     jr z,readString2
     ld (de),a
     inc de
+    ld a,(vEcho)
+    inc a
+    jr nz,readString1
     call putchar
     jr readString1
 readString2:
@@ -2450,7 +2452,7 @@ coldBoot0:
 coldInit:    
     ld hl,isysVars
     ld de,sysVars
-    ld bc,5 * 2 + 8
+    ld bc,4 * 2 + 10
     ldir
 
     ld hl,vars                  ; 52 vars LO HI 
@@ -2461,7 +2463,7 @@ coldBoot1:
     inc hl
     djnz coldBoot1
 
-    ld ix,(vNext)
+    ld ix,NEXT
     ld iy,STACK
     ret
 
@@ -2561,7 +2563,7 @@ interpret8:
     ld (vSavedBP),iy            ; save BP
                                 
     dec bc
-next:        
+NEXT:        
     inc bc                      ; Increment the IP
     ld a,(bc)                   ; Get the next character and dispatch
     cp " "                      ; whitespace?
