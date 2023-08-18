@@ -155,14 +155,15 @@ isysVars:
     dw BUFFER                   ; vBufPtr pointer into BUF
     dw next                     ; nNext
     dw HEAP                     ; vHeapPtr \h start of the free mem
-    dw 0                        ; 
-    dw 0                        ; vRecurPtr
+    dw NUL                      ; vRecurPtr
     db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     db 10                       ; vNumBase = 10
     db 0                        ; vStrMode
     db "$"                      ; vHexPrefix
     db 0
     db 0
+    db 0                        ; 
+    db 0                        ; 
 
 ; **********************************************************************			 
 ; title string (also used by warm boot) 
@@ -2451,7 +2452,7 @@ coldBoot0:
 coldInit:    
     ld hl,isysVars
     ld de,sysVars
-    ld bc,6 * 2 + 6
+    ld bc,5 * 2 + 8
     ldir
 
     ld hl,vars                  ; 52 vars LO HI 
