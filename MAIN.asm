@@ -2029,41 +2029,40 @@ parseBlock1:                         ; Skip to end of definition
     inc bc                      ; Point to next character
     cp " " + 1                  ; ignore whitespace 
     jr c,parseBlock1
-
-    cp ")"
-    jr z,parseBlock4
-    cp "}"                       
-    jr z,parseBlock4
-    cp "]"
-    jr z,parseBlock4
-
-    cp "("
+    cp "'"                      ; quote char
     jr z,parseBlock2
-    cp "{"
+    cp DQ                       ; double quote char
     jr z,parseBlock2
-    cp "["
+    cp "`"                      ; grave char
     jr z,parseBlock2
-
-    cp "'"
-    jr z,parseBlock3
-    cp "`"
-    jr z,parseBlock3
-    cp DQ
-    jr z,parseBlock3
-    jr parseBlock1
+    bit 7,d    
+    jr nz,parseBlock1    
+    jp parseBlock3
 parseBlock2:
-    inc d
-    jr parseBlock1                   
-parseBlock3:
     ld a,$80
     xor d
     ld d,a
-    jr nz, parseBlock1
-    jr parseBlock5
+    jr parseBlock1    
+parseBlock3:
+    cp "("
+    jr z,parseBlock4
+    cp "{"
+    jr z,parseBlock4
+    cp "["
+    jr z,parseBlock4
+    cp ")"
+    jr z,parseBlock5
+    cp "}"                       
+    jr z,parseBlock5
+    cp "]"
+    jr z,parseBlock5
+    jr parseBlock1
 parseBlock4:
+    inc d
+    jr parseBlock1                   
+parseBlock5:
     dec d
     jr nz, parseBlock1          ; get the next element
-parseBlock5:
     ld hl,bc                    ; hl = IP
     ld de,HEAP                  ; is IP pointing to object in heap
     or a                        ; IP - HEAP
@@ -2357,9 +2356,11 @@ putstr:
 ; **************************************************************************    
 
 nesting:    
-    cp DQ                       ; quote char
+    cp "'"                      ; quote char
     jr z,nesting0
-    cp "`"                      ; quote char
+    cp DQ                       ; double quote char
+    jr z,nesting0
+    cp "`"                      ; grave char
     jr z,nesting0
     jr nesting1
 nesting0:

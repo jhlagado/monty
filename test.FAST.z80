@@ -42,10 +42,8 @@ testsStart:
 
     ; test "0 x = 2 x + = x .", false
 
-    ; test "3 1 <<", 6
-    ; test "10 1 >>", 5
-    ; test "3x= 1 x <<= x", 6
-    ; test "10x= 1 x >>= x", 5
+    ; ; test "1 /t{10}{20} ? +", 11
+    ; test "/t{1}0?", 1
     ; call printStr
     ; .cstr "Done!"
     ; HALT
