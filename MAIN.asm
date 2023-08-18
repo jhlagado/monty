@@ -158,12 +158,12 @@ isysVars:
     dw NUL                      ; vRecurPtr
     db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     db 10                       ; vNumBase = 10
-    db 0                        ; vStrMode
+    db FALSE                    ; vStrMode
     db "$"                      ; vHexPrefix
+    db FALSE                    ; vEcho
     db 0
-    db 0
-    db 0                        ; 
-    db 0                        ; 
+    db 0                         
+    db 0                         
 
 ; **********************************************************************			 
 ; title string (also used by warm boot) 
@@ -272,16 +272,7 @@ arrayIndex0:
     add hl,hl                           ; if data width = 2 then double 
 arrayIndex1:
     add hl,de                           ; add addr
-    ld (vPointer),hl                    ; store address in setter    
-    ld d,0
-    ld e,(hl)
-    or a                                ; check data width again                                
-    jr z,arrayIndex2
-    inc hl
-    ld d,(hl)
-arrayIndex2:
-    push de
-    jp (ix)
+    jp variable
 
 ;                               4
 rparen_:
@@ -936,6 +927,8 @@ true_:
 command_v_:
     db "b"
     dw varBufPtr
+    db "b"
+    dw varEcho
     db "h"
     dw varHeapPtr
     db "t"
@@ -1232,25 +1225,20 @@ stringCompare4:
     jp (ix)
 
 varBufPtr:
-    ld de,(vBufPtr)
     ld hl,vBufPtr
-    jr variable
+    jp variable
+
+varEcho:
+    ld hl,vEcho
+    jp variable
 
 varHeapPtr:
-    ld de,(vHeapPtr)
     ld hl,vHeapPtr
-    jr variable
+    jp variable
 
 varTIBPtr:
-    ld de,(vTIBPtr)
     ld hl,vTIBPtr
-    jr variable
-
-variable:
-    ld (vPointer),hl
-constant:
-    push de
-    jp (ix)
+    jp variable
 
 ; /wm
 wordMode:
@@ -1494,12 +1482,7 @@ varRef:
     inc bc
     ld a,(bc)
     call getVarAddr
-    ld (vPointer),hl            ; store address in setter    
-    ld e,(hl)
-    inc hl
-    ld d,(hl)
-    push de
-    jp (ix)
+    jp variable
 
 semicolon:
     jp (ix)
@@ -2239,6 +2222,21 @@ createFunc5:
 ;*******************************************************************
 ; general routines
 ;*******************************************************************
+
+; hl = address
+variable:
+    ld (vPointer),hl
+    ld e,(hl)
+    ld a,(vDataWidth)
+    dec a
+    ld d,0
+    jr z,constant
+    inc hl
+    ld d,(hl)
+    dec hl
+constant:
+    push de
+    jp (ix)
 
 ; followed by a table
 ; indexed on the 0-25 lowercase letter

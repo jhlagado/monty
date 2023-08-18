@@ -33,19 +33,19 @@ sysVars:
 
 ; initialised sys variables (preserved)
 
-vTIBPtr:    ds 2                ; 
-vBufPtr     ds 2                ; 
-vNext       ds 2                ; 
-vHeapPtr:   ds 2                ; 
-vRecurPtr:  ds 2                ;
-vDataWidth: ds 1                ; 
-vNumBase:   ds 1                ;    
-vStrMode    ds 1                ;
+vTIBPtr:    ds 2                 
+vBufPtr     ds 2                 
+vNext       ds 2                 
+vHeapPtr:   ds 2                 
+vRecurPtr:  ds 2                
+vDataWidth: ds 1                 
+vNumBase:   ds 1                    
+vStrMode    ds 1                
 vHexPrefix: ds 1 
-            ds 1 
+vEcho:      ds 1 
             ds 1 
             ds 1
-            ds 1                
+            ds 1
 
 ; uninitialised sys variables (preserved)
 
@@ -62,9 +62,9 @@ vSavedBP:   ds 2                ;
 vTemp1:     ds 2                ; 
 vTemp2:     ds 2                ; 
 vTemp3:     ds 2                ; 
-            ds 2                ; 
+vLastDef:   ds 2                ; 
 tbPtr:      ds 2                ; reserved for tests
 
-titleBuf:   ds 20
+titleBuf:    ds 20
 
 HEAP:         
