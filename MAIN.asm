@@ -156,7 +156,7 @@ isysVars:
     dw next                     ; nNext
     dw HEAP                     ; vHeapPtr \h start of the free mem
     dw 0                        ; 
-    dw 0                        ; vRecur
+    dw 0                        ; vRecurPtr
     db 2                        ; vDataWidth in bytes of array operations (default 1 byte) 
     db 10                       ; vNumBase = 10
     db 0                        ; vStrMode
@@ -1149,7 +1149,7 @@ quit1:
 
 recur:
     pop hl
-    ld (vRecur),hl
+    ld (vRecurPtr),hl
     jp (ix)
 
 remain:
@@ -1712,14 +1712,14 @@ blockEnd3:
     ld sp,hl                    
     ld bc,(vTemp2)
     ld iy,(vTemp1)
-    ld de,(vRecur)              ; de = recur vector              
+    ld de,(vRecurPtr)              ; de = recur vector              
     ld a,e                      ; check for NUL
     or d
     jr nz,blockEnd4
     jp (ix)    
 blockEnd4:
     ld hl,0                     ; clear recur vector
-    ld (vRecur),hl
+    ld (vRecurPtr),hl
     jp go1                      ; execute de
     
 goBlock:
