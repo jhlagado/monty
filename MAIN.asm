@@ -176,7 +176,7 @@ titleStr:
 ;********************** PAGE 2 BEGIN ***********************************
 
 colon_:
-    jp colon
+    jp (ix)
 
 comma_:
     jp comma
@@ -205,9 +205,6 @@ slash_:
 
 num_:    
     jp  num
-
-semicolon_:
-    jp semicolon
 
 bang_:				             
 bang:				            ; logical invert, any non zero value 
@@ -262,7 +259,8 @@ lt1:
 ; index of an array, based on vDataWidth 22
 ; array* num -- value    ; also sets vPointer to address 
 hash_:    
-hash:
+semicolon_:
+semicolon:
 arrayIndex:
     pop hl                              ; hl = index  
     pop de                              ; de = array
@@ -1269,12 +1267,12 @@ db    "[%b /t %s0>{{%a%e<}}{{%a%e>}}?] %L= "
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:a{"                   ; return talkback to receive data
-db        "%L1#!/qt"                ; if not active don't send
-db        "%L0# %a="                ; store current index in A 
-db        "%s %L0# +="              ; inc value of index by step
+db        "%L1;!/qt"                ; if not active don't send
+db        "%L0; %a="                ; store current index in A 
+db        "%s %L0; +="              ; inc value of index by step
 db        "1%t!=/qt"                ; break if type != 0
-db        "%L2#^"                   ; ifte: inrange_test?
-db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
+db        "%L2;^"                   ; ifte: inrange_test?
+db          "{%a 1}{/f %L1;= 0 2}"  ; ifte: /t index, /f active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1289,12 +1287,12 @@ db    "[0 /t %a/al] %L="            ; init mutable L [index active size]
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:i{"                   ; return talkback to receive data
-db        "%L1#!/qt"                ; if not active don't send
-db        "%L0# %i="                ; store current index in i 
-db        "%L0# ++"                 ; inc value of index
+db        "%L1;!/qt"                ; if not active don't send
+db        "%L0; %i="                ; store current index in i 
+db        "%L0; ++"                 ; inc value of index
 db        "1%t!=/qt"                ; break if type != 0
-db        "%i %L2# <"               ; ifte: index < size
-db          "{%a%i# 1}{/f %L1#= 0 2}"  ; ifte: /t value, /f active = false, quit
+db        "%i %L2; <"               ; ifte: index < size
+db          "{%a%i; 1}{/f %L1;= 0 2}"  ; ifte: /t value, /f active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1309,13 +1307,13 @@ db    "[0 /t] %L="                  ; init mutable L [index active]
 db    "\\kt{"                            
 db      "0%t!=/qt"                  ; break if type != 0 
 db      "\\dt:ic{"                  ; return talkback to receive data
-db        "%L1#!/qt"                ; if not active don't send
-db        "%L0# %i="                ; store current index in A 
-db        "%L0# ++"                 ; inc value of index by step
-db        "/bm %s%i# /wm %c="       ; read byte at i, store in c as word
+db        "%L1;!/qt"                ; if not active don't send
+db        "%L0; %i="                ; store current index in A 
+db        "%L0; ++"                 ; inc value of index by step
+db        "/bm %s%i; /wm %c="       ; read byte at i, store in c as word
 db        "1%t!=/qt"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
-db          "{%c 1}{/f %L1#= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
+db          "{%c 1}{/f %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
 db          "? %k/rc"              ; ifte: call sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1346,11 +1344,11 @@ db    "[0]%T="
 db    "\\kt{"                       ; return talkback to receive data 
 db      "\\dt{"                     ; call source with tb
 db        "["
-db          "{%d %T0#= /t}"         ; case 0: store talkback in T[0], return true
+db          "{%d %T0;= /t}"         ; case 0: store talkback in T[0], return true
 db          "{%d %p^}"              ; case 1: return boolean based on predicate
 db          "{/t}"                  ; case 2: return true
-db        "]%t#^"                   ; select on %t
-db        "{%d %t %k^}{0 1 %T0#^}"  ; ifte: true send d to sink, false send 1 to talkback
+db        "]%t;^"                   ; select on %t
+db        "{%d %t %k^}{0 1 %T0;^}"  ; ifte: true send d to sink, false send 1 to talkback
 db        "?"
 db      "} 0 %s^"                    
 db    "}" 
@@ -1366,7 +1364,7 @@ db    "[%i]%A="
 db    "\\kt{"                           ; return talkback to receive data 
 db      "\\dt{"                         ; call source with tb
 db        "1%t=="                       ; ifte: type == 1 ?
-db        "{%d %A0# %r^%A0#= %A0#}{%d}" ; ifte: reduce -> acc, acc or data 
+db        "{%d %A0; %r^%A0;= %A0;}{%d}" ; ifte: reduce -> acc, acc or data 
 db        "? %t %k^"                   ; ifte: send to sink
 db      "} 0 %s^"                    
 db    "}" 
@@ -1381,9 +1379,9 @@ db    "[0]%T="
 db    "\\dt{"                       ; return talkback to receive data ; $56AA
 db      "2%t==/qt"                    ; if type == 2 skip
 db      "0%t=="                   ; ifte: type = 0 ?
-db      "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
+db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 db      "?"                      ; ifte:
-db      "0 1 %T0#^"               ; 0 or 1: get next src data item
+db      "0 1 %T0;^"               ; 0 or 1: get next src data item
 db    "} 0 %s^" 
 db "}" 
 db 0
@@ -1403,7 +1401,7 @@ db 0
 
 FUNC printArray, 2, "abc"
 db "{"
-db "'[ '.s %a/al%c= 0%b= (%a %b #. %b ++ %b %c </br)^ ']'.s"
+db "'[ '.s %a/al%c= 0%b= (%a %b ;. %b ++ %b %c </br)^ ']'.s"
 db "}"
 db 0
 
@@ -1477,16 +1475,6 @@ readNumber3:
     pop bc
     pop ix
     push hl
-    jp (ix)
-
-colon:
-varRef:
-    inc bc
-    ld a,(bc)
-    call getVarAddr
-    jp variable
-
-semicolon:
     jp (ix)
 
 ; ~ bitwise invert

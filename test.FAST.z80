@@ -146,16 +146,16 @@ testsStart:
     test "\\a:b{%a %b = %b} x= 2 x^", 2
     test "1 10 20 \\ab{/t{%a}{%b} ?}^ +", 11
     test "1 10 20 \\ab{/f{%a}{%b} ?}^ +", 21
-    test "[10 20 30] 1#", 20
+    test "[10 20 30] 1;", 20
     test "[10 20 30 40] /al", 4
-    test "/bm [1 2 3] 1#", 2
-    test "/bm [_A _B _C] 1#", 66
-    test "[{10}{20}{30}] 0#^ ", 10
-    test "10 20 \\ab{[{%a}{%b}] 0#^}^", 10
-    test "0 10 20 \\iab{[{%a}{%b}] %i#^}^", 10
-    test "1 10 20 \\iab{[{%a}{%b}] %i#^}^", 20
+    test "/bm [1 2 3] 1;", 2
+    test "/bm [_A _B _C] 1;", 66
+    test "[{10}{20}{30}] 0;^ ", 10
+    test "10 20 \\ab{[{%a}{%b}] 0;^}^", 10
+    test "0 10 20 \\iab{[{%a}{%b}] %i;^}^", 10
+    test "1 10 20 \\iab{[{%a}{%b}] %i;^}^", 20
     test "3i= ( i i-- i/br )^ + +", 6
-    test "3i= [ ( i i-- i/br )^ ] 1#", 2
+    test "3i= [ ( i i-- i/br )^ ] 1;", 2
     test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
     test "0j= 0i= ( i j+= i++ i 5< /br )^ j ", 10
     test "0t= 3i= (4j= (t++ j-- j/br)^ i-- i/br)^ t", 12
@@ -180,7 +180,7 @@ testsStart:
     test "'hello' 'hell' /sc", false
     test "'hello' 'hello' /sc", true
     test "[1 2 3]** + +", 6
-    test "/bm[_a [_b _c]** _d]2#", $63
+    test "/bm[_a [_b _c]** _d]2;", $63
 
     ; ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 
@@ -199,12 +199,12 @@ testsStart:
 ; db    "\\kt{"                            
 ; db      "0%t!=/qt"                  ; break if type != 0 
 ; db      "\\dt:a{"                   ; return talkback to receive data
-; db        "%L1#!/qt"                ; if not active don't send
-; db        "%L0# %a="                ; store current index in A 
-; db        "%s %L0# +="              ; inc value of index by step
+; db        "%L1;!/qt"                ; if not active don't send
+; db        "%L0; %a="                ; store current index in A 
+; db        "%s %L0; +="              ; inc value of index by step
 ; db        "1%t!=/qt"                ; break if type != 0
 ; db        "%a %e <"                 ; ifte: in range?
-; db          "{%a 1}{/f %L1#= 0 2}"  ; ifte: /t index, /f active = false, quit
+; db          "{%a 1}{/f %L1;= 0 2}"  ; ifte: /t index, /f active = false, quit
 ; db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 ; db      "} 0 %k^"                   ; init sink
 ; db    "}" 
@@ -232,11 +232,11 @@ testsStart:
 ; db    "\\kt{"                       ; return talkback to receive data 
 ; db      "\\dt{"                     ; call source with tb
 ; db        "["
-; db          "{%d %T0#= /t}"         ; case 0: store talkback in T[0], return true
+; db          "{%d %T0;= /t}"         ; case 0: store talkback in T[0], return true
 ; db          "{%d %p^}"              ; case 1: return boolean based on predicate
 ; db          "{/t}"                  ; case 2: return true
-; db        "]%t#^"                   ; select on %t
-; db        "{%d %t %k^}{0 1 %T0#^}"  ; ifte: true send d to sink, false send 1 to talkback
+; db        "]%t;^"                   ; select on %t
+; db        "{%d %t %k^}{0 1 %T0;^}"  ; ifte: true send d to sink, false send 1 to talkback
 ; db        "?"
 ; db      "} 0 %s^"                    
 ; db    "}" 
@@ -249,9 +249,9 @@ testsStart:
 ; db    "\\dt{"                       ; return talkback to receive data ; $56AA
 ; db      "2%t==/qt"                    ; if type == 2 skip
 ; db      "0%t=="                   ; ifte: type = 0 ?
-; db      "{%d %T0#=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
+; db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 ; db      "?"                      ; ifte:
-; db      "0 1 %T0#^"               ; 0 or 1: get next src data item
+; db      "0 1 %T0;^"               ; 0 or 1: get next src data item
 ; db    "} 0 %s^" 
 ; db "}" 
 ; db 0
@@ -262,7 +262,7 @@ testsStart:
 ; db    "\\kt{"                         ; return talkback to receive data 
 ; db      "\\dt{"                         ; call source with tb
 ; db        "1%t=="                       ; ifte: type == 1 ?
-; db        "{ %d %A0# %r^ %A0#= %A0#}{%d}"      ; ifte: reduce -> acc, acc or data 
+; db        "{ %d %A0; %r^ %A0;= %A0;}{%d}"      ; ifte: reduce -> acc, acc or data 
 ; db        "? %t %k^"                    ; ifte: send to sink
 ; db      "} 0 %s^"                    
 ; db    "}" 
