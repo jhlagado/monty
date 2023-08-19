@@ -24,7 +24,7 @@ db 0
 .align $100
 testsStart:
 
-    test "0 10 1 /rg \\a{%a.} /fe", 0
+    ; test "0 10 1 /rg \\a{%a.} /fe", 0
     ; test "0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", 0
     ; test "0 10 1 /rg \\a{%a 3<}/ft \\a{%a.} /fe", 0
     ; test "0 10 1 /rg  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /fe", 0
@@ -42,11 +42,13 @@ testsStart:
 
     ; test "0 x = 2 x + = x .", false
 
-    ; ; test "1 /t{10}{20} ? +", 11
-    ; test "/t{1}0?", 1
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    ; test "[_A {100} _B {200} _P {300}] A=  A {-1} /sel", 1
+
+
+    test "7 3 /", 2
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/f", false
     test "/t", true

@@ -777,194 +777,221 @@ command:
     cp "/"                      ; // comment
     jp z,comment
     dec bc
-    call lowerCaseTable
+    call charTable
     db lsb(command_a_)
     db lsb(command_b_)
-    db lsb(command_nop_)
+    db 0
     db lsb(command_d_)
-    db lsb(command_nop_)
+    db 0
     db lsb(command_f_)
-    db lsb(command_nop_)
+    db 0
     db lsb(command_h_)
     db lsb(command_i_)
-    db lsb(command_nop_)
-    db lsb(command_nop_)
-    db lsb(command_nop_)
+    db 0
+    db 0
+    db 0
     db lsb(command_m_)
-    db lsb(command_nop_)
-    db lsb(output_)
+    db 0
+    db lsb(comand_o_)
     db lsb(command_p_)
     db lsb(command_q_)
     db lsb(command_r_)
     db lsb(command_s_)
-    db lsb(true_)
-    db lsb(command_nop_)
+    db lsb(comand_t_)
+    db 0
     db lsb(command_v_)
     db lsb(command_w_)
-    db lsb(xor_)
-    db lsb(command_nop_)
-    db lsb(command_nop_)
+    db lsb(command_x_)
+    db 0
+    db 0
     db lsb(command_default_)
 
 ; 12
 command_a_:
-    db "b"                      ; /ab absolute
+    call cmdTable
+    db "b",0                    ; /ab absolute
     dw absolute
-    db "d"                      ; /ad address of
+    db "d",0                    ; /ad address of
     dw addrOf
-    db "i"                      ; /ai array iterator
+    db "i",0                    ; /ai array iterator
     dw arrayIter
-    db "l"                      ; /al array length
+    db "l",0                    ; /al array length
     dw arrayLength
-    db "s"                      ; /as array size
+    db "s",0                    ; /as array size
     dw arraySize
-    db NUL
+    db 0,0
     dw error1
 
 command_b_:
-    db "b"                      ; /bb bye bye cold boot
+    call cmdTable
+    db "b",0                      ; /bb bye bye cold boot
     dw coldStart
-    db "m"                      ; /bm byte mode
+    db "m",0                      ; /bm byte mode
     dw byteMode
-    db "r"                      ; /br break from loop
+    db "r",0                      ; /br break from loop
     dw break
-    db NUL
+    db 0,0
     dw error1
 
 command_d_:
-    db "c"                      ; /dc decimal
+    call cmdTable
+    db "c",0                      ; /dc decimal
     dw decBase
-    db NUL
+    db 0,0
     dw error1
 
 command_f_:
-    db "d"                      ; /fd fold
+    call cmdTable
+    db "d",0                      ; /fd fold
     dw fold
-    db "e"                      ; /fe forEach
+    db "e",0                      ; /fe forEach
     dw forEach
-    db "s"                      ; /fs funcSrc
+    db "s",0                      ; /fs funcSrc
     dw funcSrc
-    db "t"                      ; /ft filter
+    db "t",0                      ; /ft filter
     dw filter
-    db "1"                      
+    db "1",0                      
     dw f1
-    db "2"                      
+    db "2",0                      
     dw f2
-    db "3"                      
+    db "3",0                      
     dw f3
-    db "4"                      
+    db "4",0                      
     dw f4
-    db NUL
+    db 0,0
     dw false1
 
 command_h_:
-    db "x"                      ; /hx hex
+    call cmdTable
+    db "x",0                      ; /hx hex
     dw hexBase
-    db NUL
+    db 0,0
     dw error1                   
 
 ; 6
 command_i_:
-    db "n"                      ; /in input
+    call cmdTable
+    db "n",0                      ; /in input
     dw input
-    db NUL
+    db 0,0
     dw error1
 
 command_m_:
-    db "p"                      ; /mp map
+    call cmdTable
+    db "p",0                      ; /mp map
     dw map
-    db NUL
+    db 0,0
     dw error1
 
-output_:
-    db NUL
+comand_o_:
+    call cmdTable
+    db 0,0
     dw output
 ; 4
 command_p_:
-    db NUL
+    call cmdTable
+    db 0,0
     dw error1
 
 ; 6
 command_q_:
-    db "t"                      ; /qt quit
+    call cmdTable
+    db "t",0                      ; /qt quit
     dw quit
-    db NUL
+    db 0,0
     dw error1
 
 command_r_:
-    db "c"                      ; /rc tail call optimisation
+    call cmdTable
+    db "c",0                      ; /rc tail call optimisation
     dw recur
-    db "e"                      ; /re remainder
+    db "e",0                      ; /re remainder
     dw remain
-    db "g"                      ; /rg range src
+    db "g",0                      ; /rg range src
     dw rangeSrc
-    db NUL
+    db 0,0
     dw error1
 
 command_s_:
-    db "b"
-    dw stringBegin
-    db "c"
-    dw stringCompare
-    db "e"
-    dw stringEnd
-    db "i"
-    dw stringIter
-    db "l"
-    dw stringLength
-    db "s"
-    dw stringSize
-    db NUL
-    dw error1
+    jr command_s
 
-true_:
-    db NUL
-    dw true1
+comand_t_:
+    jr command_t
 
 command_v_:
-    db "b"
-    dw varBufPtr
-    db "b"
-    dw varEcho
-    db "h"
-    dw varHeapPtr
-    db "t"
-    dw varTIBPtr
-    db "x"
-    dw varHexPrefix
-    db "B"
-    dw constBufStart
-    db "H"
-    dw constHeapStart
-    db "T"
-    dw constTIBStart
-    db NUL
-    dw error1
+    jr command_v
 
 command_w_:
-    db "m"                      ; /wm word mode
-    dw wordMode
-    db NUL
-    dw error1
+    jr command_w
 
-xor_:
-    db NUL
-    dw xor
-
-; 2
-command_nop_:
-    db NUL
-    dw nop
- 
+command_x_:
+    jr command_x
 ; 3
 command_default_:
-    db NUL
-    dw div
+    jr command_default
+
 
 ;********************** PAGE 5 END *********************************************
 
-nop:
-    jp (ix)
+command_s:    
+    call cmdTable
+    db "b",0
+    dw stringBegin
+    db "c",0
+    dw stringCompare
+    db "e",0
+    dw stringEnd
+    db "i",0
+    dw stringIter
+    db "l",0
+    dw stringLength
+    db "s",0
+    dw stringSize
+    db 0,0
+    dw error1
+
+command_t:
+    call cmdTable
+    db 0,0
+    dw true1
+
+command_v:
+    call cmdTable
+    db "b",0
+    dw varBufPtr
+    db "e",0
+    dw varEcho
+    db "h",0
+    dw varHeapPtr
+    db "t",0
+    dw varTIBPtr
+    db "x",0
+    dw varHexPrefix
+    db "B",0
+    dw constBufStart
+    db "H",0
+    dw constHeapStart
+    db "T",0
+    dw constTIBStart
+    db 0,0
+    dw error1
+
+command_w:
+    call cmdTable
+    db "m",0                      ; /wm word mode
+    dw wordMode
+    db 0,0
+    dw error1
+
+command_x:    
+    call cmdTable
+    db 0,0
+    dw xor
+
+command_default:    
+    call cmdTable
+    db 0,0
+    dw div
 
 ;                               32
 div:
@@ -2231,23 +2258,28 @@ constant:
 ; indexed on the 0-25 lowercase letter
 ; db lsb(addr)
 ; the final item index 26 matches any other char
-lowerCaseTable:
+charTable:
     inc bc
     ld a,(bc)
     cp "z"+1
-    jr nc,lowerCaseTable2
+    jr nc,charTable3
     sub "a" 
-    jr c,lowerCaseTable2
-lowerCaseTable1:
+    jr c,charTable3
+charTable1:
     pop hl
     add a,l
     ld l,a
-    ld l,(hl)                   ; must have the same msb as the table
-    jp commandTable1
-lowerCaseTable2:
+    ld a,(hl)                   ; must have the same msb as the table
+    or a                        ; a = 0, nop
+    jr nz,charTable2
+    jp (ix)
+charTable2:
+    ld l,a
+    jp (hl)
+charTable3:
     ld a,26
     dec bc
-    jr lowerCaseTable1
+    jr charTable1
     
 ; followed by a table
 ; db char

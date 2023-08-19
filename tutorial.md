@@ -15,13 +15,13 @@ Monty syntax and conventions
 
 Control Flow in Monty
 
-- Conditional code (?)
+- Conditional code (?, /sel)
 - Loops (() and /br)
 - Higher-order functions and functions (, {}, %, ^)
 
 Data Structures
 
-- Arrays ([] and #)
+- Arrays ([] and ;)
 - Strings (', \_, /si, /sl, /sb, /se, /ss)
 - Basic operations on arrays and strings
 
@@ -238,12 +238,12 @@ Arrays can be assigned to variables just like number values
 
 To access an element in an array, you can use the following syntax:
 
-_array index #_
+_array index ";"_
 
 For example, the following code would access the second element in the array array:
 
 ```
-A 1 # .
+A 1 ; .
 ```
 
 You can find the length of an array with the /al operator. For example, the following code would print the number of elements
@@ -366,7 +366,7 @@ prints `0` (for false)
 
 Monty has a number of ways of printing to the output.
 
-`<value> .` prints a value as a number. This command is affected by /hx /dc /bm /wm  
+`<value> .`  prints a value as a number. This command is affected by /hx /dc /bm /wm  
 `<value> .c` prints a value as an ASCII character
 `<value> .s` prints a value as a pointer to a null terminated string
 `<value> .a` prints a value as a pointer to an array. This command is affected by /hx /dc /bm /wm
@@ -555,7 +555,7 @@ This function takes a single argument `a` and prints its value using the `.` ope
 Example: a function to square a value a
 
 ```
-\a{ %a %a * } ;
+\a{ %a %a * }
 ```
 
 ### Function with Multiple Arguments
@@ -603,7 +603,7 @@ The `100` is passed to the function as argument `a`. The function first prints `
 Here's a function to square two numbers. The function is stored in variable S
 
 ```
-\a{ %a %a * } ; S =
+\a{ %a %a * } S =
 ```
 
 Calling it:
@@ -680,7 +680,7 @@ The syntax for declaring a local variable in a function is as follows:
 For example, the following function contains a local variable c:
 
 ```
-\ab:c{ %a %c = %b ; %c . }
+\ab:c{ %a %c = %b %c . }
 ```
 
 This function takes two arguments, `a` and `b`, and a local variable, `c`.
@@ -695,7 +695,7 @@ Here are some more examples of local variables in functions:
 A function with a single local variable
 
 ```
-\a:c{ 10 %c = ; %c . }
+\a:c{ 10 %c = %c . }
 ```
 
 The function takes a single argument, `a`, and a local variable, `c`. The body of
@@ -704,7 +704,7 @@ the function first assigns the value of `10` to `c`. Then, it prints the value o
 A function with two local variables
 
 ```
-\ab:c{ %a %c = %b + ; %c . }
+\ab:c{ %a %c = %b + %c . }
 ```
 
 The function takes two arguments, `a` and `b`, and a local variable, `c`. The body

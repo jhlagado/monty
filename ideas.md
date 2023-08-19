@@ -1,6 +1,24 @@
 # Ideas
 
+# Unused symbols
+
+```
+#
+```
+
 # August
+
+/drp or /voi or /clr ?
+/sel from an associative array
+
+```
+_B [_A {100} _B {200} _P {300}] /sel", 200
+```
+
+_ab 16 bit symbol? a fast 16 bit hash would be better
+
+"hello" /hsh
+
 
 echo on/off ?
 

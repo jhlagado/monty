@@ -80,7 +80,7 @@ of Monty operations should be recognisable to programmers of other languages.
 
 ```
 []      array delaration                -- arr*
-#       array index                     arr* num -- num
+;       array index                     arr* num -- num
 **      array spread                    arr* -- item1 item2 ... itemN
 /ai     array iterator                  arr* -- src*
 /al     array length                    arr* -- num
