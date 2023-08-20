@@ -16,7 +16,7 @@ Monty syntax and conventions
 Control Flow in Monty
 
 - Conditional code (?, /sel)
-- Loops (() and /br)
+- Loops (() and /whi)
 - Higher-order functions and functions (, {}, %, ^)
 
 Data Structures
@@ -27,8 +27,8 @@ Data Structures
 
 Monty's Built-in Commands
 
-- Logical operations (!, !=, ==, >, >=, <, <=, &, |, /x, /t, /f)
-- Arithmetic operations (/, \*, +, -, /ab, /re)
+- Logical operations (!, !=, ==, >, >=, <, <=, &, |, /xor, /t, /f)
+- Arithmetic operations (/, \*, +, -, /abs, /rem)
 - Variables and variable operations (=, +=, ++, --, /ad, /vb, /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
 - Functions and function expressions (, {}, %, ^, /fs, /rc, /qt)
 
@@ -131,10 +131,10 @@ The `.` operator prints the difference.
 
 This program divides 5 with 4 prints their quotient. Monty for the Z80 uses
 16-bit integers. The remainder of the last division operation can accessed using
-the `/re` operator.
+the `/rem` operator.
 
 ```
-/re .
+/rem .
 ```
 
 ## Variables and Variable Assignment
@@ -246,7 +246,7 @@ For example, the following code would access the second element in the array arr
 A 1 ; .
 ```
 
-You can find the length of an array with the /al operator. For example, the following code would print the number of elements
+You can find the length of an array with the /aln operator. For example, the following code would print the number of elements
 in the array array:
 
 ```
@@ -264,7 +264,7 @@ prints `[ 1 2 3 ]` to the output
 ## Data width
 
 Monty can work in two modes: _byte mode_ and _word mode_. In byte mode, all values are assumed to be 8 bits, while in
-word mode, all values are assumed to be 16 bits. The user can change the mode to byte mode by using the command /bm.
+word mode, all values are assumed to be 16 bits. The user can change the mode to byte mode by using the command /byt.
 The user can change to word mode with the command /wm.
 
 The default mode for Monty is word mode. This means that if the user does not specify a mode, all values will be assumed to be
@@ -286,13 +286,13 @@ For example when an array is defined while in byte mode then all elements are as
 consecutive bytes.
 
 ```
-/bm [1 2 3] A=
+/byt [1 2 3] A=
 ```
 
 Also array length is measured in bytes.
 
 ```
-A /al .
+A /aln .
 ```
 
 This would print `3` bytes
@@ -307,7 +307,7 @@ consecutive 16 bit words.
 Also array length is measured in bytes.
 
 ```
-A /al .
+A /aln .
 ```
 
 This would print `3` words (6 bytes)
@@ -319,7 +319,7 @@ Printable ASCII characters can be defined literally in Monty by using the `_` pr
 For example to define a byte mode array of characters, you could do this
 
 ```
-/bm [ _h _e _l _l _o ] A=
+/byt [ _h _e _l _l _o ] A=
 ```
 
 Characters are simply numbers but they can be printed as ASCII values using the `.c` operator
@@ -366,10 +366,10 @@ prints `0` (for false)
 
 Monty has a number of ways of printing to the output.
 
-`<value> .`  prints a value as a number. This command is affected by /hx /dc /bm /wm  
+`<value> .`  prints a value as a number. This command is affected by /hx /dc /byt /wm  
 `<value> .c` prints a value as an ASCII character
 `<value> .s` prints a value as a pointer to a null terminated string
-`<value> .a` prints a value as a pointer to an array. This command is affected by /hx /dc /bm /wm
+`<value> .a` prints a value as a pointer to an array. This command is affected by /hx /dc /byt /wm
 
 Additionally Monty allows the user to easily print literal text by using \` quotes.
 
@@ -454,7 +454,7 @@ prints $0009
 Flip the third bit of the number 10
 
 ```
-1 2 << $0F /x /hx .
+1 2 << $0F /xor /hx .
 ```
 
 prints $000B

@@ -32,8 +32,8 @@ testsStart:
     ; test "[1 2 3].a", 0
     ; test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
     ; test "`hello:` 65.c 1. 2. 3.", FALSE
-    ; test "/hx/bm$1234.",0
-    ; test "/bm257.",0
+    ; test "/hx /byt $1234.",0
+    ; test "/byt 257.",0
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /fe", $1000
 
@@ -42,13 +42,9 @@ testsStart:
 
     ; test "0 x = 2 x + = x .", false
 
-    ; test "[_A {100} _B {200} _P {300}] A=  A {-1} /sel", 1
-
-
-    test "7 3 /", 2
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/f", false
     test "/t", true
@@ -59,7 +55,7 @@ testsStart:
     test "10", 10
     test "123", 123
     test "-1",-1
-    test "-1/ab",1
+    test "-1/abs",1
     test "_a", $61
     test "__", $5F
     test "$10", $10
@@ -78,8 +74,8 @@ testsStart:
     test "3a= a-- a",2
     test "3 5 &", 1
     test "3 5 |", 7
-    test "3 5 /x", 6
-    test "3a= 5 a/x a= a",6
+    test "3 5 /xor", 6
+    test "3a= 5 a/xor a= a",6
     test "0 !", true
     test "2 !", false
     test "0 !!", false
@@ -97,12 +93,12 @@ testsStart:
     test "2a= 6b= a b/= b", 3
     test "$55a= $AAa&= a",0
     test "$55a= $AAa|= a",$FF
-    test "$A5a= $AAa /x= a",$0F
+    test "$A5a= $AAa /xor= a",$0F
     test "$00AA~",$FF55
     test "$AAAAa= a~= a",$5555
     test "3x= 1 x <<= x", 6
     test "10x= 1 x >>= x", 5
-    test "7 3 / /re", 1
+    test "7 3 / /rem", 1
     test "7 3 /", 2
     test "2 3 ==", FALSE
     test "3 3 ==", TRUE
@@ -147,29 +143,29 @@ testsStart:
     test "1 10 20 \\ab{/t{%a}{%b} ?}^ +", 11
     test "1 10 20 \\ab{/f{%a}{%b} ?}^ +", 21
     test "[10 20 30] 1;", 20
-    test "[10 20 30 40] /al", 4
-    test "/bm [1 2 3] 1;", 2
-    test "/bm [_A _B _C] 1;", 66
+    test "[10 20 30 40] /aln", 4
+    test "/byt [1 2 3] 1;", 2
+    test "/byt [_A _B _C] 1;", 66
     test "[{10}{20}{30}] 0;^ ", 10
     test "10 20 \\ab{[{%a}{%b}] 0;^}^", 10
     test "0 10 20 \\iab{[{%a}{%b}] %i;^}^", 10
     test "1 10 20 \\iab{[{%a}{%b}] %i;^}^", 20
-    test "3i= ( i i-- i/br )^ + +", 6
-    test "3i= [ ( i i-- i/br )^ ] 1;", 2
-    test "0 j= 4 i= ( i j + j= i i-- i/br )^ j ", 10
-    test "0j= 0i= ( i j+= i++ i 5< /br )^ j ", 10
-    test "0t= 3i= (4j= (t++ j-- j/br)^ i-- i/br)^ t", 12
-    test "3 \\a:bc{%a %c = ( %c %c -- %c /br )^ + +}^", 6
-    test "/t \\f{1 %f/br 2 +}^",3
-    test "/f \\f{1 %f/br 2 +}^",1
-    test "_A 1 - /ad", NUL
-    test "_Z 1 + /ad", NUL
-    test "_a 1 - /ad", NUL
-    test "_z 1 + /ad", NUL
-    test "_z /ad", VARS + (("z"-"a")+("Z"-"A")+1)*2
-    test "_a /ad", VARS + ("Z"-"A"+1)*2
-    test "_Z /ad", VARS + ("Z"-"A")*2
-    test "_A /ad", VARS
+    test "3i= ( i i-- i/whi )^ + +", 6
+    test "3i= [ ( i i-- i/whi )^ ] 1;", 2
+    test "0 j= 4 i= ( i j + j= i i-- i/whi )^ j ", 10
+    test "0j= 0i= ( i j+= i++ i 5< /whi )^ j ", 10
+    test "0t= 3i= (4j= (t++ j-- j/whi)^ i-- i/whi)^ t", 12
+    test "3 \\a:bc{%a %c = ( %c %c -- %c /whi )^ + +}^", 6
+    test "/t \\f{1 %f/whi 2 +}^",3
+    test "/f \\f{1 %f/whi 2 +}^",1
+    test "_A 1 - /adr", NUL
+    test "_Z 1 + /adr", NUL
+    test "_a 1 - /adr", NUL
+    test "_z 1 + /adr", NUL
+    test "_z /adr", VARS + (("z"-"a")+("Z"-"A")+1)*2
+    test "_a /adr", VARS + ("Z"-"A"+1)*2
+    test "_Z /adr", VARS + ("Z"-"A")*2
+    test "_A /adr", VARS
     test "\\a{%a} F=1F^", 1
     test "1 \\b{\\a{%a}}^F= 3F^",3
     test "1 \\b{\\a{%a%b-}}^F= 3F^",2
@@ -180,7 +176,8 @@ testsStart:
     test "'hello' 'hell' /sc", false
     test "'hello' 'hello' /sc", true
     test "[1 2 3]** + +", 6
-    test "/bm[_a [_b _c]** _d]2;", $63
+    test "/byt[_a [_b _c]** _d]2;", $63
+    test "_B [_A {1} _B {2}] /sel", 2
 
     ; ; test "$1000 0 10 1 /rg \\a{%a 1 + 10 *} /mp \\a{%a.} /fe", $1000
 

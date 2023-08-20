@@ -809,35 +809,33 @@ command:
 ; 12
 command_a_:
     call cmdTable
-    db "b",0                    ; /ab absolute
+    db "bs"                     ; /abs absolute
     dw absolute
-    db "d",0                    ; /ad address of
+    db "dr"                     ; /adr address of
     dw addrOf
     db "i",0                    ; /ai array iterator
     dw arrayIter
-    db "l",0                    ; /al array length
+    db "ln"                     ; /al array length
     dw arrayLength
     db "s",0                    ; /as array size
     dw arraySize
-    db 0,0
+    dw 0
     dw error1
 
 command_b_:
     call cmdTable
     db "b",0                      ; /bb bye bye cold boot
     dw coldStart
-    db "m",0                      ; /bm byte mode
+    db "yt"                       ; /byt byte mode
     dw byteMode
-    db "r",0                      ; /br break from loop
-    dw break
-    db 0,0
+    dw 0
     dw error1
 
 command_d_:
     call cmdTable
     db "c",0                      ; /dc decimal
     dw decBase
-    db 0,0
+    dw 0
     dw error1
 
 command_f_:
@@ -858,14 +856,14 @@ command_f_:
     dw f3
     db "4",0                      
     dw f4
-    db 0,0
+    dw 0
     dw false1
 
 command_h_:
     call cmdTable
     db "x",0                      ; /hx hex
     dw hexBase
-    db 0,0
+    dw 0
     dw error1                   
 
 ; 6
@@ -873,24 +871,24 @@ command_i_:
     call cmdTable
     db "n",0                      ; /in input
     dw input
-    db 0,0
+    dw 0
     dw error1
 
 command_m_:
     call cmdTable
     db "p",0                      ; /mp map
     dw map
-    db 0,0
+    dw 0
     dw error1
 
 comand_o_:
     call cmdTable
-    db 0,0
+    dw 0
     dw output
 ; 4
 command_p_:
     call cmdTable
-    db 0,0
+    dw 0
     dw error1
 
 ; 6
@@ -898,18 +896,18 @@ command_q_:
     call cmdTable
     db "t",0                      ; /qt quit
     dw quit
-    db 0,0
+    dw 0
     dw error1
 
 command_r_:
     call cmdTable
     db "c",0                      ; /rc tail call optimisation
     dw recur
-    db "e",0                      ; /re remainder
+    db "em"                       ; /rem remainder
     dw remain
     db "g",0                      ; /rg range src
     dw rangeSrc
-    db 0,0
+    dw 0
     dw error1
 
 command_s_:
@@ -939,6 +937,8 @@ command_s:
     dw stringBegin
     db "c",0
     dw stringCompare
+    db "el"
+    dw select
     db "e",0
     dw stringEnd
     db "i",0
@@ -947,12 +947,12 @@ command_s:
     dw stringLength
     db "s",0
     dw stringSize
-    db 0,0
+    dw 0
     dw error1
 
 command_t:
     call cmdTable
-    db 0,0
+    dw 0
     dw true1
 
 command_v:
@@ -973,24 +973,28 @@ command_v:
     dw constHeapStart
     db "T",0
     dw constTIBStart
-    db 0,0
+    dw 0
     dw error1
 
 command_w:
     call cmdTable
+    db "hi"                       ; /whi while true else break from loop
+    dw while
     db "m",0                      ; /wm word mode
     dw wordMode
-    db 0,0
+    dw 0
     dw error1
 
 command_x:    
     call cmdTable
-    db 0,0
+    db "or"                       ; /xor exclsuive or
     dw xor
+    dw 0
+    dw error1
 
 command_default:    
     call cmdTable
-    db 0,0
+    dw 0
     dw div
 
 ;                               32
@@ -1014,7 +1018,7 @@ div2:
     pop af
     jp sub3
 
-; /ab absolute
+; /abs absolute
 ; num -- num
 absolute:
     pop hl
@@ -1030,7 +1034,7 @@ absolute1:
     push hl
     jp (ix)
 
-; /ad addrOf                    24
+; /adr addrOf                   
 ; char -- addr
 addrOf:
     pop hl                      ; a = char
@@ -1066,15 +1070,15 @@ arraySize:
     jr arrayLength1
 
 ; 13
-; /br break from loop             
+; /whi while true else break from loop             
 ; --
-break:
+while:
     pop hl                      ; hl = condition, break if false
     ld a,l
     or h
-    jr z,break1
+    jr z,while1
     jp (ix)
-break1:    
+while1:    
     ld e,iyl                    ; get block* just under stack frame
     ld d,iyh
     ld hl,8
@@ -1169,6 +1173,45 @@ recur:
 remain:
     ld hl,(vRemain)
     push hl
+    jp (ix)
+
+; bool cases* --  
+select:
+    pop hl                      ; hl = case associative array [ key1 value1 ... ]
+    pop de                      ; de = select key
+    push bc                     ; save IP
+    dec hl                      ; bc = array length
+    ld b,(hl)   
+    dec hl
+    ld c,(hl)
+    inc hl
+    inc hl
+    jr select2
+select1:
+    ld a,(hl)                   ; compare lsb case key with lsb select key, hl++
+    cp e
+    inc hl                      ; hl++, flags are unaltered
+    jr nz,select1a
+    ld a,(hl)                   ; compare msb case key with msb select key, hl++
+    cp d
+    inc hl                      ; hl++, flags are unaltered
+    jr nz,select1b
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    pop bc
+    jp go1
+select1a:
+    inc hl
+select1b:
+    inc hl
+    inc hl
+    dec bc
+select2:
+    ld a,c
+    or b
+    jr nz,select1
+    pop bc
     jp (ix)
 
 stringBegin:
@@ -1269,7 +1312,7 @@ wordMode:
     ld a,2
     jp byteMode1
 
-; /x
+; /xor
 xor:
     pop de                      ; Bitwise xor the top 2 elements of the stack
 xor1:
@@ -1337,7 +1380,7 @@ db      "\\dt:ic{"                  ; return talkback to receive data
 db        "%L1;!/qt"                ; if not active don't send
 db        "%L0; %i="                ; store current index in A 
 db        "%L0; ++"                 ; inc value of index by step
-db        "/bm %s%i; /wm %c="       ; read byte at i, store in c as word
+db        "/byt %s%i; /wm %c="       ; read byte at i, store in c as word
 db        "1%t!=/qt"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
 db          "{%c 1}{/f %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
@@ -1418,9 +1461,9 @@ db 0
 FUNC funcSrc, 0, "f"                      ; :f func or block                 
 db "{"
 db    "\\kt{"                              ; :kt sink, type 
-db         "0%t==/br"                     ; break if t != 0 
+db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /qt
 db         "\\dt{"
-db             "1%t==/br %f^ 1 %k^"       ; if t == 1 send data to sink
+db             "1%t==/whi %f^ 1 %k^"       ; if t == 1 send data to sink TODO: replace with /qt
 db         "} 0 %k^"                     ; init sink
 db     "}" 
 db "}" 
@@ -1428,7 +1471,7 @@ db 0
 
 FUNC printArray, 2, "abc"
 db "{"
-db "'[ '.s %a/al%c= 0%b= (%a %b ;. %b ++ %b %c </br)^ ']'.s"
+db "'[ '.s %a/al%c= 0%b= (%a %b ;. %b ++ %b %c </whi)^ ']'.s"
 db "}"
 db 0
 

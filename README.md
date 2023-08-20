@@ -44,7 +44,7 @@ of Monty operations should be recognisable to programmers of other languages.
 
 ```
 ()      loop                            --
-/br     break                           bool --
+/whi    while                           bool --
 ```
 
 #### Logical
@@ -72,8 +72,8 @@ of Monty operations should be recognisable to programmers of other languages.
 *       multiplication                  num num -- num
 +       addition                        num num -- num
 -       subtraction                     num num -- num
-/ab     absolute                        num -- num
-/re     remainder                       -- num
+/abs    absolute                        num -- num
+/rem    remainder                       -- num
 ```
 
 #### Arrays
@@ -83,7 +83,7 @@ of Monty operations should be recognisable to programmers of other languages.
 ;       array index                     arr* num -- num
 **      array spread                    arr* -- item1 item2 ... itemN
 /ai     array iterator                  arr* -- src*
-/al     array length                    arr* -- num
+/aln     array length                   arr* -- num
 /as     array size                      arr* -- num
 ```
 
@@ -103,7 +103,7 @@ of Monty operations should be recognisable to programmers of other languages.
 ```
 $       hex number prefix
 /wm     word mode                       --
-/bm     byte mode                       --
+/byt     byte mode                       --
 /dc     decimal base                    --
 /hx     hexadecimal base                --
 ```

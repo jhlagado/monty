@@ -24,15 +24,15 @@
     push hl
     push hl
     call run
-    .cstr ".`$`.h"
+    .cstr ". /hx./dc"
 
     call printStr
     .cstr "\r\n\r\nActual: "
     pop hl
-    push hl
+    push hl    
     push hl
     call run
-    .cstr ".`$`.h`\r\n`"
+    .cstr ". /hx./dc `\r\n`"
     halt
 expect%%M:
     pop HL
