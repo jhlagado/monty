@@ -601,14 +601,14 @@ addr:
 ;                               67
 dot:
 print:
-    call commandTable
-    db "a"                      ; .a print array
+    call cmdTable
+    db "a",0                    ; .a print array
     dw printArray
-    db "c"                      ; .c print char
+    db "c",0                    ; .c print char
     dw printChar
-    db "s"                      ; .s print string
+    db "s",0                    ; .s print string
     dw printString
-    db NUL                      ; .  print number, fall through
+    dw 0                        ; .  print number, fall through
     dw printNumber
 
 ; .c print char             
@@ -2324,36 +2324,6 @@ charTable3:
     dec bc
     jr charTable1
     
-; followed by a table
-; db char
-; dw addr
-; the final item must have char == NUL
-commandTable:
-    pop hl
-commandTable1:
-    inc bc
-commandTable2:
-    xor a
-    cp (hl)
-    jr nz,commandTable3
-    dec bc
-    jr commandTable4
-commandTable3:
-    ld a,(bc)
-    cp (hl)
-    jr z,commandTable4
-    inc hl
-    inc hl
-    inc hl
-    jr commandTable2
-commandTable4:
-    inc hl
-    ld e,(hl)                   
-    inc hl
-    ld d,(hl)
-    ex de,hl
-    jp (hl)
-
 ; followed by a table
 ; db char
 ; db char - if null only match on first char
