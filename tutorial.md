@@ -27,10 +27,13 @@ Data Structures
 
 Monty's Built-in Commands
 
-- Logical operations (!, !=, ==, >, >=, <, <=, &, |, /xor, /t, /f)
-- Arithmetic operations (/, \*, +, -, /abs, /rem)
-- Variables and variable operations (=, +=, ++, --, /ad, /vb, /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
-- Functions and function expressions (, {}, %, ^, /fs, /rc, /qt)
+- Logical operations 
+    (!, !=, ==, >, >=, <, <=, &, |, /xor, /tru, /fal)
+- Arithmetic operations 
+    (/, \*, +, -, /abs, /rem)
+- Variables and variable operations 
+    (=, +=, ++, --, /adr, /vb, /ve /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
+- Functions and function expressions (, {}, %, ^, /fs, /rc, /qit)
 
 Advanced Monty Programming
 

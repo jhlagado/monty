@@ -37,7 +37,7 @@ of Monty operations should be recognisable to programmers of other languages.
 ,s      input string                    -- str*
 
 /in     input                           -- num
-/o      output                          num port --
+/out    output                        num port --
 ```
 
 #### Loops
@@ -61,8 +61,8 @@ of Monty operations should be recognisable to programmers of other languages.
 |       bitwise or                      num num -- num
 ~       bitwise invert                  num -- num
 /x      bitwise exclusive or            num num -- num
-/t      true                            -- bool
-/f      false                           -- bool
+/tru      true                          -- bool
+/fal      false                         -- bool
 ```
 
 #### Arithmetic
@@ -95,7 +95,7 @@ of Monty operations should be recognisable to programmers of other languages.
 %a..%z  argument reference
 /fs     function source                 func* -- src*
 /rc     recur                           --
-/qt     quit                            bool --
+/qit    quit                            bool --
 ```
 
 #### Numbers
@@ -126,7 +126,7 @@ _       literal character               -- char
 ```
 /rg     range source                    num num num -- src*
 /ft     filter                          func* -- src*
-/fe     for each                        func* -- src*
+/for     for each                        func* -- src*
 /fd     fold                            val func* -- src*
 /mp     map                             func* -- src*
 ```

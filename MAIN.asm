@@ -840,9 +840,11 @@ command_d_:
 
 command_f_:
     call cmdTable
+    db "al"                       ; /fal false 
+    dw false1
     db "d",0                      ; /fd fold
     dw fold
-    db "e",0                      ; /fe forEach
+    db "or"                       ; /for forEach
     dw forEach
     db "s",0                      ; /fs funcSrc
     dw funcSrc
@@ -857,7 +859,7 @@ command_f_:
     db "4",0                      
     dw f4
     dw 0
-    dw false1
+    dw error1                   
 
 command_h_:
     call cmdTable
@@ -883,8 +885,10 @@ command_m_:
 
 comand_o_:
     call cmdTable
-    dw 0
+    db "ut",0                      ; /out out
     dw output
+    dw 0
+    dw error1
 ; 4
 command_p_:
     call cmdTable
@@ -894,7 +898,7 @@ command_p_:
 ; 6
 command_q_:
     call cmdTable
-    db "t",0                      ; /qt quit
+    db "it"                      ; /qit quit
     dw quit
     dw 0
     dw error1
@@ -905,7 +909,7 @@ command_r_:
     dw recur
     db "em"                       ; /rem remainder
     dw remain
-    db "g",0                      ; /rg range src
+    db "ng"                       ; /rng range src
     dw rangeSrc
     dw 0
     dw error1
@@ -952,8 +956,10 @@ command_s:
 
 command_t:
     call cmdTable
-    dw 0
+    db "ru"
     dw true1
+    dw 0
+    dw error1
 
 command_v:
     call cmdTable
@@ -1154,7 +1160,7 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
-; /qt
+; /qit
 ; bool -- 
 quit:
     pop hl                      ; hl = condition, exit if true
@@ -1175,6 +1181,7 @@ remain:
     push hl
     jp (ix)
 
+; select case from an associative array of cases
 ; bool cases* --  
 select:
     pop hl                      ; hl = case associative array [ key1 value1 ... ]
@@ -1329,20 +1336,20 @@ xor1:
 ; Monty implementations
 ;*******************************************************************
 
-; /rg rangeSrc
+; /rng rangeSrc
 ; begin end step -- src
 FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
 db "{"                              ; init mutable L [index active inrange_test]                           
-db    "[%b /t %s0>{{%a%e<}}{{%a%e>}}?] %L= " 
+db    "[%b /tru %s0>{{%a%e<}}{{%a%e>}}?] %L= " 
 db    "\\kt{"                            
-db      "0%t!=/qt"                  ; break if type != 0 
+db      "0%t!=/qit"                  ; break if type != 0 
 db      "\\dt:a{"                   ; return talkback to receive data
-db        "%L1;!/qt"                ; if not active don't send
+db        "%L1;!/qit"                ; if not active don't send
 db        "%L0; %a="                ; store current index in A 
 db        "%s %L0; +="              ; inc value of index by step
-db        "1%t!=/qt"                ; break if type != 0
+db        "1%t!=/qit"                ; break if type != 0
 db        "%L2;^"                   ; ifte: inrange_test?
-db          "{%a 1}{/f %L1;= 0 2}"  ; ifte: /t index, /f active = false, quit
+db          "{%a 1}{/fal %L1;= 0 2}"  ; ifte: /tru index, /fal active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1353,16 +1360,16 @@ db 0
 ; array* -- src
 FUNC arrayIter, 1, "aL"                             
 db "{"
-db    "[0 /t %a/al] %L="            ; init mutable L [index active size]                           
+db    "[0 /tru %a/al] %L="            ; init mutable L [index active size]                           
 db    "\\kt{"                            
-db      "0%t!=/qt"                  ; break if type != 0 
+db      "0%t!=/qit"                  ; break if type != 0 
 db      "\\dt:i{"                   ; return talkback to receive data
-db        "%L1;!/qt"                ; if not active don't send
+db        "%L1;!/qit"                ; if not active don't send
 db        "%L0; %i="                ; store current index in i 
 db        "%L0; ++"                 ; inc value of index
-db        "1%t!=/qt"                ; break if type != 0
+db        "1%t!=/qit"                ; break if type != 0
 db        "%i %L2; <"               ; ifte: index < size
-db          "{%a%i; 1}{/f %L1;= 0 2}"  ; ifte: /t value, /f active = false, quit
+db          "{%a%i; 1}{/fal %L1;= 0 2}"  ; ifte: /tru value, /fal active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1373,17 +1380,17 @@ db 0
 ; string* -- src
 FUNC stringIter, 1, "sL"                            
 db "{"
-db    "[0 /t] %L="                  ; init mutable L [index active]                           
+db    "[0 /tru] %L="                  ; init mutable L [index active]                           
 db    "\\kt{"                            
-db      "0%t!=/qt"                  ; break if type != 0 
+db      "0%t!=/qit"                  ; break if type != 0 
 db      "\\dt:ic{"                  ; return talkback to receive data
-db        "%L1;!/qt"                ; if not active don't send
+db        "%L1;!/qit"                ; if not active don't send
 db        "%L0; %i="                ; store current index in A 
 db        "%L0; ++"                 ; inc value of index by step
 db        "/byt %s%i; /wm %c="       ; read byte at i, store in c as word
-db        "1%t!=/qt"                ; break if type != 0
+db        "1%t!=/qit"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
-db          "{%c 1}{/f %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
+db          "{%c 1}{/fal %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
 db          "? %k/rc"              ; ifte: call sink note: /rc recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
@@ -1396,7 +1403,7 @@ db 0
 FUNC map, 0, "sf"                   ; map: source, function                 
 db "{"
 db    "\\kt{"                        
-db      "0%t!=/qt"                  ; break if type != 0  
+db      "0%t!=/qit"                  ; break if type != 0  
 db      "\\dt{"                     ; call source with tb
 db        "1%t=="                   ; ifte: type == 1 ?
 db        "{%d %f^}{%d}"            ; ifte: func(data) or data
@@ -1414,9 +1421,9 @@ db    "[0]%T="
 db    "\\kt{"                       ; return talkback to receive data 
 db      "\\dt{"                     ; call source with tb
 db        "["
-db          "{%d %T0;= /t}"         ; case 0: store talkback in T[0], return true
+db          "{%d %T0;= /tru}"         ; case 0: store talkback in T[0], return true
 db          "{%d %p^}"              ; case 1: return boolean based on predicate
-db          "{/t}"                  ; case 2: return true
+db          "{/tru}"                  ; case 2: return true
 db        "]%t;^"                   ; select on %t
 db        "{%d %t %k^}{0 1 %T0;^}"  ; ifte: true send d to sink, false send 1 to talkback
 db        "?"
@@ -1441,13 +1448,13 @@ db    "}"
 db "}" 
 db 0
 
-; /fe forEach
+; /for forEach
 ; src proc --
 FUNC forEach, 1, "spT"              ; forEach: source, procedure, local: T                          
 db "{"
 db    "[0]%T="
 db    "\\dt{"                       ; return talkback to receive data ; $56AA
-db      "2%t==/qt"                    ; if type == 2 skip
+db      "2%t==/qit"                    ; if type == 2 skip
 db      "0%t=="                   ; ifte: type = 0 ?
 db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 db      "?"                      ; ifte:
@@ -1461,9 +1468,9 @@ db 0
 FUNC funcSrc, 0, "f"                      ; :f func or block                 
 db "{"
 db    "\\kt{"                              ; :kt sink, type 
-db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /qt
+db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /qit
 db         "\\dt{"
-db             "1%t==/whi %f^ 1 %k^"       ; if t == 1 send data to sink TODO: replace with /qt
+db             "1%t==/whi %f^ 1 %k^"       ; if t == 1 send data to sink TODO: replace with /qit
 db         "} 0 %k^"                     ; init sink
 db     "}" 
 db "}" 
@@ -2315,7 +2322,7 @@ charTable1:
     ld a,(hl)                   ; must have the same msb as the table
     or a                        ; a = 0, nop
     jr nz,charTable2
-    jp (ix)
+    jp error1
 charTable2:
     ld l,a
     jp (hl)
