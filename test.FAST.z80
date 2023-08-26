@@ -25,14 +25,14 @@ db 0
 testsStart:
 
     test "0 10 1 /rng \\a{%a.} /for", 0
-    ; test "0 10 1 /rng \\a{%a 1 + 10 *} /mp \\a{%a.} /for", 0
+    ; test "0 10 1 /rng \\a{%a 1 + 10 *} /map \\a{%a.} /for", 0
     ; test "0 10 1 /rng \\a{%a 3<}/ft \\a{%a.} /for", 0
     ; test "0 10 1 /rng  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /for", 0
     ; test "[10 20 30] /ai \\a{%a.} /for", 0
     ; test "[1 2 3].a", 0
-    ; test "/sb `hello:` 65.c 1. 2. 3. /se .s", FALSE
+    ; test "/str `hello:` 65.c 1. 2. 3. /end .s", FALSE
     ; test "`hello:` 65.c 1. 2. 3.", FALSE
-    ; test "/hx /byt $1234.",0
+    ; test "/hex /byt $1234.",0
     ; test "/byt 257.",0
     
     ; test "$1000 'hello there!' /si \\a{%a.c} /for", $1000
@@ -42,9 +42,10 @@ testsStart:
 
     ; test "0 x = 2 x + = x .", false
 
-    ; test "_B [_A {1} _B {2}] /sel", 2
-    ; ; test "[_A {1} _B {2}] x= _B x /sel", 2
+    ; test "_B [_A {1} _B {2}] /endl", 2
+    ; ; test "[_A {1} _B {2}] x= _B x /endl", 2
     ; ; test "/bra", 2
+
     ; call printStr
     ; .cstr "Done!"
     ; HALT
@@ -180,9 +181,13 @@ testsStart:
     test "'hello' 'hello' /sc", true
     test "[1 2 3]** + +", 6
     test "/byt[_a [_b _c]** _d]2;", $63
-    test "_B [_A {1} _B {2}] /sel", 2
+    test "_B [_A {1} _B {2}] /endl", 2
+    test "1 2 /max", 2
+    test "2 1 /max", 2
+    test "1 2 /min", 1
+    test "2 1 /min", 1
 
-    ; ; test "$1000 0 10 1 /rng \\a{%a 1 + 10 *} /mp \\a{%a.} /for", $1000
+    ; ; test "$1000 0 10 1 /rng \\a{%a 1 + 10 *} /map \\a{%a.} /for", $1000
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -197,12 +202,12 @@ testsStart:
 ; db "{"
 ; db    "[%b /tru] %L="                 ; init mutable L [index active]                           
 ; db    "\\kt{"                            
-; db      "0%t!=/qit"                  ; break if type != 0 
+; db      "0%t!=/ret"                  ; break if type != 0 
 ; db      "\\dt:a{"                   ; return talkback to receive data
-; db        "%L1;!/qit"                ; if not active don't send
+; db        "%L1;!/ret"                ; if not active don't send
 ; db        "%L0; %a="                ; store current index in A 
 ; db        "%s %L0; +="              ; inc value of index by step
-; db        "1%t!=/qit"                ; break if type != 0
+; db        "1%t!=/ret"                ; break if type != 0
 ; db        "%a %e <"                 ; ifte: in range?
 ; db          "{%a 1}{/fal %L1;= 0 2}"  ; ifte: /tru index, /fal active = false, quit
 ; db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
@@ -214,7 +219,7 @@ testsStart:
 ; FUNC map, 0, "sf"                   ; map                 
 ; db "{"
 ; db    "\\kt{"                        
-; db      "0%t!=/qit"                  ; break if type != 0  
+; db      "0%t!=/ret"                  ; break if type != 0  
 ; db      "\\dt{"                     ; call source with tb
 ; db        "1%t=="                   ; ifte: type == 1 ?
 ; db        "{%d %f^}{%d}"            ; ifte: func(data) or data
@@ -247,7 +252,7 @@ testsStart:
 ; db "{"
 ; db    "[0]%T="
 ; db    "\\dt{"                       ; return talkback to receive data ; $56AA
-; db      "2%t==/qit"                    ; if type == 2 skip
+; db      "2%t==/ret"                    ; if type == 2 skip
 ; db      "0%t=="                   ; ifte: type = 0 ?
 ; db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 ; db      "?"                      ; ifte:

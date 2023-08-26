@@ -794,10 +794,10 @@ command:
     db 0
     db lsb(comand_o_)
     db lsb(command_p_)
-    db lsb(command_q_)
+    db 0
     db lsb(command_r_)
     db lsb(command_s_)
-    db lsb(comand_t_)
+    db lsb(command_t_)
     db 0
     db lsb(command_v_)
     db lsb(command_w_)
@@ -815,6 +815,8 @@ command_a_:
     dw addrOf
     db "i",0                    ; /ai array iterator
     dw arrayIter
+    db "lc"                     ; /alc mem allocate
+    dw memAllocate
     db "ln"                     ; /al array length
     dw arrayLength
     db "s",0                    ; /as array size
@@ -824,17 +826,26 @@ command_a_:
 
 command_b_:
     call cmdTable
-    db "b",0                      ; /bb bye bye cold boot
+    db "ye"                      ; /bye cold reboot
     dw coldStart
-    db "yt"                       ; /byt byte mode
+    db "yt"                      ; /byt byte mode
     dw byteMode
     dw 0
     dw error1
 
 command_d_:
     call cmdTable
-    db "c",0                      ; /dc decimal
+    db "ec"                      ; /dec decimal
     dw decBase
+    dw 0
+    dw error1
+
+command_e:
+    call cmdTable
+    db "ch"
+    dw echo
+    db "nd"
+    dw stringEnd
     dw 0
     dw error1
 
@@ -846,6 +857,11 @@ command_f_:
     dw fold
     db "or"                       ; /for forEach
     dw forEach
+    db "re"                       ; /fre free memory
+    dw memFree
+    db "ra"                       ; /fra free memory array
+    dw memFreeArray
+
     db "s",0                      ; /fs funcSrc
     dw funcSrc
     db "t",0                      ; /ft filter
@@ -863,61 +879,48 @@ command_f_:
 
 command_h_:
     call cmdTable
-    db "x",0                      ; /hx hex
+    db "ex"                     ; /hex hex
     dw hexBase
     dw 0
     dw error1                   
 
-; 6
 command_i_:
     call cmdTable
-    db "n",0                      ; /in input
+    db "n",0                        ; /in input
     dw input
     dw 0
     dw error1
 
 command_m_:
     call cmdTable
-    db "p",0                      ; /mp map
+    db "ap"                       ; /map map
     dw map
+    db "ax"                       ; /max maximum
+    dw maximum
+    db "in"                       ; /min minimum
+    dw minimum
     dw 0
     dw error1
 
 comand_o_:
     call cmdTable
-    db "ut",0                      ; /out out
+    db "ut"                       ; /out out
     dw output
     dw 0
     dw error1
-; 4
+
 command_p_:
     call cmdTable
     dw 0
     dw error1
 
-; 6
-command_q_:
-    call cmdTable
-    db "it"                      ; /qit quit
-    dw quit
-    dw 0
-    dw error1
-
 command_r_:
-    call cmdTable
-    db "c",0                      ; /rc tail call optimisation
-    dw recur
-    db "em"                       ; /rem remainder
-    dw remain
-    db "ng"                       ; /rng range src
-    dw rangeSrc
-    dw 0
-    dw error1
+    jr command_r
 
 command_s_:
     jr command_s
 
-comand_t_:
+command_t_:
     jr command_t
 
 command_v_:
@@ -930,27 +933,39 @@ command_x_:
     jr command_x
 ; 3
 command_default_:
-    jr command_default
+    jp command_default
 
 
 ;********************** PAGE 5 END *********************************************
+; .align $100
+
+command_r:
+    call cmdTable
+    db "c",0                     ; /rc tail call optimisation
+    dw recur
+    db "em"                      ; /rem remainder
+    dw remain
+    db "et"                      ; /ret return
+    dw return
+    db "ng"                      ; /rng range src
+    dw rangeSrc
+    dw 0
+    dw error1
 
 command_s:    
     call cmdTable
-    db "b",0
-    dw stringBegin
     db "c",0
     dw stringCompare
     db "el"
     dw select
-    db "e",0
-    dw stringEnd
     db "i",0
     dw stringIter
     db "l",0
     dw stringLength
     db "s",0
     dw stringSize
+    db "tr"                       ; /str
+    dw stringBegin
     dw 0
     dw error1
 
@@ -963,37 +978,25 @@ command_t:
 
 command_v:
     call cmdTable
-    db "b",0
-    dw varBufPtr
-    db "e",0
-    dw varEcho
-    db "h",0
-    dw varHeapPtr
-    db "t",0
-    dw varTIBPtr
-    db "x",0
-    dw varHexPrefix
-    db "B",0
-    dw constBufStart
-    db "H",0
-    dw constHeapStart
-    db "T",0
-    dw constTIBStart
+    db "ar"
+    dw vars
+    db "oi"
+    dw void
     dw 0
     dw error1
 
 command_w:
     call cmdTable
-    db "hi"                       ; /whi while true else break from loop
+    db "hi"                         ; /whi while true else break from loop
     dw while
-    db "m",0                      ; /wm word mode
+    db "rd"                         ; /wrd word mode
     dw wordMode
     dw 0
     dw error1
 
 command_x:    
     call cmdTable
-    db "or"                       ; /xor exclsuive or
+    db "or"                         ; /xor exclsuive or
     dw xor
     dw 0
     dw error1
@@ -1095,7 +1098,7 @@ while1:
     ld (iy+3),h                 ; first_arg* = address of block*
     jp blockEnd
 
-; /b
+; /byt
 byteMode:
     ld a,1
 byteMode1:
@@ -1111,22 +1114,17 @@ comment:
     dec bc
     jp (ix) 
 
-constHeapStart:
-    ld de,HEAP
-    jp constant
-
-constTIBStart:
-    ld de,TIB
-    jp constant
-
-constBufStart:
-    ld de,BUFFER
-    jp constant
-
 decBase:
     ld a,10
 decBase1:
     ld (vNumBase),a
+    jp (ix)
+
+; /ech
+; bool --
+echo:
+    pop hl
+    ld (vEcho),hl
     jp (ix)
 
 hexBase:
@@ -1149,6 +1147,55 @@ input:
     push hl
     jp (ix)    
 
+; /alc
+; size -- adr
+memAllocate:
+    jp (ix)    
+
+; /fre
+; adr -- 
+memFree:
+    pop hl
+memFree1:
+    ld (vHeapPtr),hl
+    jp (ix)    
+
+; /fra
+; adr -- 
+memFreeArray:
+    pop hl
+    dec hl
+    dec hl
+    jr memFree1    
+
+; /max maximum
+; a b -- c
+maximum:
+    pop hl
+    pop de
+    push hl
+    or e 
+    sbc hl,de
+    jr nc,maximum1
+    pop hl
+    push de
+maximum1:
+    jp (ix)
+
+; /min minimum
+; a b -- c
+minimum:
+    pop hl
+    pop de
+    push hl
+    or e 
+    sbc hl,de
+    jr c,minimum1
+    pop hl
+    push de
+minimum1:
+    jp (ix)
+
 ; /o Z80 port output               
 ; value port --
 output:
@@ -1160,15 +1207,15 @@ output:
     ld c,e                      ; restore IP
     jp (ix)    
 
-; /qit
-; bool -- 
-quit:
+; /ret
+; -- 
+return:
     pop hl                      ; hl = condition, exit if true
     ld a,l
     or h
-    jr nz,quit1
+    jr nz,return1
     jp (ix)
-quit1:    
+return1:    
     jp blockEnd
 
 recur:
@@ -1221,11 +1268,13 @@ select2:
     pop bc
     jp (ix)
 
+; /str
 stringBegin:
     ld hl,TRUE                  ; string mode = true
     ld (vStrMode),hl
     jr stringEnd1              ; save hl in vBufPtr
 
+; /end 
 stringEnd:
     ld hl,FALSE                 ; string mode = false
     ld (vStrMode),hl
@@ -1294,27 +1343,22 @@ stringCompare4:
     push hl
     jp (ix)
 
-varBufPtr:
-    ld hl,vBufPtr
-    jp variable
+; /var
+; --
+variables:
+    ld hl,VARS
+    jp constant
 
-varEcho:
-    ld hl,vEcho
-    jp variable
-
-varHeapPtr:
-    ld hl,vHeapPtr
-    jp variable
-
-varTIBPtr:
-    ld hl,vTIBPtr
-    jp variable
-
-varHexPrefix:
-    ld hl,vHexPrefix
-    jp variable
-
-; /wm
+; /voi clear out returned values
+; ?? --
+void:
+    ld e,iyl
+    ld d,iyh
+    ex de,hl
+    ld sp,hl
+    jp (ix)
+    
+; /wrd
 wordMode:
     ld a,2
     jp byteMode1
@@ -1342,12 +1386,12 @@ FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L
 db "{"                              ; init mutable L [index active inrange_test]                           
 db    "[%b /tru %s0>{{%a%e<}}{{%a%e>}}?] %L= " 
 db    "\\kt{"                            
-db      "0%t!=/qit"                  ; break if type != 0 
+db      "0%t!=/ret"                  ; break if type != 0 
 db      "\\dt:a{"                   ; return talkback to receive data
-db        "%L1;!/qit"                ; if not active don't send
+db        "%L1;!/ret"                ; if not active don't send
 db        "%L0; %a="                ; store current index in A 
 db        "%s %L0; +="              ; inc value of index by step
-db        "1%t!=/qit"                ; break if type != 0
+db        "1%t!=/ret"                ; break if type != 0
 db        "%L2;^"                   ; ifte: inrange_test?
 db          "{%a 1}{/fal %L1;= 0 2}"  ; ifte: /tru index, /fal active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
@@ -1362,12 +1406,12 @@ FUNC arrayIter, 1, "aL"
 db "{"
 db    "[0 /tru %a/al] %L="            ; init mutable L [index active size]                           
 db    "\\kt{"                            
-db      "0%t!=/qit"                  ; break if type != 0 
+db      "0%t!=/ret"                  ; break if type != 0 
 db      "\\dt:i{"                   ; return talkback to receive data
-db        "%L1;!/qit"                ; if not active don't send
+db        "%L1;!/ret"                ; if not active don't send
 db        "%L0; %i="                ; store current index in i 
 db        "%L0; ++"                 ; inc value of index
-db        "1%t!=/qit"                ; break if type != 0
+db        "1%t!=/ret"                ; break if type != 0
 db        "%i %L2; <"               ; ifte: index < size
 db          "{%a%i; 1}{/fal %L1;= 0 2}"  ; ifte: /tru value, /fal active = false, quit
 db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
@@ -1382,13 +1426,13 @@ FUNC stringIter, 1, "sL"
 db "{"
 db    "[0 /tru] %L="                  ; init mutable L [index active]                           
 db    "\\kt{"                            
-db      "0%t!=/qit"                  ; break if type != 0 
+db      "0%t!=/ret"                  ; break if type != 0 
 db      "\\dt:ic{"                  ; return talkback to receive data
-db        "%L1;!/qit"                ; if not active don't send
+db        "%L1;!/ret"                ; if not active don't send
 db        "%L0; %i="                ; store current index in A 
 db        "%L0; ++"                 ; inc value of index by step
-db        "/byt %s%i; /wm %c="       ; read byte at i, store in c as word
-db        "1%t!=/qit"                ; break if type != 0
+db        "/byt %s%i; /wrd %c="       ; read byte at i, store in c as word
+db        "1%t!=/ret"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
 db          "{%c 1}{/fal %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
 db          "? %k/rc"              ; ifte: call sink note: /rc recur      
@@ -1398,12 +1442,12 @@ db "}"
 db 0
 
 
-; /mp map
+; /map map
 ; src func -- src1
 FUNC map, 0, "sf"                   ; map: source, function                 
 db "{"
 db    "\\kt{"                        
-db      "0%t!=/qit"                  ; break if type != 0  
+db      "0%t!=/ret"                  ; break if type != 0  
 db      "\\dt{"                     ; call source with tb
 db        "1%t=="                   ; ifte: type == 1 ?
 db        "{%d %f^}{%d}"            ; ifte: func(data) or data
@@ -1454,7 +1498,7 @@ FUNC forEach, 1, "spT"              ; forEach: source, procedure, local: T
 db "{"
 db    "[0]%T="
 db    "\\dt{"                       ; return talkback to receive data ; $56AA
-db      "2%t==/qit"                    ; if type == 2 skip
+db      "2%t==/ret"                    ; if type == 2 skip
 db      "0%t=="                   ; ifte: type = 0 ?
 db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
 db      "?"                      ; ifte:
@@ -1468,9 +1512,9 @@ db 0
 FUNC funcSrc, 0, "f"                      ; :f func or block                 
 db "{"
 db    "\\kt{"                              ; :kt sink, type 
-db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /qit
+db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /ret
 db         "\\dt{"
-db             "1%t==/whi %f^ 1 %k^"       ; if t == 1 send data to sink TODO: replace with /qit
+db             "1%t==/whi %f^ 1 %k^"       ; if t == 1 send data to sink TODO: replace with /ret
 db         "} 0 %k^"                     ; init sink
 db     "}" 
 db "}" 
@@ -2359,6 +2403,7 @@ cmdTable3:
     ld a,(bc)                   ; match? 
     cp e
     jr z,cmdTable5
+    dec bc
 cmdTable4:                      ; no match, restore bc, go to next table entry
     dec bc
     inc hl

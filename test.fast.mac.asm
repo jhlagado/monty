@@ -24,7 +24,7 @@
     push hl
     push hl
     call run
-    .cstr ". /hx./dc"
+    .cstr ". /hex./dec"
 
     call printStr
     .cstr "\r\n\r\nActual: "
@@ -32,7 +32,7 @@
     push hl    
     push hl
     call run
-    .cstr ". /hx./dc `\r\n`"
+    .cstr ". /hex./dec `\r\n`"
     halt
 expect%%M:
     pop HL

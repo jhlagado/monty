@@ -95,17 +95,17 @@ of Monty operations should be recognisable to programmers of other languages.
 %a..%z  argument reference
 /fs     function source                 func* -- src*
 /rc     recur                           --
-/qit    quit                            bool --
+/ret    return                          bool --
 ```
 
 #### Numbers
 
 ```
 $       hex number prefix
-/wm     word mode                       --
-/byt     byte mode                       --
-/dc     decimal base                    --
-/hx     hexadecimal base                --
+/wrd    word mode                       --
+/byt    byte mode                       --
+/dec    decimal base                    --
+/hex    hexadecimal base                --
 ```
 
 #### Strings
@@ -117,7 +117,7 @@ _       literal character               -- char
 /sl     string length                   str* -- num
 /ss     string size                     str* -- num
 /sb     string begin
-/se     string end                      -- str*
+/end     string end                      -- str*
 /sc     string compare                  str* str* -- bool
 ```
 
@@ -126,9 +126,9 @@ _       literal character               -- char
 ```
 /rg     range source                    num num num -- src*
 /ft     filter                          func* -- src*
-/for     for each                        func* -- src*
+/for    for each                        func* -- src*
 /fd     fold                            val func* -- src*
-/mp     map                             func* -- src*
+/map    map                             func* -- src*
 ```
 
 #### Variables
@@ -148,13 +148,7 @@ _       literal character               -- char
 
 A..Z    global variable reference       -- val
 a..z    global variable reference       -- val
-/ad     addr of                         char -- *
-/vb     text output buffer variable     -- *
-/vh     heap pointer variable           -- *
-/vt     text input buffer variable      -- *
-/vB     text output buffer start        -- *
-/vH     heap start                      -- *
-/vT     text input buffer start         -- *
+/adr     addr of                        char -- *
 ```
 
 #### Misc

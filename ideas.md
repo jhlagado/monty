@@ -7,13 +7,27 @@
 ```
 
 # August
+/max maximum
+/min minimum
 
-/drp or /voi or /clr ?
-/sel from an associative array
+7 1 /max 9 /min
 
-```
-_B [_A {100} _B {200} _P {300}] /sel", 200
-```
+/mal memory allocate? 
+/fre free from pointer
+/fra free array
+/mem amount of heap left
+
+/buf instead of vB
+/bf and /bf0 -- buf
+/tb and /tb0 -- tib
+/hp and /hp0
+
+        -- are these needed now?
+
+/ech for echo
+
+/drp or ";" or /voi or /clr ?
+";" sets SP to BP (i.e. iy)
 
 _ab 16 bit symbol? a fast 16 bit hash would be better
 
@@ -91,6 +105,12 @@ what about , ?
 
 
 ## done
+
+/sel from an associative array
+
+```
+_B [_A {100} _B {200} _P {300}] /sel", 200
+```
 
 input
 ,   input number

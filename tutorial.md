@@ -22,7 +22,7 @@ Control Flow in Monty
 Data Structures
 
 - Arrays ([] and ;)
-- Strings (', \_, /si, /sl, /sb, /se, /ss)
+- Strings (', \_, /si, /sl, /str, /end, /ss)
 - Basic operations on arrays and strings
 
 Monty's Built-in Commands
@@ -33,7 +33,7 @@ Monty's Built-in Commands
     (/, \*, +, -, /abs, /rem)
 - Variables and variable operations 
     (=, +=, ++, --, /adr, /vb, /ve /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
-- Functions and function expressions (, {}, %, ^, /fs, /rc, /qit)
+- Functions and function expressions (, {}, %, ^, /fs, /rc, /ret)
 
 Advanced Monty Programming
 
@@ -108,8 +108,8 @@ Unlike decimal numbers, hexadecimal numbers are assumed to be positive in Monty.
 
 Monty provides commands for formatting hexadecimal and decimal numbers. The print
 operator `.` prints numbers in the current base. To switch the base to hexadecimal
-use the command `/hx` before using the `.` operator. To switch back to formatting
-in decimal use the command /dc.
+use the command `/hex` before using the `.` operator. To switch back to formatting
+in decimal use the command /dec.
 
 ## Basic arithmetic operations
 
@@ -268,7 +268,7 @@ prints `[ 1 2 3 ]` to the output
 
 Monty can work in two modes: _byte mode_ and _word mode_. In byte mode, all values are assumed to be 8 bits, while in
 word mode, all values are assumed to be 16 bits. The user can change the mode to byte mode by using the command /byt.
-The user can change to word mode with the command /wm.
+The user can change to word mode with the command /wrd.
 
 The default mode for Monty is word mode. This means that if the user does not specify a mode, all values will be assumed to be
 16 bits.
@@ -304,7 +304,7 @@ If an array is defined while in word mode then all the elements are assumed to b
 consecutive 16 bit words.
 
 ```
-/wm [1 2 3] A=
+/wrd [1 2 3] A=
 ```
 
 Also array length is measured in bytes.
@@ -369,10 +369,10 @@ prints `0` (for false)
 
 Monty has a number of ways of printing to the output.
 
-`<value> .`  prints a value as a number. This command is affected by /hx /dc /byt /wm  
+`<value> .`  prints a value as a number. This command is affected by /hex /dc /byt /wrd  
 `<value> .c` prints a value as an ASCII character
 `<value> .s` prints a value as a pointer to a null terminated string
-`<value> .a` prints a value as a pointer to an array. This command is affected by /hx /dc /byt /wm
+`<value> .a` prints a value as a pointer to an array. This command is affected by /hex /dc /byt /wrd
 
 Additionally Monty allows the user to easily print literal text by using \` quotes.
 
@@ -393,7 +393,7 @@ Anything that can be written to the screen can be captured and turned into a str
 234 r =
 123 g =
 89  b =
-/sb `red: ` r . `green: ` g . `blue: ` b . /se T =
+/str `red: ` r . `green: ` g . `blue: ` b . /end T =
 T .s
 ```
 
@@ -449,7 +449,7 @@ this will print `1`
 Set the fourth bit of the number 10
 
 ```
-1 3 << 1 | /hx .
+1 3 << 1 | /hex .
 ```
 
 prints $0009
@@ -457,7 +457,7 @@ prints $0009
 Flip the third bit of the number 10
 
 ```
-1 2 << $0F /xor /hx .
+1 2 << $0F /xor /hex .
 ```
 
 prints $000B
