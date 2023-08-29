@@ -125,9 +125,9 @@ _       literal character               -- char
 
 ```
 /rg     range source                    num num num -- src*
-/ft     filter                          func* -- src*
+/ftr    filter                          func* -- src*
 /for    for each                        func* -- src*
-/fd     fold                            val func* -- src*
+/scn    scan                            val func* -- src*
 /map    map                             func* -- src*
 ```
 

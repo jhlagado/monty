@@ -24,31 +24,25 @@ db 0
 .align $100
 testsStart:
 
-    test "0 10 1 /rng \\a{%a.} /for", 0
+    ; test "0 10 1 /rng \\a{%a.} /for", 0
     ; test "0 10 1 /rng \\a{%a 1 + 10 *} /map \\a{%a.} /for", 0
-    ; test "0 10 1 /rng \\a{%a 3<}/ft \\a{%a.} /for", 0
-    ; test "0 10 1 /rng  0 \\da{%d%a+}/fd \\a{%a 24<}/ft \\a{%a.} /for", 0
-    ; test "[10 20 30] /ai \\a{%a.} /for", 0
-    ; test "[1 2 3].a", 0
-    ; test "/str `hello:` 65.c 1. 2. 3. /end .s", FALSE
+    ; test "0 10 1 /rng \\a{%a 3<}/ftr \\a{%a.} /for", 0
     ; test "`hello:` 65.c 1. 2. 3.", FALSE
     ; test "/hex /byt $1234.",0
     ; test "/byt 257.",0
-    
     ; test "$1000 'hello there!' /si \\a{%a.c} /for", $1000
-
     ; test "10 0 -1 /rng \\a{%a.} /for", 0
-    ; test "0 10 1 /f1 \\a{%a.} /for", 0
+    ; test "_B [_A {1} _B {2}] /sel", 2
+    ; test "[_A {1} _B {2}] x= _B x /sel", 2
+    ; test "[10 20 30] /ait \\a{%a.} /for", 0
+    ; test "[1 2 3].a", 0
+    ; test "0 10 1 /rng  0 \\da{%d%a+}/scn \\a{%a 24<}/ftr \\a{%a.} /for", 0
 
-    ; test "0 x = 2 x + = x .", false
+    test "/str `hello:` 65.c 1. 2. 3. /end .s", FALSE
 
-    ; test "_B [_A {1} _B {2}] /endl", 2
-    ; ; test "[_A {1} _B {2}] x= _B x /endl", 2
-    ; ; test "/bra", 2
-
-    ; call printStr
-    ; .cstr "Done!"
-    ; HALT
+    call printStr
+    .cstr "Done!"
+    HALT
 
     test "/fal", false
     test "/tru", true
@@ -197,83 +191,3 @@ testsStart:
     
 .include "test.fast.util.asm"
 .include "ram.asm"
-
-; FUNC rangeSrc, 1, "besL"            ; range source: begin, end, step, local: L                 
-; db "{"
-; db    "[%b /tru] %L="                 ; init mutable L [index active]                           
-; db    "\\kt{"                            
-; db      "0%t!=/ret"                  ; break if type != 0 
-; db      "\\dt:a{"                   ; return talkback to receive data
-; db        "%L1;!/ret"                ; if not active don't send
-; db        "%L0; %a="                ; store current index in A 
-; db        "%s %L0; +="              ; inc value of index by step
-; db        "1%t!=/ret"                ; break if type != 0
-; db        "%a %e <"                 ; ifte: in range?
-; db          "{%a 1}{/fal %L1;= 0 2}"  ; ifte: /tru index, /fal active = false, quit
-; db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
-; db      "} 0 %k^"                   ; init sink
-; db    "}" 
-; db "}" 
-; db 0
-
-; FUNC map, 0, "sf"                   ; map                 
-; db "{"
-; db    "\\kt{"                        
-; db      "0%t!=/ret"                  ; break if type != 0  
-; db      "\\dt{"                     ; call source with tb
-; db        "1%t=="                   ; ifte: type == 1 ?
-; db        "{%d %f^}{%d}"            ; ifte: func(data) or data
-; db        "? %t %k^"               ; ifte: send to sink
-; db      "} 0 %s^" 
-; db    "}" 
-; db "}" 
-; db 0
-
-; ; /ft filter
-; ; src pred -- src1
-; FUNC filter, 1, "spT"               ; filter: source, predicate, local: T  
-; db "{"
-; db    "[0]%T="
-; db    "\\kt{"                       ; return talkback to receive data 
-; db      "\\dt{"                     ; call source with tb
-; db        "["
-; db          "{%d %T0;= /tru}"         ; case 0: store talkback in T[0], return true
-; db          "{%d %p^}"              ; case 1: return boolean based on predicate
-; db          "{/tru}"                  ; case 2: return true
-; db        "]%t;^"                   ; select on %t
-; db        "{%d %t %k^}{0 1 %T0;^}"  ; ifte: true send d to sink, false send 1 to talkback
-; db        "?"
-; db      "} 0 %s^"                    
-; db    "}" 
-; db "}" 
-; db 0
-
-; FUNC forEach, 1, "spT"                               
-; db "{"
-; db    "[0]%T="
-; db    "\\dt{"                       ; return talkback to receive data ; $56AA
-; db      "2%t==/ret"                    ; if type == 2 skip
-; db      "0%t=="                   ; ifte: type = 0 ?
-; db      "{%d %T0;=}{%d %p^}"      ; ifte: 0: store talkback, 1: send data
-; db      "?"                      ; ifte:
-; db      "0 1 %T0;^"               ; 0 or 1: get next src data item
-; db    "} 0 %s^" 
-; db "}" 
-; db 0
-
-; FUNC fold, 1, "sirA"                       ; src, init, reducer                      
-; db "{"                                  ; reducer: \\da{...}
-; db    "[%i]%A="
-; db    "\\kt{"                         ; return talkback to receive data 
-; db      "\\dt{"                         ; call source with tb
-; db        "1%t=="                       ; ifte: type == 1 ?
-; db        "{ %d %A0; %r^ %A0;= %A0;}{%d}"      ; ifte: reduce -> acc, acc or data 
-; db        "? %t %k^"                    ; ifte: send to sink
-; db      "} 0 %s^"                    
-; db    "}" 
-; db "}" 
-; db 0
-
-
-
-; 

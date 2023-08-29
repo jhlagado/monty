@@ -782,7 +782,7 @@ command:
     db lsb(command_b_)
     db 0
     db lsb(command_d_)
-    db 0
+    db lsb(command_e_)
     db lsb(command_f_)
     db 0
     db lsb(command_h_)
@@ -813,11 +813,11 @@ command_a_:
     dw absolute
     db "dr"                     ; /adr address of
     dw addrOf
-    db "i",0                    ; /ai array iterator
+    db "it"                     ; /ait array iterator
     dw arrayIter
     db "lc"                     ; /alc mem allocate
     dw memAllocate
-    db "ln"                     ; /al array length
+    db "ln"                     ; /aln array length
     dw arrayLength
     db "s",0                    ; /as array size
     dw arraySize
@@ -835,12 +835,12 @@ command_b_:
 
 command_d_:
     call cmdTable
-    db "ec"                      ; /dec decimal
+    db "ec"                         ; /dec decimal
     dw decBase
     dw 0
     dw error1
 
-command_e:
+command_e_:
     call cmdTable
     db "ch"
     dw echo
@@ -851,20 +851,18 @@ command_e:
 
 command_f_:
     call cmdTable
-    db "al"                       ; /fal false 
+    db "al"                         ; /fal false 
     dw false1
-    db "d",0                      ; /fd fold
-    dw fold
-    db "or"                       ; /for forEach
+    db "or"                         ; /for forEach
     dw forEach
-    db "re"                       ; /fre free memory
+    db "re"                         ; /fre free memory
     dw memFree
-    db "ra"                       ; /fra free memory array
+    db "ra"                         ; /fra free memory array
     dw memFreeArray
 
-    db "s",0                      ; /fs funcSrc
+    db "s",0                        ; /fs funcSrc
     dw funcSrc
-    db "t",0                      ; /ft filter
+    db "tr"                         ; /ftr filter
     dw filter
     db "1",0                      
     dw f1
@@ -879,7 +877,7 @@ command_f_:
 
 command_h_:
     call cmdTable
-    db "ex"                     ; /hex hex
+    db "ex"                         ; /hex hex
     dw hexBase
     dw 0
     dw error1                   
@@ -893,18 +891,18 @@ command_i_:
 
 command_m_:
     call cmdTable
-    db "ap"                       ; /map map
+    db "ap"                         ; /map map
     dw map
-    db "ax"                       ; /max maximum
+    db "ax"                         ; /max maximum
     dw maximum
-    db "in"                       ; /min minimum
+    db "in"                         ; /min minimum
     dw minimum
     dw 0
     dw error1
 
 comand_o_:
     call cmdTable
-    db "ut"                       ; /out out
+    db "ut"                         ; /out out
     dw output
     dw 0
     dw error1
@@ -954,33 +952,35 @@ command_r:
 
 command_s:    
     call cmdTable
-    db "c",0
+    db "cn"                         ; /scn scan stream
+    dw scan1
+    db "cp"                         ; /scp string compare
     dw stringCompare
-    db "el"
+    db "el"                         ; /sel select
     dw select
-    db "i",0
+    db "it"                         ; /sit string iterator
     dw stringIter
-    db "l",0
+    db "l",0                        ; /sl string length
     dw stringLength
-    db "s",0
+    db "s",0                        ; /ss string size
     dw stringSize
-    db "tr"                       ; /str
+    db "tr"                         ; /str start building string
     dw stringBegin
     dw 0
     dw error1
 
 command_t:
     call cmdTable
-    db "ru"
+    db "ru"                         ; /tru true
     dw true1
     dw 0
     dw error1
 
 command_v:
     call cmdTable
-    db "ar"
+    db "ar"                         ; /var constant vars
     dw vars
-    db "oi"
+    db "oi"                         ; /voi void function return
     dw void
     dw 0
     dw error1
@@ -1053,7 +1053,7 @@ addrOf:
 addrOf2:    
     jp (ix)
 
-; /al length of an array, num elements
+; /aln length of an array, num elements
 ; array* -- num     
 arrayLength:
     pop hl
@@ -1404,7 +1404,7 @@ db 0
 ; array* -- src
 FUNC arrayIter, 1, "aL"                             
 db "{"
-db    "[0 /tru %a/al] %L="            ; init mutable L [index active size]                           
+db    "[0 /tru %a/aln] %L="            ; init mutable L [index active size]                           
 db    "\\kt{"                            
 db      "0%t!=/ret"                  ; break if type != 0 
 db      "\\dt:i{"                   ; return talkback to receive data
@@ -1420,7 +1420,7 @@ db    "}"
 db "}" 
 db 0
 
-; /si stringIter
+; /sit stringIter
 ; string* -- src
 FUNC stringIter, 1, "sL"                            
 db "{"
@@ -1476,10 +1476,10 @@ db    "}"
 db "}" 
 db 0
 
-; /fd fold
-; reducer is a function like: \\da{...}
+; /scn scan1
 ; src init reducer -- src1
-FUNC fold, 1, "sirA"                    ; src, init, reducer                      
+; where reducer is a function like: \\da{...}
+FUNC scan1, 1, "sirA"                    ; src, init, reducer                      
 db "{"                                  ; reducer: \\da{...}
 db    "[%i]%A="
 db    "\\kt{"                           ; return talkback to receive data 
@@ -1522,7 +1522,7 @@ db 0
 
 FUNC printArray, 2, "abc"
 db "{"
-db "'[ '.s %a/al%c= 0%b= (%a %b ;. %b ++ %b %c </whi)^ ']'.s"
+db "'[ '.s %a/aln%c= 0%b= (%a %b ;. %b ++ %b %c </whi)^ ']'.s"
 db "}"
 db 0
 
