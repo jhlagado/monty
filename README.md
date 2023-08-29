@@ -82,9 +82,8 @@ of Monty operations should be recognisable to programmers of other languages.
 []      array delaration                -- arr*
 ;       array index                     arr* num -- num
 **      array spread                    arr* -- item1 item2 ... itemN
-/ai     array iterator                  arr* -- src*
-/aln     array length                   arr* -- num
-/as     array size                      arr* -- num
+/ait    array iterator                  arr* -- src*
+/aln    array length                    arr* -- num
 ```
 
 #### Functions
@@ -113,18 +112,17 @@ $       hex number prefix
 ```
 ''      string                          -- str*
 _       literal character               -- char
-/si     string iterator                 str* -- src*
-/sl     string length                   str* -- num
-/ss     string size                     str* -- num
-/sb     string begin
-/end     string end                      -- str*
+/sit    string iterator                 str* -- src*
+/sln    string length                   str* -- num
+/str    string begin
+/end    string end                      -- str*
 /sc     string compare                  str* str* -- bool
 ```
 
 #### Streams
 
 ```
-/rg     range source                    num num num -- src*
+/rng    range source                    num num num -- src*
 /ftr    filter                          func* -- src*
 /for    for each                        func* -- src*
 /scn    scan                            val func* -- src*
@@ -155,7 +153,7 @@ a..z    global variable reference       -- val
 
 ```
 ^       execute
-/bb     cold start
+/bye    cold start
 ```
 
 ### Licence & credits

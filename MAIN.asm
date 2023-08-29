@@ -819,8 +819,6 @@ command_a_:
     dw memAllocate
     db "ln"                     ; /aln array length
     dw arrayLength
-    db "s",0                    ; /as array size
-    dw arraySize
     dw 0
     dw error1
 
@@ -960,10 +958,8 @@ command_s:
     dw select
     db "it"                         ; /sit string iterator
     dw stringIter
-    db "l",0                        ; /sl string length
+    db "ln"                        ; /sln string length
     dw stringLength
-    db "s",0                        ; /ss string size
-    dw stringSize
     db "tr"                         ; /str start building string
     dw stringBegin
     dw 0
@@ -1065,18 +1061,6 @@ arrayLength:
 arrayLength1:
     push hl
     jp (ix)
-
-; /as size in bytes of an array, based on current data width
-; array* -- num     
-arraySize:
-    PERFORM arrayLength
-    pop hl
-    ld a,(vDataWidth)
-    dec a
-    jr z,arrayLength1
-    srl h
-    rr l
-    jr arrayLength1
 
 ; 13
 ; /whi while true else break from loop             
@@ -1312,12 +1296,6 @@ stringLength2:
 stringLength3:
     push hl
     jp (ix)
-
-stringSize:
-    PERFORM stringLength
-    pop hl
-    inc hl
-    jp stringLength3
 
 ; /sc string compare
 ; string1* string2* -- bool

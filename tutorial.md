@@ -22,7 +22,7 @@ Control Flow in Monty
 Data Structures
 
 - Arrays ([] and ;)
-- Strings (', \_, /si, /sl, /str, /end, /ss)
+- Strings (', \_, /sit, /sln, /str, /end, /ss)
 - Basic operations on arrays and strings
 
 Monty's Built-in Commands
@@ -32,7 +32,7 @@ Monty's Built-in Commands
 - Arithmetic operations 
     (/, \*, +, -, /abs, /rem)
 - Variables and variable operations 
-    (=, +=, ++, --, /adr, /vb, /ve /vh, /vt, /vB, /vH, /vT, A..Z, a..z)
+    (=, +=, ++, --, /adr, A..Z, a..z)
 - Functions and function expressions (, {}, %, ^, /fs, /rc, /ret)
 
 Advanced Monty Programming
@@ -42,18 +42,6 @@ Advanced Monty Programming
 - Error handling and debugging techniques
 - Best practices for writing efficient Monty code
 - Using Monty for real-world applications
-
-Examples and Practical Projects
-
-- Implementing algorithms and data structures in Monty
-- Developing simple applications and utilities
-- Creating reusable Monty libraries
-
-Conclusion
-
-- Summary of Monty's features and capabilities
-- Final thoughts and next steps in mastering Monty
-- Additional resources for further learning
 
 ## What is Monty?
 
@@ -349,18 +337,18 @@ S .s
 
 prints out `hello there!`
 
-the length of a string can be got with the /sl operator
+the length of a string can be got with the /sln operator
 
 ```
-A /sl .
+A /sln .
 ```
 
 This prints the length of `12`
 
-Strings can also be compared for equality with the `/sc` operator
+Strings can also be compared for equality with the `/scp` operator
 
 ```
-'hello' 'Hello' /sc .
+'hello' 'Hello' /scp .
 ```
 
 prints `0` (for false)

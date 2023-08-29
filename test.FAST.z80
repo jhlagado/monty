@@ -37,12 +37,11 @@ testsStart:
     ; test "[10 20 30] /ait \\a{%a.} /for", 0
     ; test "[1 2 3].a", 0
     ; test "0 10 1 /rng  0 \\da{%d%a+}/scn \\a{%a 24<}/ftr \\a{%a.} /for", 0
+    ; test "/str `hello:` 65.c 1. 2. 3. /end .s", FALSE
 
-    test "/str `hello:` 65.c 1. 2. 3. /end .s", FALSE
-
-    call printStr
-    .cstr "Done!"
-    HALT
+    ; call printStr
+    ; .cstr "Done!"
+    ; HALT
 
     test "/fal", false
     test "/tru", true
@@ -170,9 +169,9 @@ testsStart:
     test "1 \\b{\\a:c{%a%b-%c= %c--%c}}^F= 3F^",1
     test "1 \\b:c{\\a{%a%b-%c= %c--%c}}^F= 3F^",1
     test "1 \\b:c{\\a:d{%a%b-%c= %c--%c %d= %d++%d}}^F= 3F^",2
-    test "'hello'/sl",5
-    test "'hello' 'hell' /sc", false
-    test "'hello' 'hello' /sc", true
+    test "'hello'/sln",5
+    test "'hello' 'hell' /scp", false
+    test "'hello' 'hello' /scp", true
     test "[1 2 3]** + +", 6
     test "/byt[_a [_b _c]** _d]2;", $63
     test "_B [_A {1} _B {2}] /sel", 2
