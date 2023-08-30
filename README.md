@@ -828,20 +828,13 @@ a..z    global variable reference       -- val
 
 ```
 /ait    array iterator                  arr* -- src*
-/for    for each                        src* func* --
 /for    for each                        func* -- src*
-/ftr    filter                          func* -- src*
+/ftr    filter                          src* func* -- src*
 /src    source                          blk* -- src*
-/ftr    filter                          src* -- src*
 /map    map                             src* func* -- src*
 /rng    range src                       start end step -- src*
-/scn    scan stream                     init reducer -- src*
-/scn    scan                            val func* -- src*
+/scn    scan stream                     src* init rfunc* -- src*
 /sit    string iterator                 str* -- src*
-```
-#### Streams
-
-```
 ```
 
 #### Numbers
@@ -867,7 +860,6 @@ _       literal character               -- char
 ; /sit string iterator
 ; /sln string length
 ```
-
 
 #### Misc
 
