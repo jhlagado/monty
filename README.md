@@ -37,7 +37,7 @@ Monty's Built-in Commands
   (/, \*, +, -, /abs, /rem)
 - Variables and variable operations
   (=, +=, ++, --, /adr, A..Z, a..z)
-- Functions and function expressions (, {}, %, ^, /fs, /rc, /ret)
+- Functions and function expressions (, {}, %, ^, /rc, /ret)
 
 Advanced Monty Programming
 
@@ -795,7 +795,7 @@ Here are some additional things to keep in mind about local variables in functio
 *=      multiplication                  num var --
 &=      bitwise and var by              num var --
 |=      bitwise or var by               num var --
-/x=     bitwise xor var by              num var --
+/xor=   bitwise xor var by              num var --
 ~=      bitwise invert var              var --
 
 A..Z    global variable reference       -- val
@@ -806,7 +806,7 @@ a..z    global variable reference       -- val
 #### Arrays
 
 ```
-[]      array declaration                -- arr*
+[]      array declaration               -- arr*
 ;       array index                     arr* num -- num
 **      array spread                    arr* -- item1 item2 ... itemN
 /aln    array length                    arr* -- num
@@ -818,7 +818,6 @@ a..z    global variable reference       -- val
 \       function begin
 {}      code block
 %a..%z  argument reference
-/fs     function source                 func* -- src*
 /rec    recur                           --
 /ret    return                          bool --
 /voi    void function return            --
@@ -856,20 +855,19 @@ _       literal character               -- char
 /str    string begin
 /end    string end                      -- str*
 /sc     string compare                  str* str* -- bool
-; /scp string compare
-; /sit string iterator
-; /sln string length
+/sln    string length                   str* -- num
 ```
+
 
 #### Misc
 
 ```
-^       execute
-/bye    cold start
-/var    pointer to system vars
-; /alc mem allocate
-; /fre free memory
-; /fra free memory array
+^       execute                         blk* | func* | loop* --
+/bye    cold start                      --
+/var    pointer to system vars          -- *
+/alc    memory allocate                 num -- *
+/fre    free memory                     * --
+/fra    free memory array               * --
 
 ```
 
