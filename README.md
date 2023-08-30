@@ -50,7 +50,7 @@ Advanced Monty Programming
 ## What is Monty?
 
 Monty is a minimalist character-based interpreter but one which aims at fast performance,
-readability and ease of use. It is written for the Z80 miroprocessor and is 5K.
+readability and ease of use. It is written for the Z80 microprocessor and is 5K.
 
 Unlike other character-based interpreters, Monty does not use obscure symbols.
 Instead it uses well-known conventions to do expected things. Sometimes an operation
@@ -116,7 +116,7 @@ multiplication.
 10 20 - .
 ```
 
-This program subtracts `20` from `10` which results in the neagtive value `-10`
+This program subtracts `20` from `10` which results in the negative value `-10`
 The `.` operator prints the difference.
 
 ```
@@ -491,7 +491,7 @@ hello 4 5 6
 
 ## Conditional code
 
-Code blocks are useful when it comes to condtional code in Monty.
+Code blocks are useful when it comes to conditional code in Monty.
 
 The syntax for a Monty IF-THEN-ELSE or "ifte" operator in Monty is:
 
@@ -806,7 +806,7 @@ a..z    global variable reference       -- val
 #### Arrays
 
 ```
-[]      array delaration                -- arr*
+[]      array declaration                -- arr*
 ;       array index                     arr* num -- num
 **      array spread                    arr* -- item1 item2 ... itemN
 /aln    array length                    arr* -- num
