@@ -31,12 +31,12 @@ Data Structures
 
 Monty's Built-in Commands
 
-- Logical operations 
-    (!, !=, ==, >, >=, <, <=, &, |, /xor, /tru, /fal)
-- Arithmetic operations 
-    (/, \*, +, -, /abs, /rem)
-- Variables and variable operations 
-    (=, +=, ++, --, /adr, A..Z, a..z)
+- Logical operations
+  (!, !=, ==, >, >=, <, <=, &, |, /xor, /tru, /fal)
+- Arithmetic operations
+  (/, \*, +, -, /abs, /rem)
+- Variables and variable operations
+  (=, +=, ++, --, /adr, A..Z, a..z)
 - Functions and function expressions (, {}, %, ^, /fs, /rc, /ret)
 
 Advanced Monty Programming
@@ -55,7 +55,7 @@ readability and ease of use. It is written for the Z80 miroprocessor and is 5K.
 Unlike other character-based interpreters, Monty does not use obscure symbols.
 Instead it uses well-known conventions to do expected things. Sometimes an operation
 is made of two symbols such as <= which means "less than or equal to". Wherever possible,
-Monty follows the conventions used by the C programming language so the meanings of 
+Monty follows the conventions used by the C programming language so the meanings of
 Monty operations should be fairly recognisable to programmers of other languages.
 
 ## Reverse Polish Notation (RPN)
@@ -360,7 +360,7 @@ prints `0` (for false)
 
 Monty has a number of ways of printing to the output.
 
-`<value> .`  prints a value as a number. This command is affected by /hex /dc /byt /wrd  
+`<value> .` prints a value as a number. This command is affected by /hex /dc /byt /wrd  
 `<value> .c` prints a value as an ASCII character
 `<value> .s` prints a value as a pointer to a null terminated string
 `<value> .a` prints a value as a pointer to an array. This command is affected by /hex /dc /byt /wrd
@@ -566,10 +566,12 @@ and then prints the result using `.`.
 ### Calling functions
 
 Functions are called with the ^ operator
+
 ```
 30 20 \ab{ %a %b * } ^ .
 ```
-This code passes the numbers `30` and `20` to a function which multiplies them and returns 
+
+This code passes the numbers `30` and `20` to a function which multiplies them and returns
 the result which is then printed.
 
 ### Assigning Functions to Variables
@@ -716,14 +718,13 @@ Here are some additional things to keep in mind about local variables in functio
 
 ## Loops
 
-
 ### Commands
 
 #### Conditional code
 
 ```
 ?       if..then..else                  bool blk1* blk2* ? --
-/sel    select                          key array* -- 
+/sel    select                          key array* --
 ```
 
 #### Input & Output
@@ -791,7 +792,7 @@ Here are some additional things to keep in mind about local variables in functio
 --      decrement var by 1              var --
 +=      multiply var by                 num var --
 /=      divide var by                   num var --
-*=      multiplication                  num var -- 
+*=      multiplication                  num var --
 &=      bitwise and var by              num var --
 |=      bitwise or var by               num var --
 /x=     bitwise xor var by              num var --
@@ -825,14 +826,14 @@ a..z    global variable reference       -- val
 
 #### Streams
 
-/ait    array iterator                  arr* -- src*
-/for    for each                        src* func* -- 
-/src    source                          blk* -- src*
-/ftr    filter                          src* -- src*
-/map    map                             src* -- src*
-/rng    range src                       start end step -- src*
-/scn    scan stream                     init reducer -- src*
-/sit    string iterator                 str* -- src*
+/ait array iterator arr* -- src*
+/for for each src* func* --
+/src source blk* -- src*
+/ftr filter src* -- src*
+/map map src* -- src*
+/rng range src start end step -- src*
+/scn scan stream init reducer -- src*
+/sit string iterator str* -- src*
 
 #### Numbers
 
@@ -918,4 +919,3 @@ _       literal character               -- char
      :
     resn                              -- last result.             <-- sp
 ```
-
