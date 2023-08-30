@@ -1,3 +1,39 @@
+### Control codes
+
+```
+    ^@  0 NUL
+    ^A  1 SOH
+    ^B  2 STX
+    ^C  3 ETX
+    ^D  4 EOT
+    ^E  5 ENQ
+    ^F  6 ACK
+    ^G  7 BEL
+    ^H  8 BS
+    ^I  9 TAB
+    ^J 10 LF
+    ^K 11 VT
+    ^L 12 FF
+    ^M 13 CR
+    ^N 14 SO
+    ^O 15 SI
+    ^P 16 DLE
+    ^Q 17 DC1
+    ^R 18 DC2
+    ^S 19 DC3
+    ^T 20 DC4
+    ^U 21 NAK
+    ^V 22 SYN
+    ^W 23 ETB
+    ^X 24 CAN
+    ^Y 25 EM
+    ^Z 26 SUB
+    ^[ 27 ESC
+    ^\ 28 FS
+    ^] 29 GS
+    ^^ 30 RS
+    ^_ 31 US
+```
 
 ; str -- num
 hash:

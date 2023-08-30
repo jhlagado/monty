@@ -858,8 +858,6 @@ command_f_:
     db "ra"                         ; /fra free memory array
     dw memFreeArray
 
-    db "s",0                        ; /fs funcSrc
-    dw funcSrc
     db "tr"                         ; /ftr filter
     dw filter
     db "1",0                      
@@ -958,8 +956,10 @@ command_s:
     dw select
     db "it"                         ; /sit string iterator
     dw stringIter
-    db "ln"                        ; /sln string length
+    db "ln"                         ; /sln string length
     dw stringLength
+    db "rc"                         ; /src source block* --
+    dw source
     db "tr"                         ; /str start building string
     dw stringBegin
     dw 0
@@ -1485,9 +1485,9 @@ db    "} 0 %s^"
 db "}" 
 db 0
 
-; ; /fs funcSrc
-; ; func -- src
-FUNC funcSrc, 0, "f"                      ; :f func or block                 
+; /src source
+; block* -- src
+FUNC source, 0, "f"                      ; :f block                 
 db "{"
 db    "\\kt{"                              ; :kt sink, type 
 db         "0%t==/whi"                     ; break if t != 0 ; TODO replace with /ret

@@ -1293,26 +1293,26 @@
 050F   5B                     DB   lsb(command_e_)   
 0510   6A                     DB   lsb(command_f_)   
 0511   00                     DB   0   
-0512   99                     DB   lsb(command_h_)   
-0513   A4                     DB   lsb(command_i_)   
+0512   95                     DB   lsb(command_h_)   
+0513   A0                     DB   lsb(command_i_)   
 0514   00                     DB   0   
 0515   00                     DB   0   
 0516   00                     DB   0   
-0517   AF                     DB   lsb(command_m_)   
+0517   AB                     DB   lsb(command_m_)   
 0518   00                     DB   0   
-0519   C2                     DB   lsb(comand_o_)   
-051A   CD                     DB   lsb(command_p_)   
+0519   BE                     DB   lsb(comand_o_)   
+051A   C9                     DB   lsb(command_p_)   
 051B   00                     DB   0   
-051C   D4                     DB   lsb(command_r_)   
-051D   D6                     DB   lsb(command_s_)   
-051E   D8                     DB   lsb(command_t_)   
+051C   D0                     DB   lsb(command_r_)   
+051D   D2                     DB   lsb(command_s_)   
+051E   D4                     DB   lsb(command_t_)   
 051F   00                     DB   0   
-0520   DA                     DB   lsb(command_v_)   
-0521   DC                     DB   lsb(command_w_)   
-0522   DE                     DB   lsb(command_x_)   
+0520   D6                     DB   lsb(command_v_)   
+0521   D8                     DB   lsb(command_w_)   
+0522   DA                     DB   lsb(command_x_)   
 0523   00                     DB   0   
 0524   00                     DB   0   
-0525   E0                     DB   lsb(command_default_)   
+0525   DC                     DB   lsb(command_default_)   
 0526                             ; 12
 0526                COMMAND_A_:      
 0526   CD 9C 0F               CALL   cmdTable   
@@ -1360,93 +1360,93 @@
 0577   DD 06                  DW   memFree   
 0579   72 61                  DB   "ra"   ; /fra free memory array
 057B   E3 06                  DW   memFreeArray   
-057D   73 00                  DB   "s",0   ; /fs funcSrc
-057F   B3 0A                  DW   funcSrc   
-0581   74 72                  DB   "tr"   ; /ftr filter
-0583   B5 09                  DW   filter   
-0585   31 00                  DB   "1",0   
-0587   67 11                  DW   f1   
-0589   32 00                  DB   "2",0   
-058B   73 11                  DW   f2   
-058D   33 00                  DB   "3",0   
-058F   7F 11                  DW   f3   
-0591   34 00                  DB   "4",0   
-0593   8B 11                  DW   f4   
-0595   00 00                  DW   0   
-0597   CA 06                  DW   error1   
-0599                COMMAND_H_:      
-0599   CD 9C 0F               CALL   cmdTable   
-059C   65 78                  DB   "ex"   ; /hex hex
-059E   C5 06                  DW   hexBase   
-05A0   00 00                  DW   0   
-05A2   CA 06                  DW   error1   
-05A4                COMMAND_I_:      
-05A4   CD 9C 0F               CALL   cmdTable   
-05A7   6E 00                  DB   "n",0   ; /in input
-05A9   D0 06                  DW   input   
-05AB   00 00                  DW   0   
-05AD   CA 06                  DW   error1   
-05AF                COMMAND_M_:      
-05AF   CD 9C 0F               CALL   cmdTable   
-05B2   61 70                  DB   "ap"   ; /map map
-05B4   73 09                  DW   map   
-05B6   61 78                  DB   "ax"   ; /max maximum
-05B8   E8 06                  DW   maximum   
-05BA   69 6E                  DB   "in"   ; /min minimum
-05BC   F4 06                  DW   minimum   
-05BE   00 00                  DW   0   
-05C0   CA 06                  DW   error1   
-05C2                COMAND_O_:      
-05C2   CD 9C 0F               CALL   cmdTable   
-05C5   75 74                  DB   "ut"   ; /out out
-05C7   00 07                  DW   output   
-05C9   00 00                  DW   0   
-05CB   CA 06                  DW   error1   
-05CD                COMMAND_P_:      
-05CD   CD 9C 0F               CALL   cmdTable   
-05D0   00 00                  DW   0   
-05D2   CA 06                  DW   error1   
-05D4                COMMAND_R_:      
-05D4   18 0D                  JR   command_r   
-05D6                COMMAND_S_:      
-05D6   18 22                  JR   command_s   
-05D8                COMMAND_T_:      
-05D8   18 3F                  JR   command_t   
-05DA                COMMAND_V_:      
-05DA   18 48                  JR   command_v   
-05DC                COMMAND_W_:      
-05DC   18 55                  JR   command_w   
-05DE                COMMAND_X_:      
-05DE   18 62                  JR   command_x   
-05E0                             ; 3
-05E0                COMMAND_DEFAULT_:      
-05E0   C3 4D 06               JP   command_default   
-05E3                             ;********************** PAGE 5 END *********************************************
-05E3                             ; .align $100
-05E3                COMMAND_R:      
-05E3   CD 9C 0F               CALL   cmdTable   
-05E6   63 00                  DB   "c",0   ; /rc tail call optimisation
-05E8   13 07                  DW   recur   
-05EA   65 6D                  DB   "em"   ; /rem remainder
-05EC   19 07                  DW   remain   
-05EE   65 74                  DB   "et"   ; /ret return
-05F0   09 07                  DW   return   
-05F2   6E 67                  DB   "ng"   ; /rng range src
-05F4   C2 07                  DW   rangeSrc   
-05F6   00 00                  DW   0   
-05F8   CA 06                  DW   error1   
-05FA                COMMAND_S:      
-05FA   CD 9C 0F               CALL   cmdTable   
-05FD   63 6E                  DB   "cn"   ; /scn scan stream
-05FF   16 0A                  DW   scan1   
-0601   63 70                  DB   "cp"   ; /scp string compare
-0603   8C 07                  DW   stringCompare   
-0605   65 6C                  DB   "el"   ; /sel select
-0607   1F 07                  DW   select   
-0609   69 74                  DB   "it"   ; /sit string iterator
-060B   E3 08                  DW   stringIter   
-060D   6C 6E                  DB   "ln"   ; /sln string length
-060F   7D 07                  DW   stringLength   
+057D   74 72                  DB   "tr"   ; /ftr filter
+057F   B5 09                  DW   filter   
+0581   31 00                  DB   "1",0   
+0583   67 11                  DW   f1   
+0585   32 00                  DB   "2",0   
+0587   73 11                  DW   f2   
+0589   33 00                  DB   "3",0   
+058B   7F 11                  DW   f3   
+058D   34 00                  DB   "4",0   
+058F   8B 11                  DW   f4   
+0591   00 00                  DW   0   
+0593   CA 06                  DW   error1   
+0595                COMMAND_H_:      
+0595   CD 9C 0F               CALL   cmdTable   
+0598   65 78                  DB   "ex"   ; /hex hex
+059A   C5 06                  DW   hexBase   
+059C   00 00                  DW   0   
+059E   CA 06                  DW   error1   
+05A0                COMMAND_I_:      
+05A0   CD 9C 0F               CALL   cmdTable   
+05A3   6E 00                  DB   "n",0   ; /in input
+05A5   D0 06                  DW   input   
+05A7   00 00                  DW   0   
+05A9   CA 06                  DW   error1   
+05AB                COMMAND_M_:      
+05AB   CD 9C 0F               CALL   cmdTable   
+05AE   61 70                  DB   "ap"   ; /map map
+05B0   73 09                  DW   map   
+05B2   61 78                  DB   "ax"   ; /max maximum
+05B4   E8 06                  DW   maximum   
+05B6   69 6E                  DB   "in"   ; /min minimum
+05B8   F4 06                  DW   minimum   
+05BA   00 00                  DW   0   
+05BC   CA 06                  DW   error1   
+05BE                COMAND_O_:      
+05BE   CD 9C 0F               CALL   cmdTable   
+05C1   75 74                  DB   "ut"   ; /out out
+05C3   00 07                  DW   output   
+05C5   00 00                  DW   0   
+05C7   CA 06                  DW   error1   
+05C9                COMMAND_P_:      
+05C9   CD 9C 0F               CALL   cmdTable   
+05CC   00 00                  DW   0   
+05CE   CA 06                  DW   error1   
+05D0                COMMAND_R_:      
+05D0   18 0D                  JR   command_r   
+05D2                COMMAND_S_:      
+05D2   18 22                  JR   command_s   
+05D4                COMMAND_T_:      
+05D4   18 43                  JR   command_t   
+05D6                COMMAND_V_:      
+05D6   18 4C                  JR   command_v   
+05D8                COMMAND_W_:      
+05D8   18 59                  JR   command_w   
+05DA                COMMAND_X_:      
+05DA   18 66                  JR   command_x   
+05DC                             ; 3
+05DC                COMMAND_DEFAULT_:      
+05DC   C3 4D 06               JP   command_default   
+05DF                             ;********************** PAGE 5 END *********************************************
+05DF                             ; .align $100
+05DF                COMMAND_R:      
+05DF   CD 9C 0F               CALL   cmdTable   
+05E2   63 00                  DB   "c",0   ; /rc tail call optimisation
+05E4   13 07                  DW   recur   
+05E6   65 6D                  DB   "em"   ; /rem remainder
+05E8   19 07                  DW   remain   
+05EA   65 74                  DB   "et"   ; /ret return
+05EC   09 07                  DW   return   
+05EE   6E 67                  DB   "ng"   ; /rng range src
+05F0   C2 07                  DW   rangeSrc   
+05F2   00 00                  DW   0   
+05F4   CA 06                  DW   error1   
+05F6                COMMAND_S:      
+05F6   CD 9C 0F               CALL   cmdTable   
+05F9   63 6E                  DB   "cn"   ; /scn scan stream
+05FB   16 0A                  DW   scan1   
+05FD   63 70                  DB   "cp"   ; /scp string compare
+05FF   8C 07                  DW   stringCompare   
+0601   65 6C                  DB   "el"   ; /sel select
+0603   1F 07                  DW   select   
+0605   69 74                  DB   "it"   ; /sit string iterator
+0607   E3 08                  DW   stringIter   
+0609   6C 6E                  DB   "ln"   ; /sln string length
+060B   7D 07                  DW   stringLength   
+060D   72 63                  DB   "rc"   ; /src source block* --
+060F   B3 0A                  DW   source   
 0611   74 72                  DB   "tr"   ; /str start building string
 0613   46 07                  DW   stringBegin   
 0615   00 00                  DW   0   
@@ -1983,17 +1983,17 @@
 0AAA   7D 20 30 20 25 73 5E   DB   "} 0 %s^"   
 0AB1   7D                     DB   "}"   
 0AB2   00                     DB   0   
-0AB3                             ; ; /fs funcSrc
-0AB3                             ; ; func -- src
-0AB3                          ;*Macro unroll: FUNC funcSrc, 0, "f"                      ; :f func or block
-0AB3                FUNCSRC:      ; :f func or block
+0AB3                             ; /src source
+0AB3                             ; block* -- src
+0AB3                          ;*Macro unroll: FUNC source, 0, "f"                      ; :f block
+0AB3                SOURCE:      ; :f block
 0AB3   CD 9F 03               CALL   go   
 0AB6   00 00                  DW   NUL   
-0AB8   BF 0A                  DW   funcSrcM_1931S1490   
+0AB8   BF 0A                  DW   sourceM_1931S1490   
 0ABA   BC 0A                  DW   $+2   
 0ABC   00                     DB   0   
 0ABD   01 66                  .PSTR   "f"   
-0ABF                FUNCSRCM_1931S1490:      
+0ABF                SOURCEM_1931S1490:      
 0ABF   7B                     DB   "{"   
 0AC0   5C 6B 74 7B            DB   "\\kt{"   ; :kt sink, type
 0AC4   30 25 74 3D 3D 2F 77 68 69 DB   "0%t==/whi"   ; break if t != 0 ; TODO replace with /ret
@@ -8007,32 +8007,32 @@ COMMAND_B_:         0541 DEFINED AT LINE 825 IN MAIN.asm
 COMMAND_D_:         0550 DEFINED AT LINE 834 IN MAIN.asm
 COMMAND_E_:         055B DEFINED AT LINE 841 IN MAIN.asm
 COMMAND_F_:         056A DEFINED AT LINE 850 IN MAIN.asm
-COMMAND_H_:         0599 DEFINED AT LINE 876 IN MAIN.asm
-COMMAND_I_:         05A4 DEFINED AT LINE 883 IN MAIN.asm
-COMMAND_M_:         05AF DEFINED AT LINE 890 IN MAIN.asm
-COMAND_O_:          05C2 DEFINED AT LINE 901 IN MAIN.asm
-COMMAND_P_:         05CD DEFINED AT LINE 908 IN MAIN.asm
-COMMAND_R_:         05D4 DEFINED AT LINE 913 IN MAIN.asm
-COMMAND_S_:         05D6 DEFINED AT LINE 916 IN MAIN.asm
-COMMAND_T_:         05D8 DEFINED AT LINE 919 IN MAIN.asm
-COMMAND_V_:         05DA DEFINED AT LINE 922 IN MAIN.asm
-COMMAND_W_:         05DC DEFINED AT LINE 925 IN MAIN.asm
-COMMAND_X_:         05DE DEFINED AT LINE 928 IN MAIN.asm
-COMMAND_DEFAULT_:   05E0 DEFINED AT LINE 931 IN MAIN.asm
-COMMAND_R:          05E3 DEFINED AT LINE 938 IN MAIN.asm
-                    > USED AT LINE 914 IN MAIN.asm
-COMMAND_S:          05FA DEFINED AT LINE 951 IN MAIN.asm
-                    > USED AT LINE 917 IN MAIN.asm
+COMMAND_H_:         0595 DEFINED AT LINE 874 IN MAIN.asm
+COMMAND_I_:         05A0 DEFINED AT LINE 881 IN MAIN.asm
+COMMAND_M_:         05AB DEFINED AT LINE 888 IN MAIN.asm
+COMAND_O_:          05BE DEFINED AT LINE 899 IN MAIN.asm
+COMMAND_P_:         05C9 DEFINED AT LINE 906 IN MAIN.asm
+COMMAND_R_:         05D0 DEFINED AT LINE 911 IN MAIN.asm
+COMMAND_S_:         05D2 DEFINED AT LINE 914 IN MAIN.asm
+COMMAND_T_:         05D4 DEFINED AT LINE 917 IN MAIN.asm
+COMMAND_V_:         05D6 DEFINED AT LINE 920 IN MAIN.asm
+COMMAND_W_:         05D8 DEFINED AT LINE 923 IN MAIN.asm
+COMMAND_X_:         05DA DEFINED AT LINE 926 IN MAIN.asm
+COMMAND_DEFAULT_:   05DC DEFINED AT LINE 929 IN MAIN.asm
+COMMAND_R:          05DF DEFINED AT LINE 936 IN MAIN.asm
+                    > USED AT LINE 912 IN MAIN.asm
+COMMAND_S:          05F6 DEFINED AT LINE 949 IN MAIN.asm
+                    > USED AT LINE 915 IN MAIN.asm
 COMMAND_T:          0619 DEFINED AT LINE 968 IN MAIN.asm
-                    > USED AT LINE 920 IN MAIN.asm
+                    > USED AT LINE 918 IN MAIN.asm
 COMMAND_V:          0624 DEFINED AT LINE 975 IN MAIN.asm
-                    > USED AT LINE 923 IN MAIN.asm
+                    > USED AT LINE 921 IN MAIN.asm
 COMMAND_W:          0633 DEFINED AT LINE 984 IN MAIN.asm
-                    > USED AT LINE 926 IN MAIN.asm
+                    > USED AT LINE 924 IN MAIN.asm
 COMMAND_X:          0642 DEFINED AT LINE 993 IN MAIN.asm
-                    > USED AT LINE 929 IN MAIN.asm
+                    > USED AT LINE 927 IN MAIN.asm
 COMMAND_DEFAULT:    064D DEFINED AT LINE 1000 IN MAIN.asm
-                    > USED AT LINE 932 IN MAIN.asm
+                    > USED AT LINE 930 IN MAIN.asm
 DIV:                0654 DEFINED AT LINE 1006 IN MAIN.asm
                     > USED AT LINE 1003 IN MAIN.asm
 DIV2:               065E DEFINED AT LINE 1015 IN MAIN.asm
@@ -8065,19 +8065,19 @@ DECBASE1:           06BA DEFINED AT LINE 1103 IN MAIN.asm
 ECHO:               06BF DEFINED AT LINE 1109 IN MAIN.asm
                     > USED AT LINE 844 IN MAIN.asm
 HEXBASE:            06C5 DEFINED AT LINE 1114 IN MAIN.asm
-                    > USED AT LINE 879 IN MAIN.asm
+                    > USED AT LINE 877 IN MAIN.asm
 ERROR1:             06CA DEFINED AT LINE 1118 IN MAIN.asm
                     > USED AT LINE 823 IN MAIN.asm
                     > USED AT LINE 832 IN MAIN.asm
                     > USED AT LINE 839 IN MAIN.asm
                     > USED AT LINE 848 IN MAIN.asm
-                    > USED AT LINE 874 IN MAIN.asm
-                    > USED AT LINE 881 IN MAIN.asm
-                    > USED AT LINE 888 IN MAIN.asm
-                    > USED AT LINE 899 IN MAIN.asm
-                    > USED AT LINE 906 IN MAIN.asm
-                    > USED AT LINE 911 IN MAIN.asm
-                    > USED AT LINE 949 IN MAIN.asm
+                    > USED AT LINE 872 IN MAIN.asm
+                    > USED AT LINE 879 IN MAIN.asm
+                    > USED AT LINE 886 IN MAIN.asm
+                    > USED AT LINE 897 IN MAIN.asm
+                    > USED AT LINE 904 IN MAIN.asm
+                    > USED AT LINE 909 IN MAIN.asm
+                    > USED AT LINE 947 IN MAIN.asm
                     > USED AT LINE 966 IN MAIN.asm
                     > USED AT LINE 973 IN MAIN.asm
                     > USED AT LINE 982 IN MAIN.asm
@@ -8085,7 +8085,7 @@ ERROR1:             06CA DEFINED AT LINE 1118 IN MAIN.asm
                     > USED AT LINE 998 IN MAIN.asm
                     > USED AT LINE 2347 IN MAIN.asm
 INPUT:              06D0 DEFINED AT LINE 1124 IN MAIN.asm
-                    > USED AT LINE 886 IN MAIN.asm
+                    > USED AT LINE 884 IN MAIN.asm
 MEMALLOCATE:        06DB DEFINED AT LINE 1136 IN MAIN.asm
                     > USED AT LINE 819 IN MAIN.asm
 MEMFREE:            06DD DEFINED AT LINE 1141 IN MAIN.asm
@@ -8095,25 +8095,25 @@ MEMFREE1:           06DE DEFINED AT LINE 1143 IN MAIN.asm
 MEMFREEARRAY:       06E3 DEFINED AT LINE 1149 IN MAIN.asm
                     > USED AT LINE 859 IN MAIN.asm
 MAXIMUM:            06E8 DEFINED AT LINE 1157 IN MAIN.asm
-                    > USED AT LINE 895 IN MAIN.asm
+                    > USED AT LINE 893 IN MAIN.asm
 MAXIMUM1:           06F2 DEFINED AT LINE 1166 IN MAIN.asm
                     > USED AT LINE 1163 IN MAIN.asm
 MINIMUM:            06F4 DEFINED AT LINE 1171 IN MAIN.asm
-                    > USED AT LINE 897 IN MAIN.asm
+                    > USED AT LINE 895 IN MAIN.asm
 MINIMUM1:           06FE DEFINED AT LINE 1180 IN MAIN.asm
                     > USED AT LINE 1177 IN MAIN.asm
 OUTPUT:             0700 DEFINED AT LINE 1185 IN MAIN.asm
-                    > USED AT LINE 904 IN MAIN.asm
+                    > USED AT LINE 902 IN MAIN.asm
 RETURN:             0709 DEFINED AT LINE 1196 IN MAIN.asm
-                    > USED AT LINE 945 IN MAIN.asm
+                    > USED AT LINE 943 IN MAIN.asm
 RETURN1:            0710 DEFINED AT LINE 1202 IN MAIN.asm
                     > USED AT LINE 1200 IN MAIN.asm
 RECUR:              0713 DEFINED AT LINE 1205 IN MAIN.asm
-                    > USED AT LINE 941 IN MAIN.asm
+                    > USED AT LINE 939 IN MAIN.asm
 REMAIN:             0719 DEFINED AT LINE 1210 IN MAIN.asm
-                    > USED AT LINE 943 IN MAIN.asm
+                    > USED AT LINE 941 IN MAIN.asm
 SELECT:             071F DEFINED AT LINE 1217 IN MAIN.asm
-                    > USED AT LINE 958 IN MAIN.asm
+                    > USED AT LINE 956 IN MAIN.asm
 SELECT1:            072A DEFINED AT LINE 1228 IN MAIN.asm
                     > USED AT LINE 1251 IN MAIN.asm
 SELECT1A:           073B DEFINED AT LINE 1242 IN MAIN.asm
@@ -8129,14 +8129,14 @@ STRINGEND:          074E DEFINED AT LINE 1262 IN MAIN.asm
 STRINGEND1:         0775 DEFINED AT LINE 1280 IN MAIN.asm
                     > USED AT LINE 1259 IN MAIN.asm
 STRINGLENGTH:       077D DEFINED AT LINE 1285 IN MAIN.asm
-                    > USED AT LINE 962 IN MAIN.asm
+                    > USED AT LINE 960 IN MAIN.asm
 STRINGLENGTH1:      0783 DEFINED AT LINE 1289 IN MAIN.asm
                     > USED AT LINE 1295 IN MAIN.asm
 STRINGLENGTH2:      0785 DEFINED AT LINE 1292 IN MAIN.asm
                     > USED AT LINE 1288 IN MAIN.asm
 STRINGLENGTH3:      0789 DEFINED AT LINE 1296 IN MAIN.asm
 STRINGCOMPARE:      078C DEFINED AT LINE 1303 IN MAIN.asm
-                    > USED AT LINE 956 IN MAIN.asm
+                    > USED AT LINE 954 IN MAIN.asm
 STRINGCOMPARE1:     078E DEFINED AT LINE 1306 IN MAIN.asm
                     > USED AT LINE 1314 IN MAIN.asm
 STRINGCOMPARE2:     0799 DEFINED AT LINE 1315 IN MAIN.asm
@@ -8154,7 +8154,7 @@ XOR:                07B7 DEFINED AT LINE 1345 IN MAIN.asm
                     > USED AT LINE 996 IN MAIN.asm
 XOR1:               07B8 DEFINED AT LINE 1347 IN MAIN.asm
 RANGESRC:           07C2 DEFINED AT LINE 32
-                    > USED AT LINE 947 IN MAIN.asm
+                    > USED AT LINE 945 IN MAIN.asm
 RANGESRCM_1812S1363: 07D1 DEFINED AT LINE 39
                     > USED AT LINE 35
 ARRAYITER:          085B DEFINED AT LINE 32
@@ -8162,28 +8162,28 @@ ARRAYITER:          085B DEFINED AT LINE 32
 ARRAYITERM_1831S1383: 0868 DEFINED AT LINE 39
                     > USED AT LINE 35
 STRINGITER:         08E3 DEFINED AT LINE 32
-                    > USED AT LINE 960 IN MAIN.asm
+                    > USED AT LINE 958 IN MAIN.asm
 STRINGITERM_1850S1403: 08F0 DEFINED AT LINE 39
                     > USED AT LINE 35
 MAP:                0973 DEFINED AT LINE 32
-                    > USED AT LINE 893 IN MAIN.asm
+                    > USED AT LINE 891 IN MAIN.asm
 MAPM_1870S1425:     0980 DEFINED AT LINE 39
                     > USED AT LINE 35
 FILTER:             09B5 DEFINED AT LINE 32
-                    > USED AT LINE 864 IN MAIN.asm
+                    > USED AT LINE 862 IN MAIN.asm
 FILTERM_1884S1440:  09C3 DEFINED AT LINE 39
                     > USED AT LINE 35
 SCAN1:              0A16 DEFINED AT LINE 32
-                    > USED AT LINE 954 IN MAIN.asm
+                    > USED AT LINE 952 IN MAIN.asm
 SCAN1M_1903S1460:   0A25 DEFINED AT LINE 39
                     > USED AT LINE 35
 FOREACH:            0A67 DEFINED AT LINE 32
                     > USED AT LINE 855 IN MAIN.asm
 FOREACHM_1917S1475: 0A75 DEFINED AT LINE 39
                     > USED AT LINE 35
-FUNCSRC:            0AB3 DEFINED AT LINE 32
-                    > USED AT LINE 862 IN MAIN.asm
-FUNCSRCM_1931S1490: 0ABF DEFINED AT LINE 39
+SOURCE:             0AB3 DEFINED AT LINE 32
+                    > USED AT LINE 962 IN MAIN.asm
+SOURCEM_1931S1490:  0ABF DEFINED AT LINE 39
                     > USED AT LINE 35
 PRINTARRAY:         0AEE DEFINED AT LINE 32
                     > USED AT LINE 606 IN MAIN.asm
@@ -8454,13 +8454,13 @@ CMDTABLE:           0F9C DEFINED AT LINE 2361 IN MAIN.asm
                     > USED AT LINE 835 IN MAIN.asm
                     > USED AT LINE 842 IN MAIN.asm
                     > USED AT LINE 851 IN MAIN.asm
-                    > USED AT LINE 877 IN MAIN.asm
-                    > USED AT LINE 884 IN MAIN.asm
-                    > USED AT LINE 891 IN MAIN.asm
-                    > USED AT LINE 902 IN MAIN.asm
-                    > USED AT LINE 909 IN MAIN.asm
-                    > USED AT LINE 939 IN MAIN.asm
-                    > USED AT LINE 952 IN MAIN.asm
+                    > USED AT LINE 875 IN MAIN.asm
+                    > USED AT LINE 882 IN MAIN.asm
+                    > USED AT LINE 889 IN MAIN.asm
+                    > USED AT LINE 900 IN MAIN.asm
+                    > USED AT LINE 907 IN MAIN.asm
+                    > USED AT LINE 937 IN MAIN.asm
+                    > USED AT LINE 950 IN MAIN.asm
                     > USED AT LINE 969 IN MAIN.asm
                     > USED AT LINE 976 IN MAIN.asm
                     > USED AT LINE 985 IN MAIN.asm
@@ -9394,19 +9394,19 @@ REEDIT0:            1153 DEFINED AT LINE 2681 IN MAIN.asm
 REEDIT1:            1157 DEFINED AT LINE 2684 IN MAIN.asm
                     > USED AT LINE 2680 IN MAIN.asm
 F1:                 1167 DEFINED AT LINE 32
-                    > USED AT LINE 866 IN MAIN.asm
+                    > USED AT LINE 864 IN MAIN.asm
 F1M_3059S12:        1172 DEFINED AT LINE 39
                     > USED AT LINE 35
 F2:                 1173 DEFINED AT LINE 32
-                    > USED AT LINE 868 IN MAIN.asm
+                    > USED AT LINE 866 IN MAIN.asm
 F2M_3061S15:        117E DEFINED AT LINE 39
                     > USED AT LINE 35
 F3:                 117F DEFINED AT LINE 32
-                    > USED AT LINE 870 IN MAIN.asm
+                    > USED AT LINE 868 IN MAIN.asm
 F3M_3063S18:        118A DEFINED AT LINE 39
                     > USED AT LINE 35
 F4:                 118B DEFINED AT LINE 32
-                    > USED AT LINE 872 IN MAIN.asm
+                    > USED AT LINE 870 IN MAIN.asm
 F4M_3065S21:        1196 DEFINED AT LINE 39
                     > USED AT LINE 35
 TESTSSTART:         1200 DEFINED AT LINE 25
