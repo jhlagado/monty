@@ -757,13 +757,19 @@ This code continues to repeat until 10 is reached and terminates
 0 1 2 3 4 5 6 7 8 9
 ```
 
-The /whi operator can appear anywhere in the loop body.
+The `/whi` operator can appear anywhere in the loop body.
 
 If it appears as the first thing in the loop body then the loop acts like a "while" loop
 i.e. a loop that executes zero or more times, depending on its expression
 
 If it appears later inn the body then the loop behaves like a "do...while" loop
 i.e. a loop which executes its body at least once
+
+Here is a "do...while" style loop
+
+```
+0 i = ( i . i++ i 10 < /whi )^
+```
 
 ### Commands
 
