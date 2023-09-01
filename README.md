@@ -485,7 +485,7 @@ In this example, the variable a is assigned the value 18. The "if...else" operat
 then checks to see if age is greater than or equal to the voting age of 18. If it is,
 then the text "can" is printed to the console. Otherwise, the string "cannot" is printed to the console.
 
-Monty can also use the "select" operator `/sel` to choose between mutiple cases.
+Monty can also use the "select" operator `/sel` to choose between multiple cases.
 
 ```
 key array-of-pairs /sel
@@ -499,7 +499,7 @@ where a "pair" is a number followed by a block. For example:
 
 Here is an example that selects a number 0, 1, 2 or 3 and prints its text name.
 The array of pairs is stored in `A`
-Then we select `2` from the array and execute the orresponding block
+Then we select `2` from the array and execute the corresponding block
 
 ```
 [0 {`zero`} 1 {`one`} 2 {`two`} 3 {`three`}] A =
@@ -715,7 +715,7 @@ surround the code to be repeated.
 ( `hello` )
 ```
 
-However, while the above code declares a loop, it does nothing nore. to run the
+However, while the above code declares a loop, it does nothing more. to run the
 loop we need to use the execute operator `^`. This works the same as executing a
 code block or a function.
 
@@ -921,7 +921,7 @@ _       literal character               -- char
 
 ```
 
-### Licence & credits
+### License & credits
 
 ```
 ; ************************************\*************************************
