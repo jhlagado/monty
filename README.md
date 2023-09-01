@@ -378,17 +378,19 @@ prints `The value of x is 100`
 
 ## String builder
 
-Anything that can be written to the screen can be captured and turned into a string by using Monty's string builder.
+Anything that can be written to the screen can be captured and turned into a string
+by using Monty's string builder.
 
 ```
 234 r =
 123 g =
 89  b =
-/str `red: ` r . `green: ` g . `blue: ` b . /end T =
+/sbb `red: ` r . `green: ` g . `blue: ` b . /sbe T =
 T .s
 ```
 
-Stores `red: 234 green: 123 blue: 89` as a string in variable T. It then prints the string in T
+Stores `red: 234 green: 123 blue: 89` as a string in variable T.
+It then prints the string in T
 
 ## Logical operators
 
@@ -493,15 +495,16 @@ hello 4 5 6
 
 Code blocks are useful when it comes to conditional code in Monty.
 
-The syntax for a Monty IF-THEN-ELSE or "ifte" operator in Monty is:
+The syntax for a Monty IF-THEN-ELSE or "if...else" operator in Monty is:
 
 ```
 condition code-block-then code-block-else ?
 ```
 
-If the condition is true, then code-block-then is evaluated and its value is returned. Otherwise, code-block-else is evaluated and its value is returned.
+If the condition is true, then code-block-then is evaluated and its value is returned.
+Otherwise, code-block-else is evaluated and its value is returned.
 
-Here is an example of a ifte operator in Monty:
+Here is an example of a "if...else" operator in Monty:
 
 ```
 10 x =
@@ -512,9 +515,9 @@ x y > { 'x is greater than y' } { 'y is greater than x' } ? z =
 z .s
 ```
 
-In this example, the variable x is assigned the value 10 and the variable y is assigned the value 20. The ifte operator then checks to see if x is greater than y. If it is, then the string "x is greater than y" is returned. Otherwise, the string "y is greater than x" is returned. The value of the ifte operator is then assigned to the variable z. Finally, the value of z is printed to the console.
+In this example, the variable x is assigned the value 10 and the variable y is assigned the value 20. The "if...else" operator then checks to see if x is greater than y. If it is, then the string "x is greater than y" is returned. Otherwise, the string "y is greater than x" is returned. The value of the "if...else" operator is then assigned to the variable z. Finally, the value of z is printed to the console.
 
-Here is another example of the ifte operator in Monty. This time, instead of creating a string just to print it, the following
+Here is another example of the "if...else" operator in Monty. This time, instead of creating a string just to print it, the following
 code conditionally prints text straight to the console.
 
 ```
@@ -523,7 +526,39 @@ code conditionally prints text straight to the console.
 `This person` a 18 >= {`can`} {`cannot`} ? `vote`
 ```
 
-In this example, the variable a is assigned the value 18. The ifte operator then checks to see if age is greater than or equal to the voting age of 18. If it is, then the text "can" is printed to the console. Otherwise, the string "cannot" is printed to the console.
+In this example, the variable a is assigned the value 18. The "if...else" operator
+then checks to see if age is greater than or equal to the voting age of 18. If it is,
+then the text "can" is printed to the console. Otherwise, the string "cannot" is printed to the console.
+
+Monty can also use the "select" operator `/sel` to choose between mutiple cases.
+
+```
+key array-of-pairs /sel
+```
+
+where a "pair" is a number followed by a block. For example:
+
+```
+100 {`one hundred`}
+```
+
+Here is an example that selects a number 0, 1, 2 or 3 and prints its text name.
+The array of pairs is stored in `A`
+Then we select `2` from the array and execute the orresponding block
+
+```
+[0 {`zero`} 1 {`one`} 2 {`two`} 3 {`three`}] A =
+2 A /sel
+```
+
+In the following example, we have an array of character-block pairs.
+We select the block that matches the associated character.
+
+In this example with select "B" which returns the number 2.
+
+```
+_B [_A {1} _B {2} _C {3}] /sel
+```
 
 ## Functions in Monty
 
@@ -797,6 +832,14 @@ Here is a "do...while" style loop
 /ech    echo                            bool --
 ```
 
+#### Terminal
+
+/cur cursor hide/show bool --
+/cll clear line type -- type 0: to end 1: to start 2: entire line
+/cls clear screen --
+/cmv cursor move x dir -- dir: 0:up 1:down 2:forward 3:back
+/cgo cursor go x y --
+
 #### Loops
 
 ```
@@ -872,7 +915,7 @@ a..z    global variable reference       -- val
 {}      code block
 %a..%z  argument reference
 /rec    recur                           --
-/ret    return                          bool --
+/ret    early return from function      bool --
 /voi    void function return            --
 ```
 
@@ -905,9 +948,9 @@ $       hex number prefix
 ''      string                          -- str*
 _       literal character               -- char
 /sln    string length                   str* -- num
-/str    string begin
-/end    string end                      -- str*
-/sc     string compare                  str* str* -- bool
+/sbb    string builder begin            --
+/sbe    string builder end              -- str*
+/scp    string compare                  str* str* -- bool
 /sln    string length                   str* -- num
 ```
 

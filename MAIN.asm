@@ -725,7 +725,7 @@ command:
     call charTable
     db lsb(command_a_)
     db lsb(command_b_)
-    db 0
+    db lsb(command_c_)
     db lsb(command_d_)
     db lsb(command_e_)
     db lsb(command_f_)
@@ -738,7 +738,7 @@ command:
     db lsb(command_m_)
     db 0
     db lsb(comand_o_)
-    db lsb(command_p_)
+    db 0
     db 0
     db lsb(command_r_)
     db lsb(command_s_)
@@ -754,25 +754,40 @@ command:
 ; 12
 command_a_:
     call cmdTable
-    db "bs"                     ; /abs absolute
+    db "bs"                         ; /abs absolute
     dw absolute
-    db "dr"                     ; /adr address of
+    db "dr"                         ; /adr address of
     dw addrOf
-    db "it"                     ; /ait array iterator
+    db "it"                         ; /ait array iterator
     dw arrayIter
-    db "lc"                     ; /alc mem allocate
+    db "lc"                         ; /alc mem allocate
     dw memAllocate
-    db "ln"                     ; /aln array length
+    db "ln"                         ; /aln array length
     dw arrayLength
     dw 0
     dw error1
 
 command_b_:
     call cmdTable
-    db "ye"                      ; /bye cold reboot
+    db "ye"                         ; /bye cold reboot
     dw coldStart
-    db "yt"                      ; /byt byte mode
+    db "yt"                         ; /byt byte mode
     dw byteMode
+    dw 0
+    dw error1
+
+command_c_:
+    call cmdTable
+    db "ll"                         ; /cll clear screen
+    dw clearLine
+    db "ls"                         ; /cls clear screen
+    dw clearScreen
+    db "mv"                         ; /cmv cursor move 
+    dw cursorMove
+    db "ur"                         ; /cur cursor show
+    dw cursorShow
+    db "go"                         ; /cur cursor go
+    dw cursorGo
     dw 0
     dw error1
 
@@ -787,8 +802,6 @@ command_e_:
     call cmdTable
     db "ch"
     dw echo
-    db "nd"
-    dw stringEnd
     dw 0
     dw error1
 
@@ -848,11 +861,6 @@ comand_o_:
     dw 0
     dw error1
 
-command_p_:
-    call cmdTable
-    dw 0
-    dw error1
-
 command_r_:
     jr command_r
 
@@ -880,7 +888,7 @@ command_default_:
 
 command_r:
     call cmdTable
-    db "c",0                     ; /rc tail call optimisation
+    db "ec"                      ; /rec tail call optimisation
     dw recur
     db "em"                      ; /rem remainder
     dw remain
@@ -893,6 +901,10 @@ command_r:
 
 command_s:    
     call cmdTable
+    db "bb"                         ; /sbb string builder begin 
+    dw stringBegin                  ; /sbe string builder end
+    db "be"
+    dw stringEnd
     db "cn"                         ; /scn scan stream
     dw scan1
     db "cp"                         ; /scp string compare
@@ -905,8 +917,6 @@ command_s:
     dw stringLength
     db "rc"                         ; /src source block* --
     dw source
-    db "tr"                         ; /str start building string
-    dw stringBegin
     dw 0
     dw error1
 
@@ -1197,13 +1207,15 @@ select2:
     pop bc
     jp (ix)
 
-; /str
+; /sbb
+; --
 stringBegin:
     ld hl,TRUE                  ; string mode = true
     ld (vStrMode),hl
-    jr stringEnd1              ; save hl in vBufPtr
+    jr stringEnd1               ; save hl in vBufPtr
 
-; /end 
+; /sbe
+; -- str*
 stringEnd:
     ld hl,FALSE                 ; string mode = false
     ld (vStrMode),hl
@@ -1299,6 +1311,58 @@ xor1:
     ld h,a        
     jp add3    
 
+; /cll clear line
+; num --
+clearLine:
+    pop hl
+    ld a,l
+    and $03
+    call ansiClearLine
+    jp (ix)
+
+; /cls clear screen
+; --
+clearScreen:
+    call ansiClearScreen
+    jp (ix)
+    
+; /cmu cursor move
+; x dir --
+cursorMove:
+    pop hl
+    ld a,l
+    and $03
+    add a,"A"
+    ld h,a
+    pop de
+    ld l,e
+    call ansiMove
+cursorMove1:
+    jp (ix)
+
+; /cur cursor hide / show
+; bool --
+cursorShow:
+    pop hl
+    inc hl
+    ld a,l
+    or h
+    ld a,'h'
+    jr z,cursorShow1
+    ld a,'l'
+cursorShow1:
+    call ansiCursorShow
+    jp (ix)
+
+; /cur cursorGo
+; row column --
+cursorGo:
+    pop de
+    pop hl
+    ld h,d
+    call ansiGoto
+    jp (ix)
+
 ;*******************************************************************
 ; Monty implementations
 ;*******************************************************************
@@ -1317,7 +1381,7 @@ db        "%s %L0; +="              ; inc value of index by step
 db        "1%t!=/ret"                ; break if type != 0
 db        "%L2;^"                   ; ifte: inrange_test?
 db          "{%a 1}{/fal %L1;= 0 2}"  ; ifte: /tru index, /fal active = false, quit
-db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
+db          "? %k/rec"              ; ifte: send to sink note: /rec recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -1337,7 +1401,7 @@ db        "%L0; ++"                 ; inc value of index
 db        "1%t!=/ret"                ; break if type != 0
 db        "%i %L2; <"               ; ifte: index < size
 db          "{%a%i; 1}{/fal %L1;= 0 2}"  ; ifte: /tru value, /fal active = false, quit
-db          "? %k/rc"              ; ifte: send to sink note: /rc recur      
+db          "? %k/rec"              ; ifte: send to sink note: /rec recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -1358,7 +1422,7 @@ db        "/byt %s%i; /wrd %c="       ; read byte at i, store in c as word
 db        "1%t!=/ret"                ; break if type != 0
 db        "%c 0 !="                 ; ifte: c != NUL ?
 db          "{%c 1}{/fal %L1;= 0 2}"  ; ifte: 1: send c, 2: active = false, send quit
-db          "? %k/rc"              ; ifte: call sink note: /rc recur      
+db          "? %k/rec"              ; ifte: call sink note: /rec recur      
 db      "} 0 %k^"                   ; init sink
 db    "}" 
 db "}" 
@@ -2366,6 +2430,13 @@ putstr:
     ret
 
 ; hl = value
+; de = buffer*
+; a, bc, de, hl destroyed
+formatDec0:    
+    push hl
+    exx
+    pop hl
+; hl = value
 ; de' = buffer*
 ; a, bc, de, hl destroyed
 formatDec:    
@@ -2487,6 +2558,19 @@ printStr:
     inc hl			            ; inc past NUL
     ex (sp),hl		            ; put it back	
     ret
+
+; hl = number to print in decimal
+printNum:
+    ld de,(vBufPtr)             ; de' = buffer* 
+    call formatDec0
+    exx                         ; restore de = buffer*
+    ld a,0                      ; append NUL to buffer
+    ld (de),a
+    inc de                      ; string*++, 
+    ld (vBufPtr),de             ; update buffer* with buffer*'
+    ld hl,BUFFER
+    ld (vBufPtr),hl             ; reset vBufPtr to vHeapPtr
+    jp putstr
 
 init:
     ld hl,titleStr

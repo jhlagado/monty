@@ -7,6 +7,8 @@
     jp start
 
 .include "MAIN.asm"
+.include "ansi.asm"
+
 f1:
 f2:
 f3:
