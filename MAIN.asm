@@ -658,68 +658,13 @@ printDec:
     jr nz,printDec1
     ld h,0
 printDec1:    
-    call printDec2
+    call formatDec
     exx                         ; de = buffer*' bc = IP
     ld a," "                    ; append space to buffer
     ld (de),a
     inc de                      ; string*++, 
     ld (vBufPtr),de             ; update buffer* with buffer*'
     jp dotNext
-
-; hl = value
-; de' = buffer*
-; a, bc, de, hl destroyed
-printDec2:    
-    bit 7,h
-    jr z,printDec3
-    exx
-    ld a,'-'
-    ld (de),a
-    inc de
-    exx
-    xor a  
-    sub l  
-    ld l,a
-    sbc a,a  
-    sub h  
-    ld h,a
-printDec3:        
-    ld c,0                      ; leading zeros flag = false
-    ld de,-10000
-    call printDec4
-    ld de,-1000
-    call printDec4
-    ld de,-100
-    call printDec4
-    ld e,-10
-    call printDec4
-    inc c                       ; flag = true for at least digit
-    ld e,-1
-    call printDec4
-    ret
-printDec4:	     
-    ld b,'0'-1
-printDec5:	    
-    inc b
-    add hl,de
-    jr c,printDec5
-    sbc hl,de
-    ld a,'0'
-    cp b
-    jr nz,printDec6
-    xor a
-    or c
-    ret z
-    jr printDec7
-printDec6:	    
-    inc c
-printDec7:	    
-    ld a,b
-    exx
-    ld (de),a
-    inc de
-    exx
-    ret
 
 ; buffer hex                    37
 ; value --                      
@@ -2418,6 +2363,61 @@ putstr:
     ld a,(hl)
     or a
     jr nz,putstr0
+    ret
+
+; hl = value
+; de' = buffer*
+; a, bc, de, hl destroyed
+formatDec:    
+    bit 7,h
+    jr z,formatDec2
+    exx
+    ld a,'-'
+    ld (de),a
+    inc de
+    exx
+    xor a  
+    sub l  
+    ld l,a
+    sbc a,a  
+    sub h  
+    ld h,a
+formatDec2:        
+    ld c,0                      ; leading zeros flag = false
+    ld de,-10000
+    call formatDec4
+    ld de,-1000
+    call formatDec4
+    ld de,-100
+    call formatDec4
+    ld e,-10
+    call formatDec4
+    inc c                       ; flag = true for at least digit
+    ld e,-1
+    call formatDec4
+    ret
+formatDec4:	     
+    ld b,'0'-1
+formatDec5:	    
+    inc b
+    add hl,de
+    jr c,formatDec5
+    sbc hl,de
+    ld a,'0'
+    cp b
+    jr nz,formatDec6
+    xor a
+    or c
+    ret z
+    jr formatDec7
+formatDec6:	    
+    inc c
+formatDec7:	    
+    ld a,b
+    exx
+    ld (de),a
+    inc de
+    exx
     ret
 
 ; **************************************************************************    
