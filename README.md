@@ -789,11 +789,13 @@ Here is a "do...while" style loop
 
 #### Terminal
 
+```
 /cur cursor hide/show bool --
 /cll clear line type -- type 0: to end 1: to start 2: entire line
 /cls clear screen --
 /cmv cursor move x dir -- dir: 0:up 1:down 2:forward 3:back
 /cgo cursor go x y --
+```
 
 #### Loops
 
