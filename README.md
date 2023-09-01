@@ -718,6 +718,53 @@ Here are some additional things to keep in mind about local variables in functio
 
 ## Loops
 
+A loop in Monty is a represented by a pair of parentheses `(` and `)` which
+surround the code to be repeated.
+
+```
+( `hello` )
+```
+
+However, while the above code declares a loop, it does nothing nore. to run the
+loop we need to use the execute operator `^`. This works the same as executing a
+code block or a function.
+
+```
+( `hello` )^
+```
+
+The above code prints "hello" to the terminal over and over forever. By default
+loops in Monty are endless loops which can
+only be stopped by resetting the Z80 CPU (this will cause a warm reboot in monty).
+
+```
+( `hello` )^
+```
+
+To control how many iterations a loop does we need to use the "while" operator `/whi`
+
+```
+0 i = (i 10 < /whi i . i++ )^
+```
+
+The above code initializes the variable `i` to zero and enters the loop.
+It compares i to 10, the result is passed to `/whi`
+If i is greater than or equal to 10 then `/whi` terminates the loop
+otherwise it prints the value of `i` and then increments it
+This code continues to repeat until 10 is reached and terminates
+
+```
+0 1 2 3 4 5 6 7 8 9
+```
+
+The /whi operator can appear anywhere in the loop body.
+
+If it appears as the first thing in the loop body then the loop acts like a "while" loop
+i.e. a loop that executes zero or more times, depending on its expression
+
+If it appears later inn the body then the loop behaves like a "do...while" loop
+i.e. a loop which executes its body at least once
+
 ### Commands
 
 #### Conditional code
@@ -857,7 +904,6 @@ _       literal character               -- char
 /sc     string compare                  str* str* -- bool
 /sln    string length                   str* -- num
 ```
-
 
 #### Misc
 
