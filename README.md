@@ -902,7 +902,6 @@ $       hex number prefix
 ```
 ''      string                          -- str*
 _       literal character               -- char
-/sln    string length                   str* -- num
 /sbb    string builder begin            --
 /sbe    string builder end              -- str*
 /scp    string compare                  str* str* -- bool
