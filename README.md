@@ -770,33 +770,6 @@ Here is a "do...while" style loop
 /sel    select                          key array* --
 ```
 
-#### Input & Output
-
-```
-.       print number                    num --
-.c      print character                 char --
-.s      print string                    str* --
-.a      print array                     arr* --
-``      print literal string            --
-,       input number                    -- num
-,c      input char                      -- char
-,s      input string                    -- str*
-
-/in     input                           -- num
-/out    output                          num port --
-/ech    echo                            bool --
-```
-
-#### Terminal
-
-```
-/cur cursor hide/show bool --
-/cll clear line type -- type 0: to end 1: to start 2: entire line
-/cls clear screen --
-/cmv cursor move x dir -- dir: 0:up 1:down 2:forward 3:back
-/cgo cursor go x y --
-```
-
 #### Loops
 
 ```
@@ -876,19 +849,6 @@ a..z    global variable reference       -- val
 /voi    void function return            --
 ```
 
-#### Streams
-
-```
-/ait    array iterator                  arr* -- src*
-/for    for each                        func* -- src*
-/ftr    filter                          src* func* -- src*
-/src    source                          blk* -- src*
-/map    map                             src* func* -- src*
-/rng    range src                       start end step -- src*
-/scn    scan stream                     src* init rfunc* -- src*
-/sit    string iterator                 str* -- src*
-```
-
 #### Numbers
 
 ```
@@ -908,6 +868,46 @@ _       literal character               -- char
 /sbe    string builder end              -- str*
 /scp    string compare                  str* str* -- bool
 /sln    string length                   str* -- num
+```
+
+#### Input & Output
+
+```
+.       print number                    num --
+.c      print character                 char --
+.s      print string                    str* --
+.a      print array                     arr* --
+``      print literal string            --
+,       input number                    -- num
+,c      input char                      -- char
+,s      input string                    -- str*
+
+/in     input                           -- num
+/out    output                          num port --
+/ech    echo                            bool --
+```
+
+#### Terminal
+
+```
+/cur    cursor hide/show                bool --
+/cll    clear line                      type --     where type = 0:to end 1:to start 2:entire line
+/cls    clear screen                    --
+/cmv    cursor move                     x dir --    where dir = 0:up 1:down 2:forward 3:back
+/cgo    cursor go                       x y --
+```
+
+#### Streams
+
+```
+/ait    array iterator                  arr* -- src*
+/for    for each                        func* -- src*
+/ftr    filter                          src* func* -- src*
+/src    source                          blk* -- src*
+/map    map                             src* func* -- src*
+/rng    range src                       start end step -- src*
+/scn    scan stream                     src* init rfunc* -- src*
+/sit    string iterator                 str* -- src*
 ```
 
 #### Misc
