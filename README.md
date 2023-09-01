@@ -2,51 +2,6 @@
 
 _I'd like to have an argument, please._
 
-Introduction
-
-What is Monty?
-
-Monty syntax and conventions
-
-- Reverse Polish Notation (RPN)
-- Numbers in Monty
-  - Decimal numbers
-  - Hexadecimal numbers
-  - Formatting numbers
-- Basic arithmetic operations
-- Variables and variable assignment
-- Input and output functions
-
-Control Flow in Monty
-
-- Conditional code (?, /sel)
-- Loops (() and /whi)
-- Higher-order functions and functions (, {}, %, ^)
-
-Data Structures
-
-- Arrays ([] and ;)
-- Strings (', \_, /sit, /sln, /str, /end, /ss)
-- Basic operations on arrays and strings
-
-Monty's Built-in Commands
-
-- Logical operations
-  (!, !=, ==, >, >=, <, <=, &, |, /xor, /tru, /fal)
-- Arithmetic operations
-  (/, \*, +, -, /abs, /rem)
-- Variables and variable operations
-  (=, +=, ++, --, /adr, A..Z, a..z)
-- Functions and function expressions (, {}, %, ^, /rc, /ret)
-
-Advanced Monty Programming
-
-- Lexical scoping and variable visibility
-- Working with multiple files and modules
-- Error handling and debugging techniques
-- Best practices for writing efficient Monty code
-- Using Monty for real-world applications
-
 ## What is Monty?
 
 Monty is a minimalist character-based interpreter but one which aims at fast performance,
