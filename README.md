@@ -515,6 +515,61 @@ In this example with select "B" which returns the number 2.
 _B [_A {1} _B {2} _C {3}] /sel
 ```
 
+## Loops
+
+A loop in Monty is a represented by a pair of parentheses `(` and `)` which
+surround the code to be repeated.
+
+```
+( `hello` )
+```
+
+However, while the above code declares a loop, it does nothing more. to run the
+loop we need to use the execute operator `^`. This works the same as executing a
+code block or a function.
+
+```
+( `hello` )^
+```
+
+The above code prints "hello" to the terminal over and over forever. By default
+loops in Monty are endless loops which can
+only be stopped by resetting the Z80 CPU (this will cause a warm reboot in monty).
+
+```
+( `hello` )^
+```
+
+To control how many iterations a loop does we need to use the "while" operator `/whi`
+
+```
+0 i = (i 10 < /whi i . i++ )^
+```
+
+The above code initializes the variable `i` to zero and enters the loop.
+It compares i to 10, the result is passed to `/whi`
+If i is greater than or equal to 10 then `/whi` terminates the loop
+otherwise it prints the value of `i` and then increments it
+This code continues to repeat until 10 is reached and terminates
+
+```
+0 1 2 3 4 5 6 7 8 9
+```
+
+The `/whi` operator can appear anywhere in the loop body.
+
+If it appears as the first thing in the loop body then the loop acts like a "while" loop
+i.e. a loop that executes zero or more times, depending on its expression
+
+If it appears later inn the body then the loop behaves like a "do...while" loop
+i.e. a loop which executes its body at least once
+
+Here is a "do...while" style loop
+
+```
+0 i = ( i . i++ i 10 < /whi )^
+```
+
 ## Functions in Monty
 
 In Monty functions are anonymous and can be called directly or assigned to variables.
@@ -706,219 +761,328 @@ Here are some additional things to keep in mind about local variables in functio
 - Local variables are only accessible within the scope of the function.
 - Local variables can be overwritten within the scope of the function.
 
-## Loops
+## Stream processing
 
-A loop in Monty is a represented by a pair of parentheses `(` and `)` which
-surround the code to be repeated.
+Monty uses lexical scoping to build closures which can be used in a maner similar to [object oriented programming](http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html). The result is that Monty can be used in [reactive programming](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 
-```
-( `hello` )
-```
+Reactive pipelines are start with a source of data, i.e. key presses, events, number generators, arrays, strings etc
 
-However, while the above code declares a loop, it does nothing more. to run the
-loop we need to use the execute operator `^`. This works the same as executing a
-code block or a function.
+A simple example of a source is `/rng` (i.e a range). A range has a start, an end and a step and when connected to a "sink", produces a sequence of numbers. This computation is said to be "lazy" because if the sink is not asking for numbers the source does not run.
 
-```
-( `hello` )^
-```
+The simplest kind of sink is a `/for` (i.e. a for each sink). The sink asks for data from its source and for each item of data it calls a function with one argument.
 
-The above code prints "hello" to the terminal over and over forever. By default
-loops in Monty are endless loops which can
-only be stopped by resetting the Z80 CPU (this will cause a warm reboot in monty).
+In this example we have a range running for 0 (inclusive) to 10 (exclusive) with a step increment of 1. The for each sink asks for data and calls a function which prints it.
 
 ```
-( `hello` )^
+0 10 1 /rng \a{ %a . } /for
 ```
 
-To control how many iterations a loop does we need to use the "while" operator `/whi`
-
-```
-0 i = (i 10 < /whi i . i++ )^
-```
-
-The above code initializes the variable `i` to zero and enters the loop.
-It compares i to 10, the result is passed to `/whi`
-If i is greater than or equal to 10 then `/whi` terminates the loop
-otherwise it prints the value of `i` and then increments it
-This code continues to repeat until 10 is reached and terminates
+this prints
 
 ```
 0 1 2 3 4 5 6 7 8 9
 ```
 
-The `/whi` operator can appear anywhere in the loop body.
-
-If it appears as the first thing in the loop body then the loop acts like a "while" loop
-i.e. a loop that executes zero or more times, depending on its expression
-
-If it appears later inn the body then the loop behaves like a "do...while" loop
-i.e. a loop which executes its body at least once
-
-Here is a "do...while" style loop
+Ranges can also count down with negative step values
 
 ```
-0 i = ( i . i++ i 10 < /whi )^
+10 0 -1 /rng \a{ %a . } /for
 ```
 
-### Commands
+prints the following to the terminal
+
+```
+9 8 7 6 5 4 3 2 1 0
+```
+
+Sources can come from data sources in memory. For example here is a array iterator data source
+
+```
+[10 20 30] /ait \a{ %a . } /for
+```
+
+This prints the following
+
+```
+10 20 30
+```
+
+Here is a string iterator data source
+
+```
+'hello there!' /sit \a{ %a .c} /for
+```
+
+which prints out the following characters in a string.
+
+```
+hello  there!
+```
+
+Sources don't have to be static data but can be events that occur in realtime.
+This source executes a code block which reads key presses from the keyboard
+
+```
+{ /key } /src \a{ %a .c} /for
+```
+
+The connection between a source and sink can be intercepted and changed by a stream operator.
+
+Here is a `/map` (i.e. map operator). A map takes a data source and transforms it by passing it through a function with a single input and which returns a single result.
+
+Below is a range source being mapped with a function which adds 1 to each data item and then multiples that by 10.
+
+```
+0 10 1 /rng \a{ %a 1 + 10 * } /map \a{ %a . } /for
+```
+
+The result goes to the sink which prints out.
+
+```
+10 20 30 40 50 60 70 80 90 100
+```
+
+A filter stream operator `\flt` only allows data which passes a test to pass from the source to the sink.
+
+The following range generates numbers from 0 to 9 however the filter function only returns true for values less than three.
+
+```
+0 10 1 /rng \a{ %a 3 < } /ftr \a{ %a . } /for
+```
+
+So the following is printed
+
+```
+0 1 2
+
+```
+
+operators can be concatenated
+
+```
+0 10 1 /rng \a{ %a 3 < } /ftr \a{ %a 1 + 10 \* } /map \a{ %a . } /for
+```
+
+And this prints
+
+```
+10 20 30
+```
+
+A scan operator `/scn` takes two arguments, an initial value (e.g. 0) and a function with two arguments and a single return value. In this example the function that the initial value (passed in %d) and the source data item and adds them together.
+
+```
+0 10 1 /rng 0 \da{ %d %a + } /scn \a{ %a . } /for
+```
+
+So for the range 0 to 9, the scan operator adds the items together
+
+```
+0 1 3 6 10 15 21 28 36 45
+```
+
+The following example filters the stream
+
+```
+0 10 1 /rng 0 \da{ %d %a + } /scn \a{ %a 24 < }/ftr \a{ %a . } /for
+```
+
+to only print results below 24
+
+```
+0 1 3 6 10 15 21
+```
+
+### Command summary
 
 #### Conditional code
 
 ```
-?       if..then..else                  bool blk1* blk2* ? --
-/sel    select                          key array* --
+
+? if..then..else bool blk1* blk2* ? --
+/sel select key array\* --
+
 ```
 
 #### Loops
 
 ```
-()      loop                            --
-/whi    while                           bool --
+
+() loop --
+/whi while bool --
+
 ```
 
 #### Arithmetic
 
 ```
-/       division                        num num -- num
-*       multiplication                  num num -- num
-+       addition                        num num -- num
+
+/ division num num -- num
+
+-       multiplication                  num num -- num
+
+*       addition                        num num -- num
+
 -       subtraction                     num num -- num
-/abs    absolute                        num -- num
-/rem    remainder                       -- num
-/max    maximum                         num num -- num
-/min    minimum                         num num -- num
+  /abs absolute num -- num
+  /rem remainder -- num
+  /max maximum num num -- num
+  /min minimum num num -- num
+
 ```
 
 #### Logical
 
 ```
-!       not                             num -- num
-!=      not equal                       num num -- bool
-==      equal                           num num -- bool
+
+! not num -- num
+!= not equal num num -- bool
+== equal num num -- bool
+
 >       greater than                    num num -- bool
->=      greater than or equal           num num -- bool
-<       less than                       num num -- bool
-<=      less than or equal              num num -- bool
-&       bitwise and                     num num -- num
-|       bitwise or                      num num -- num
-~       bitwise invert                  num -- num
-/xor    bitwise exclusive or            num num -- num
-/tru    true                            -- bool
-/fal    false                           -- bool
+>
+> = greater than or equal num num -- bool
+> < less than num num -- bool
+> <= less than or equal num num -- bool
+> & bitwise and num num -- num
+> | bitwise or num num -- num
+> ~ bitwise invert num -- num
+> /xor bitwise exclusive or num num -- num
+> /tru true -- bool
+> /fal false -- bool
+
 ```
 
 #### Variables
 
 ```
-=       assign                          val --
-+=      increment var by                num var --
-++      increment var by 1              var --
--=      decrement var by                num var --
---      decrement var by 1              var --
-+=      multiply var by                 num var --
-/=      divide var by                   num var --
-*=      multiplication                  num var --
-&=      bitwise and var by              num var --
-|=      bitwise or var by               num var --
-/xor=   bitwise xor var by              num var --
-~=      bitwise invert var              var --
 
-A..Z    global variable reference       -- val
-a..z    global variable reference       -- val
-/adr     addr of                        char -- *
+= assign val --
++= increment var by num var --
+++ increment var by 1 var --
+-= decrement var by num var --
+-- decrement var by 1 var --
++= multiply var by num var --
+/= divide var by num var --
+\*= multiplication num var --
+&= bitwise and var by num var --
+|= bitwise or var by num var --
+/xor= bitwise xor var by num var --
+~= bitwise invert var var --
+
+A..Z global variable reference -- val
+a..z global variable reference -- val
+/adr addr of char -- \*
+
 ```
 
 #### Arrays
 
 ```
-[]      array declaration               -- arr*
-;       array index                     arr* num -- num
-**      array spread                    arr* -- item1 item2 ... itemN
-/aln    array length                    arr* -- num
+
+[] array declaration -- arr*
+; array index arr* num -- num \*_ array spread arr_ -- item1 item2 ... itemN
+/aln array length arr\* -- num
+
 ```
 
 #### Functions
 
 ```
-\       function begin
-{}      code block
-%a..%z  argument reference
-/rec    recur                           --
-/ret    early return from function      bool --
-/voi    void function return            --
+
+\ function begin
+{} code block
+%a..%z argument reference
+/rec recur --
+/ret early return from function bool --
+/voi void function return --
+
 ```
 
 #### Numbers
 
 ```
-$       hex number prefix
-/wrd    word mode                       --
-/byt    byte mode                       --
-/dec    decimal base                    --
-/hex    hexadecimal base                --
+
+$ hex number prefix
+/wrd word mode --
+/byt byte mode --
+/dec decimal base --
+/hex hexadecimal base --
+
 ```
 
 #### Strings
 
 ```
-''      string                          -- str*
-_       literal character               -- char
-/sbb    string builder begin            --
-/sbe    string builder end              -- str*
-/scp    string compare                  str* str* -- bool
-/sln    string length                   str* -- num
+
+'' string -- str*
+\_ literal character -- char
+/sbb string builder begin --
+/sbe string builder end -- str*
+/scp string compare str* str* -- bool
+/sln string length str\* -- num
+
 ```
 
 #### Input & Output
 
 ```
-.       print number                    num --
-.c      print character                 char --
-.s      print string                    str* --
-.a      print array                     arr* --
-``      print literal string            --
-,       input number                    -- num
-,c      input char                      -- char
-,s      input string                    -- str*
 
-/in     input                           -- num
-/out    output                          num port --
-/ech    echo                            bool --
+. print number num --
+.c print character char --
+.s print string str* --
+.a print array arr* --
+`` print literal string --
+, input number -- num
+,c input char -- char
+,s input string -- str\*
+
+/in input -- num
+/out output num port --
+/ech echo bool --
+
 ```
 
 #### Terminal
 
 ```
-/cur    cursor hide/show                bool --
-/cll    clear line                      type --     where type = 0:to end 1:to start 2:entire line
-/cls    clear screen                    --
-/cmv    cursor move                     x dir --    where dir = 0:up 1:down 2:forward 3:back
-/cgo    cursor go                       x y --
-```
 
-#### Streams
+/cur cursor hide/show bool --
+/cll clear line type -- where type = 0:to end 1:to start 2:entire line
+/cls clear screen --
+/cmv cursor move x dir -- where dir = 0:up 1:down 2:forward 3:back
+/cgo cursor go x y --
 
 ```
-/ait    array iterator                  arr* -- src*
-/for    for each                        func* -- src*
-/ftr    filter                          src* func* -- src*
-/src    source                          blk* -- src*
-/map    map                             src* func* -- src*
-/rng    range src                       start end step -- src*
-/scn    scan stream                     src* init rfunc* -- src*
-/sit    string iterator                 str* -- src*
+
+#### Stream processing
+
+```
+
+/ait array iterator arr* -- src*
+/for for each func* -- src*
+/ftr filter src* func* -- src*
+/src source blk* -- src*
+/map map src* func* -- src*
+/rng range src start end step -- src*
+/scn scan stream src* init rfunc* -- src*
+/sit string iterator str* -- src*
+
 ```
 
 #### Misc
 
 ```
-^       execute                         blk* | func* | loop* --
-/bye    cold start                      --
-/var    pointer to system vars          -- *
-/alc    memory allocate                 num -- *
-/fre    free memory                     * --
-/fra    free memory array               * --
+
+^ execute blk* | func* | loop* --
+/bye cold start --
+/var pointer to system vars -- *
+/alc memory allocate num -- _
+/fre free memory _ --
+/fra free memory array \* --
 
 ```
 
+```
+
+```
