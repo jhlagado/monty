@@ -2,6 +2,46 @@
 
 _I'd like to have an argument, please._
 
+## Table of contents
+
+- [What is Monty?](#what-is-monty)
+- [Reverse Polish Notation (RPN)](#reverse-polish-notation-rpn)
+- [Numbers in Monty](#numbers-in-monty)
+  - [Decimal numbers](#decimal-numbers)
+  - [Hexadecimal numbers](#hexadecimal-numbers)
+  - [Formatting numbers](#formatting-numbers)
+- [Basic arithmetic operations](#basic-arithmetic-operations)
+- [Variables and Variable Assignment](#variables-and-variable-assignment)
+- [Arithmetic assignment Operators](#arithmetic-assignment-operators)
+- [Arrays](#arrays)
+- [Data width](#data-width)
+- [Characters](#characters)
+- [Strings](#strings)
+  - [Printing values](#printing-values)
+  - [String builder](#string-builder)
+- [Logical operators](#logical-operators)
+  - [Boolean values](#boolean-values)
+  - [Bitwise logical operators](#bitwise-logical-operators)
+- [Code blocks](#code-blocks)
+  - [Storing code blocks](#storing-code-blocks)
+  - [Executing code blocks](#executing-code-blocks)
+- [Conditional code](#conditional-code)
+  - [If-then-else statements](#if-then-else-statements)
+  - [Select statements](#select-statements)
+- [Loops](#loops)
+  - [Endless loops](#endless-loops)
+  - [Controlling loop iterations](#controlling-loop-iterations)
+- [Functions in Monty](#functions-in-monty)
+  - [Basic Function Syntax](#basic-function-syntax)
+  - [Function with Multiple Arguments](#function-with-multiple-arguments)
+  - [Calling functions](#calling-functions)
+  - [Assigning Functions to Variables](#assigning-functions-to-variables)
+  - [Using Functions](#using-functions)
+  - [Higher-Order Functions](#higher-order-functions)
+  - [Lexical Scoping](#lexical-scoping)
+- [Stream processing](#stream-processing)
+- [Command summary](#command-summary)
+
 ## What is Monty?
 
 Monty is a minimalist character-based interpreter but one which aims at fast performance,
@@ -761,7 +801,7 @@ Here are some additional things to keep in mind about local variables in functio
 - Local variables are only accessible within the scope of the function.
 - Local variables can be overwritten within the scope of the function.
 
-## Stream processing
+### Stream processing
 
 Monty uses lexical scoping to build closures which can be used in a maner similar to [object oriented programming](http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html). The result is that Monty can be used in [reactive programming](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 
