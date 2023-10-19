@@ -41,6 +41,19 @@ _I'd like to have an argument, please._
   - [Lexical Scoping](#lexical-scoping)
 - [Stream processing](#stream-processing)
 - [Command summary](#command-summary)
+  - [Conditional code](#conditional-code)
+  - [Loops](#loops)
+  - [Arithmetic](#arithmetic)
+  - [Logical](#logical)
+  - [Variables](#variables)
+  - [Arrays](#arrays)
+  - [Functions](#functions)
+  - [Numbers](#numbers)
+  - [Strings](#strings)
+  - [Input & Output](#input-&-output)
+  - [Terminal](#terminal)
+  - [Stream processing](#stream-processing)
+  - [Misc](#misc)
 
 ## What is Monty?
 
